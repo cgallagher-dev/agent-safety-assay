@@ -1,0 +1,50 @@
+[project]
+name = "safety-assay"
+version = "0.1.0.dev0"
+description = "Capability-conditioned safety evaluation for small LLM agents"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Charlie Gallagher" }]
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    # Exact pins: the grader shape tables and benchmark patches are checked
+    # against this AgentHarm source, so an upgrade is a deliberate audit.
+    "inspect-ai==0.3.277",
+    "inspect-evals==0.23.0",
+    "pydantic>=2.10",
+]
+
+[project.scripts]
+assay = "assay.cli:main"
+
+[project.urls]
+Repository = "https://github.com/cgallagher-dev/safety-assay"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4",
+    "ruff>=0.13",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/assay"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
