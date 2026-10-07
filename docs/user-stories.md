@@ -45,7 +45,8 @@ Must, M2. FR5.
 ### US-04 Resume an interrupted run
 As an evaluator, I want a stopped run to continue where it left off, so that a
 long 27B run is not lost to one interruption.
-- Re-running the same command skips completed samples.
+- `assay run --resume <results>` skips completed samples and keeps the run
+  id.
 - Benign runs before harmful for each configuration and repeat.
 - Each sample starts with fresh agent and tool state.
 
@@ -228,8 +229,8 @@ Could, M3. FR28.
 As a researcher, I want every run to record its versions, model digest,
 profile, judge and settings, so that results can be reproduced and are never
 mixed by accident.
-- `run_config.json` with a fingerprint; reports refuse to combine mismatched
-  fingerprints and name the differing fields.
+- `run_config.json` holds the run id and every setting; reports show the run
+  id and refuse to combine runs whose settings differ, naming the differences.
 - The sampling settings in force and each repeat's seed are recorded; API keys
   never are.
 

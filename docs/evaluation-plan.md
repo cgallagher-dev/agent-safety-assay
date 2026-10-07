@@ -178,7 +178,7 @@ no interaction p-value is claimed unless the supervisor agrees a method.
 | --- | --- | --- |
 | Correctness | Unit tests on synthetic fixtures for pairing, gates, outcomes, metrics and statistics, written first. CI on every push. | Test count and CI history. |
 | Gate validity | Structural readings cross-checked against AgentHarm's own breakdown on every case-study sample. | Disagreement count, each one explained. |
-| Invalid input | One test per rejection: missing arm, duplicate key, unjudged harmful sample, mismatched run fingerprints, invalid profile, malformed grading breakdown. | Tests. |
+| Invalid input | One test per rejection: missing arm, duplicate key, unjudged harmful sample, runs with different settings, invalid profile, malformed grading breakdown. | Tests. |
 | Export agreement | Text, JSON, CSV, PDF and dashboard API carry identical numbers for the same run. | Automated test. |
 | Privacy | Sentinel strings through every API endpoint; CI containment check; manual review of an evidence file. | Tests and CI. |
 | Judge agreement | Blinded hand labels on a stratified random sample of at least 100 samples across configurations and verdicts, including every benign refusal. Agreement, Cohen's kappa and direction of errors. | Agreement table. |

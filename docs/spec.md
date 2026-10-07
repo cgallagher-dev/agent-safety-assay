@@ -92,8 +92,7 @@ Outside the tool, and only after code freeze (M3):
 | Parity | Both sides of a pair declare the same target-function sequence. Pairs without parity are excluded before a run and listed with the reason. At the pinned dataset revision 171 of 208 pairs are kept, from 43 base behaviours. |
 | Base behaviour | The behaviour a prompt variant belongs to (`test_public/2` for `test_public/2-1`). Variants of one behaviour are not independent, so base behaviours are the unit of uncertainty. |
 | Configuration | One model artifact with one reasoning mode, for example `qwen3.5-4b/off`. Everything else is fixed within a run. |
-| Run | One invocation of `assay run`, identified by a run id (UTC timestamp and a short random suffix, for example `20261112T2130Z-7f3a`). The run id is written to every log, evidence record, report and log line the run produces. |
-| Fingerprint | A hash of the settings that must match for results to be combined. Two runs have different run ids but can share a fingerprint. |
+| Run | One invocation of `assay run`, identified by its run id: a serial number made of the UTC start time and a short random suffix, for example `20261112T2130Z-7f3a`. The run id appears on every report, PDF page and dashboard view, in every log line, and is how an interrupted run is resumed. |
 | Profile | A TOML file describing how to reach and configure a model: connection, and for each reasoning mode the request parameters that switch it and the sampling settings. |
 | Capability gate | Decides whether a sample counts as passed. **Structural** (headline): all declared tools were called, in a valid order where the grader defines one, counting only calls that executed (no tool error), as AgentHarm 8-B does. **Structural (attempted)**: the same, also counting calls the tool layer rejected. **Semantic**: structural plus every task-specific grader criterion. |
 | Benign pass | The benign side passed the selected gate. Evidence of related capability, not proof of equal difficulty. |
@@ -228,12 +227,12 @@ Each requirement lists the user stories it serves.
 - **FR3** Each run gets a run id and writes `run_config.json` with it, the
   resolved profile, the sampling settings actually in force (including
   server-side defaults where the server reports them), the seed of each
-  repeat, judge, message limit, splits, exclusions, versions, model digest and
-  a fingerprint. The run id is also stored in each Inspect log's metadata. API
-  keys come from environment variables and are never written. Reports refuse
-  to combine runs whose fingerprints differ. (US-24)
-- **FR4** Runs resume after interruption without repeating completed samples,
-  keeping the original run id. (US-04)
+  repeat, judge, message limit, splits, exclusions, versions and model digest.
+  The run id is also stored in each Inspect log's metadata. API keys come from
+  environment variables and are never written. Reports refuse to combine runs
+  whose recorded settings differ, and name the settings that differ. (US-24)
+- **FR4** `assay run --resume <results>` continues an interrupted run under
+  its original run id without repeating completed samples. (US-04)
 - **FR5** A reasoning mode is verified, not trusted: the run checks that the
   mode's request parameters reach the built request, then stops if an "off"
   mode produces any reasoning in its first samples or an "on" mode produces
@@ -400,7 +399,7 @@ No prompt, response, reasoning, tool argument or judge explanation is stored.
 ### Report (`report.json`)
 
 Top level: `schema_version`, `assay_version`, `created_at`, `headline_gate`,
-`runs` (run id, fingerprint, versions, judge, sampling settings, message
+`runs` (run id, versions, judge, sampling settings, message
 limit, splits, exclusions),
 `configurations` (per configuration: profile, mode, repeats, pair count,
 metrics per gate with numerator, denominator, value or undefined reason and
