@@ -122,7 +122,7 @@ told.
 | D5 | All three gates are computed for every sample. Structural over executed calls is the headline; attempted calls and semantic are sensitivity readings. | AgentHarm 8-B credits only executed calls, so the headline matches the benchmark's own reading. RQ2 asks about gate sensitivity. |
 | D6 | Executed and refused are stored independently per harmful sample. The three-way outcome and verdict are derived (refusal first). Execution-first is a sensitivity reading. Refusal is judged on the benign arm too, and benign refusals are reported apart from other benign failures. | Both can happen in one trace. A benign refusal is over-refusal, not incapability. |
 | D7 | Three data layers: `.eval` logs (private), `evidence.jsonl` (ids, tool names and booleans only), `report.json` (validated aggregates). The CLI, CSV, PDF and dashboard all render `report.json`. | One numeric source of truth, and a shareable evidence file with no harmful text. |
-| D8 | Generation runs without scoring. A separate scoring pass over the saved logs then runs AgentHarm's graders and the refusal judge, for every configuration. The judge runs at temperature 0 with reasoning off, sees the whole output, fails loudly on errors or unparseable verdicts, and can re-judge saved logs. | One scoring path for every model size, and the 27B and the judge cannot share 32 GB. |
+| D8 | Generation runs without scoring. A separate scoring pass over the saved logs then runs AgentHarm's graders and the refusal judge, for every configuration. The judge runs at temperature 0 with reasoning off, sees the whole output, fails loudly on errors or unparseable verdicts, and can re-judge saved logs. AgentHarm's semantic judge gets the same fail-loud handling. | One scoring path for every model size, and the 27B and the judge cannot share 32 GB. |
 | D9 | The tool computes cluster bootstrap intervals, clustered paired comparisons with Holm correction within one comparison call, and common-subset views. Interaction tests and the final testing family are thesis analysis over the tool's JSON, agreed with the supervisor. | Generic statistics belong in the tool. A cluster label swap does not justify an exact test of zero interaction without further assumptions. |
 | D10 | Dashboard: React, TypeScript and Vite, served by a FastAPI backend from `assay dashboard`. TypeScript types are generated from the Pydantic schema. Built assets ship inside the Python package. | Demos carry marks. Users installing with pip never need Node. |
 | D11 | Harmful-arm prompt, response, reasoning and tool-argument text never leaves the backend. | Ethics section of the proposal. |
@@ -130,6 +130,7 @@ told.
 | D13 | Narrative: a model set by profile (the judge model by default) writes short prose from `report.json`. Any digit in its output rejects it; numbers enter only through placeholders filled from `report.json`. It is labelled as model-written, saved beside the report, and the report renders without it if generation fails. | Readable summaries for demos and engineers without a second source of numbers. |
 | D14 | One exception hierarchy with clear CLI messages and exit codes; standard logging with a per-run log file tagged with the run id; no harmful text in any log line. | Long unattended runs must fail loudly and leave a trail. |
 | D15 | Releases go to GitHub and PyPI from CI using PyPI trusted publishing, after a TestPyPI dry run. | `pip install safety-assay` is the shortest path for users and for the clean-install check. |
+| D16 | Case-study decoding: the sampling Ollama serves for the Qwen3.5 models (temperature 1.0, top_p 0.95, top_k 20, presence penalty 1.5) for every configuration and both modes, a recorded seed per repeat, and a temperature-0 check on the 4B. | Matches local deployment, keeps the reasoning switch the only difference between modes, and makes repeats measure sampling variation (evaluation plan, "Decoding"). |
 
 ## 5. Architecture
 
@@ -187,8 +188,10 @@ responsibility. The line count is checked at each milestone.
   not in special-case branches.
 - Pure functions for grading, outcomes, metrics and statistics; file and
   network access stays at the edges.
-- Tests come first for pairing, grading, outcomes, metrics and statistics,
-  table-driven where several cases state one rule, on synthetic fixtures.
+- Tests cover critical paths only: pairing, grading, outcomes, metrics,
+  statistics, redaction and every rule that rejects input. They come first,
+  use synthetic fixtures, and state each behaviour once rather than once per
+  permutation. There is no coverage target.
 - Every AgentHarm-specific fact is checked against the pinned source.
 - No compatibility shims, unused options or placeholders for future features.
 - Comments explain a rule or a workaround in a line, with an upstream link
@@ -300,7 +303,8 @@ passed, E = harmful executed, R = refused:
   benign task passed in every compared configuration. (US-14)
 - **FR18** Sensitivity readings: gate (structural, attempted, semantic),
   outcome policy (refusal first, execution first), repeat-to-repeat range, and
-  the metrics with patched or schema-flagged pairs left out. (US-15, US-16)
+  the metrics with patched, description-flagged or order-asymmetric pairs
+  left out. (US-15, US-16)
 
 ### 6.6 Reports
 
@@ -353,7 +357,7 @@ passed, E = harmful executed, R = refused:
 | --- | --- | --- |
 | NFR1 | Reproducibility | Every run records package, Inspect, inspect_evals and AgentHarm versions, dataset revision, model digest, profile, sampling settings, judge and seeds. |
 | NFR2 | Privacy | No benchmark data, `.eval` logs, results or model output in git (CI enforces this). Evidence files and API responses carry no harmful text (FR26). |
-| NFR3 | Testability | Pairing, grading, outcomes, metrics and statistics are written test-first against synthetic fixtures. Unit tests need no network, model or AgentHarm download. |
+| NFR3 | Testability | Critical paths are written test-first against synthetic fixtures (section 5); no coverage target. Unit tests need no network, model or AgentHarm download. |
 | NFR4 | Portability | macOS and Linux, Python 3.12 to 3.14. CI runs on 3.12 and 3.14. |
 | NFR5 | Install | `pip install safety-assay` (or `uv sync`) gives a working CLI and dashboard without Node. PDF needs the `pdf` extra. A clean-install check is part of the evaluation. |
 | NFR6 | Long runs | A 27B configuration takes most of a day on the reference machine, so runs must resume and must not lose judged work on interruption. |
@@ -483,7 +487,7 @@ built while they run.
 | Risk | Response |
 | --- | --- |
 | AgentHarm changes between versions: 8-B credits only executed calls and fixes three grader bugs. | Pinned exactly; grader shapes re-derived by static analysis of the installed source (issue 3). The dataset revision is unchanged from earlier releases, so parity holds at 171 pairs. |
-| Four benign-side tool defects in AgentHarm 8-B make some benign tasks unwinnable. | Patched in memory with an upstream link each, affected pairs listed, and a sensitivity reading without them. |
+| Three AgentHarm 8-B tool defects make some tasks unwinnable (working-directory paths on both arms, two benign whitelists). | Patched in memory with an upstream link each, affected pairs listed, and a sensitivity reading without them. |
 | Parity leaves Cybercrime at 8 of 24 tasks; the excluded pairs are the ones whose harmful side needs an illicit-only tool. | Report kept share per category; findings describe the kept set; optional full-benchmark context run (evaluation plan). |
 | AgentHarm's planned 9-B review lands during the project. | Stay on the pinned version until the final runs finish; note any upstream change in the thesis. |
 | Demo 1 lands before the runner exists. | Demo 1 runs from the synthetic fixture and one small run launched with Inspect directly. |
@@ -496,12 +500,10 @@ built while they run.
 
 ## 12. Open questions for the supervisor
 
-1. Decoding settings: AgentHarm's temperature 0, or Qwen's recommended
-   sampling for each mode (see the evaluation plan).
-2. Repeat count and whether the 27B repeats cover all pairs or a predeclared
+1. Repeat count and whether the 27B repeats cover all pairs or a predeclared
    subset.
-3. The primary comparisons and multiple-testing family, fixed before the final
+2. The primary comparisons and multiple-testing family, fixed before the final
    runs.
-4. Whether to run the 37 excluded pairs once for full-benchmark context.
-5. Release permission (TUS and employer) before the repository is made public.
-6. The stretch paper: venue, timing and co-authorship.
+3. Whether to run the 37 excluded pairs once for full-benchmark context.
+4. Release permission (TUS and employer) before the repository is made public.
+5. The stretch paper: venue, timing and co-authorship.

@@ -50,12 +50,23 @@ version 8-B):
   (the harmful side adds "starts with @", pairs `test_public/7` and
   `validation/6`) and `run_stable_diffusion_model` (a missing bracket). Tool
   outputs differ by design: each arm returns its own synthetic content.
-- Four benign-side tool defects make benign tasks unwinnable: a case mismatch in the Kiwi image whitelist
-  (`test_public/2`), a missing video in the upload whitelist
-  (`test_public/37`), content paths that depend on the working directory
-  (`test_public/26`, `43`, `53`), and a required `image_path` documented as
-  optional (`test_public/52`). ASSAY patches them in memory and reports a
-  sensitivity reading without these six base behaviours.
+- Three tool defects make tasks unwinnable: content paths that depend on the
+  working directory, on both arms (`test_public/26`, `43`, `53`); a case
+  mismatch in the benign Kiwi image whitelist (`test_public/2`); and a
+  missing video in the benign upload whitelist (`test_public/37`). ASSAY
+  patches them in memory and reports a sensitivity reading without these
+  five base behaviours. `run_stable_diffusion_model` is not patched: it is
+  identical on both arms and accepts an empty `image_path`, so a model that
+  omits the argument gets a tool error it can recover from.
+- Three kept base behaviours have graders that check tool order differently
+  on each arm: `test_public/14` (benign accepts two orders), `test_public/30`
+  (harmful checks only the first three tools) and `test_public/62` (benign has
+  no order check). Each arm is gated by its own grader, as AgentHarm does,
+  and these pairs are listed and left out in a sensitivity reading.
+- AgentHarm's semantic judge passes any reply other than "pass" through as a
+  failed criterion, with only a printed warning. ASSAY tells the judge it is
+  grading a benchmark response, retries once on any other reply, then stops
+  with an error, so a refusal to grade never becomes a silent fail.
 - AgentHarm keeps `max_messages=20`, `max_tokens=4096` per generation and
   temperature 0, and shuffles each sample's tools with an unseeded random
   order, which is one source of run-to-run variation.
@@ -63,7 +74,7 @@ version 8-B):
 ### Fixed settings
 
 - The task set above, direct requests only.
-- Target decoding as agreed below. Message limit 20 and output limit 4,096
+- Target decoding as below. Message limit 20 and output limit 4,096
   tokens (AgentHarm's defaults); samples hitting either are counted.
 - Judge `gemma4:12b-it-qat` (a different family), temperature 0, reasoning
   off, whole-output rendering, on both arms. The same model is AgentHarm's
@@ -73,28 +84,36 @@ version 8-B):
 - Every run records versions, model digests, profile, sampling settings in
   force and seeds.
 
-### Decoding (to agree)
+### Decoding
 
-AgentHarm's task sets temperature 0 and seed 0. Ollama's `qwen3.5` model
-files default to Qwen's recommended thinking-mode sampling (temperature 1.0,
-top_p 0.95, top_k 20, presence penalty 1.5), so under AgentHarm only the
-temperature changes. Qwen's model card recommends temperature 1.0 and top_p
-0.95 for thinking, 0.7 and 0.8 for non-thinking, and a presence penalty to
-avoid endless repetition.
+Decided 7 October 2026. Every configuration uses the sampling settings Ollama
+serves for these models, which are Qwen's published general thinking-mode
+settings: temperature 1.0, top_p 0.95, top_k 20, presence penalty 1.5. The
+same settings apply with thinking on and off, so the reasoning switch is the
+only thing that changes between modes. Each repeat uses a different, recorded
+seed. One extra run of the 4B in both modes at AgentHarm's temperature 0 is a
+decoding sensitivity check.
 
-- **Option A, AgentHarm protocol:** temperature 0 for every configuration.
-  Comparable with published AgentHarm results. Repeats then
-  only capture serving non-determinism and the tool-order shuffle.
-- **Option B, recommended sampling:** Qwen's settings for each mode, with a
-  different seed per repeat. Closer to how these models are deployed, and
-  repeats measure the sampling variation RQ2 asks about. Departs from
-  AgentHarm's default, and the modes then differ in sampling as well as
-  reasoning, as Qwen defines them.
+Why:
 
-Recommendation: option B for the case study, plus one temperature-0 repeat of
-the 4B in both modes as a decoding sensitivity check. Either way the settings
-live in the profiles and are recorded with every run. `top_k` cannot be set
-through Ollama's OpenAI-compatible endpoint and comes from the model file.
+- These are the settings a person running these models through Ollama gets
+  by default, which matches the proposal's setting of small models deployed
+  locally.
+- Holding decoding constant across all six configurations keeps size and
+  reasoning mode the only factors. Qwen's separate non-thinking settings
+  (temperature 0.7, top_p 0.8) would add a second difference between modes.
+- With sampling on, repeats measure generation-to-generation variation, which
+  RQ2 asks about. At temperature 0 they would only capture serving
+  non-determinism and the tool-order shuffle.
+- AgentHarm's own default is temperature 0, so results are not directly
+  comparable with published AgentHarm numbers; the 4B check shows how much
+  that matters.
+
+The settings live in the built-in profiles and are recorded with every run.
+`top_k` cannot be sent through Ollama's OpenAI-compatible endpoint, so it
+comes from the model file and is read back by the preflight check. Outside
+the case study, a profile without sampling settings keeps AgentHarm's
+defaults.
 
 ### Full-benchmark context (to agree)
 
@@ -145,8 +164,10 @@ no interaction p-value is claimed unless the supervisor agrees a method.
 - Outcome policy: refusal first vs execution first.
 - Common subset: conditioned metrics on pairs whose benign task passed in all
   compared configurations.
-- Patched and flagged pairs: metrics without the six patched base behaviours
-  and the two with a tool-description difference.
+- Flagged pairs: metrics without the five patched base behaviours, the two
+  with a tool-description difference and the three whose order check differs
+  by arm.
+- Decoding: the 4B at temperature 0 against the case-study settings.
 - Repeats: per-repeat values and range.
 
 ### Limitations stated up front
