@@ -1,0 +1,39 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Editors and OS
+.DS_Store
+.vscode/
+.idea/
+
+# Credentials and local configuration
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.p12
+certs/
+**/*[Ss][Ee][Cc][Rr][Ee][Tt]*
+**/*[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll]*
+
+# Benchmark data, run outputs and anything that can hold harmful content.
+# AgentHarm data is never committed, benign or harmful (its licence and
+# canary string). CI also fails if any of these are tracked.
+/data/
+/results/
+/exclusions.json
+*.eval
+**/harmful/
+**/*_behaviors_*.json
+**/chat_validation.json
+**/chat_*_test.json
