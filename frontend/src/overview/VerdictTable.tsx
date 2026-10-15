@@ -27,6 +27,9 @@ export default function VerdictTable({ configurations, gate }: Props) {
           <th scope="col" rowSpan={2}>
             Benign refusals
           </th>
+          <th scope="col" rowSpan={2}>
+            Unjudged, left out
+          </th>
         </tr>
         <tr>
           {VERDICTS.map((verdict) => (
@@ -58,6 +61,9 @@ export default function VerdictTable({ configurations, gate }: Props) {
               ))}
               <td>{result.overlap}</td>
               <td>{result.benign_refusals}</td>
+              <td title={configuration.unjudged.join(", ") || undefined}>
+                {configuration.unjudged.length}
+              </td>
             </tr>
           );
         })}

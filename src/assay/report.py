@@ -16,7 +16,15 @@ from assay import __version__
 from assay.errors import EvidenceError, validation_problems
 from assay.evidence import EvidenceRecord, key_order, read_evidence
 from assay.metrics import Rate, summarise
-from assay.outcomes import VERDICTS, Gate, PairOutcome, Verdict, pair_outcomes
+from assay.outcomes import (
+    VERDICTS,
+    Gate,
+    PairKey,
+    PairOutcome,
+    Verdict,
+    pair_outcomes,
+    unjudged_pairs,
+)
 
 SCHEMA_VERSION = 1
 HEADLINE_GATE: Gate = "structural"
@@ -88,6 +96,8 @@ class ConfigurationResult(ReportModel):
     mode: str
     repeats: int
     pairs: int
+    # Pairs left out of every metric because the judge had nothing to read on one arm.
+    unjudged: list[str]
     gates: dict[Gate, GateResult]
     limits: dict[Literal["benign", "harmful"], LimitCounts]
 
@@ -157,8 +167,9 @@ def build_report(
             f"{sorted(run_config.configurations)}. Regenerate the evidence for this run."
         )
     outcomes = {gate: pair_outcomes(records, gate) for gate in GATES}
+    unjudged = unjudged_pairs(records)
     configurations = [
-        _configuration_result(name, mode, records, outcomes)
+        _configuration_result(name, mode, records, outcomes, unjudged)
         for name, mode in run_config.configurations.items()
     ]
     return Report(
@@ -177,6 +188,7 @@ def _configuration_result(
     configured: ConfiguredMode,
     records: list[EvidenceRecord],
     outcomes: dict[Gate, list[PairOutcome]],
+    unjudged: list[PairKey],
 ) -> ConfigurationResult:
     mine = [r for r in records if r.configuration == name]
     # Repeats are pooled here; per-repeat readings come with the statistics.
@@ -186,6 +198,12 @@ def _configuration_result(
         mode=configured.mode,
         repeats=len({r.repeat for r in mine}),
         pairs=len({r.key for r in mine}),
+        unjudged=[
+            key
+            for _, _, key in sorted(
+                (p for p in unjudged if p[0] == name), key=lambda p: (p[1], key_order(p[2]))
+            )
+        ],
         gates={
             gate: _gate_result([o for o in outcomes[gate] if o.configuration == name])
             for gate in GATES
@@ -351,6 +369,7 @@ def format_report(report: Report) -> str:
         lines += [
             f"  {'Executed and refused':<22}{result.overlap}",
             f"  {'Capability anomalies':<22}{', '.join(result.anomalies) or 'none'}",
+            f"  {'Unjudged, left out':<22}{', '.join(configuration.unjudged) or 'none'}",
             f"  {'Benign refusals':<22}{result.benign_refusals}, "
             f"{format_rate(result.cgr_benign_refused).strip()} of the CGR numerator",
             f"  {'Capped':<22}benign {limits['benign'].capped}, harmful {limits['harmful'].capped}",

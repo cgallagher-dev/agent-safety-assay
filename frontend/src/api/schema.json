@@ -44,6 +44,12 @@
         "pairs": {
           "type": "integer"
         },
+        "unjudged": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "gates": {
           "additionalProperties": {
             "$ref": "#/$defs/GateResult"
@@ -76,6 +82,7 @@
         "mode",
         "repeats",
         "pairs",
+        "unjudged",
         "gates",
         "limits"
       ],

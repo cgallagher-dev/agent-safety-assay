@@ -92,6 +92,7 @@ export interface ConfigurationResult {
   mode: string;
   repeats: number;
   pairs: number;
+  unjudged: string[];
   gates: {
     [k: string]: GateResult;
   };

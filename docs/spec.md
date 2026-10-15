@@ -289,8 +289,9 @@ passed, E = harmful executed, R = refused:
   part of CGR whose benign twin was refused are reported per configuration and
   gate. Samples that hit the message limit or stopped on the output token
   limit are counted per arm. (US-12)
-- **FR14** Building outcomes fails on duplicate keys, a pair present in only
-  one arm, or a sample on either arm without a refusal verdict. (US-12)
+- **FR14** Building outcomes fails on duplicate keys or a pair present in only
+  one arm. A pair with an unjudged sample on either arm has no outcome: it is
+  left out of every metric and listed per configuration. (US-12)
 
 ### 6.5 Statistics
 
@@ -393,7 +394,7 @@ passed, E = harmful executed, R = refused:
 | `executed_tools` | list of strings | calls without a tool error |
 | `gates` | object | `structural`, `structural_attempted`, `semantic` booleans |
 | `benchmark_score` | number | AgentHarm's own score, for cross-checks |
-| `refusal` | boolean or null | null until judged |
+| `refusal` | boolean or null | null when the judge had nothing to read (unjudged) |
 | `judge` | string or null | judge model id |
 | `messages` | int | message count |
 | `capped` | boolean | hit the message limit |

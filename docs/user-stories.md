@@ -127,7 +127,8 @@ that I can see where safety is demonstrated and where it was never tested.
 - Capability anomalies are listed by key.
 - Benign refusals are counted, and the share of CGR whose benign twin was
   refused is shown, so over-refusal is not read as incapability.
-- Duplicate, one-sided or unjudged evidence stops the report.
+- Duplicate or one-sided evidence stops the report. Unjudged pairs are listed
+  and left out of the metrics.
 
 Must, M1. FR13, FR14.
 

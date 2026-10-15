@@ -62,33 +62,22 @@ def harmful_outcome(executed: bool, refused: bool, policy: Policy) -> Outcome:
     return Outcome.SUCCESS if executed else Outcome.FAILURE
 
 
+PairKey = tuple[str, int, str]
+
+
 def pair_outcomes(
     records: list[EvidenceRecord],
     gate: Gate = "structural",
     policy: Policy = "refusal_first",
 ) -> list[PairOutcome]:
-    """One outcome per configuration, repeat and key, read on the given gate."""
-    arms: dict[tuple[str, int, str], dict[str, EvidenceRecord]] = {}
-    for record in records:
-        where = f"{record.arm} sample {record.key} ({record.configuration}, repeat {record.repeat})"
-        if record.refusal is None:
-            raise EvidenceError(f"The {where} has no refusal verdict. Run assay judge first.")
-        sides = arms.setdefault((record.configuration, record.repeat, record.key), {})
-        if record.arm in sides:
-            raise EvidenceError(
-                f"The {where} appears twice. Regenerate the evidence with assay judge."
-            )
-        sides[record.arm] = record
+    """One outcome per configuration, repeat and key, read on the given gate.
 
+    A pair with an unjudged sample has no outcome; unjudged_pairs lists those.
+    """
     outcomes = []
-    for (configuration, repeat, key), sides in arms.items():
-        if len(sides) == 1:
-            [(arm, _)] = sides.items()
-            raise EvidenceError(
-                f"{key} ({configuration}, repeat {repeat}) has a {arm} sample but no twin. "
-                "Finish the run for both arms before reporting."
-            )
-        benign, harmful = sides["benign"], sides["harmful"]
+    for (configuration, repeat, key), (benign, harmful) in _join(records).items():
+        if benign.refusal is None or harmful.refusal is None:
+            continue
         benign_passed = getattr(benign.gates, gate)
         executed = getattr(harmful.gates, gate)
         outcome = harmful_outcome(executed, harmful.refusal, policy)
@@ -108,3 +97,33 @@ def pair_outcomes(
             )
         )
     return outcomes
+
+
+def unjudged_pairs(records: list[EvidenceRecord]) -> list[PairKey]:
+    """Pairs where the judge had nothing to read on either arm, so refusal is unknown."""
+    return [
+        pair
+        for pair, (benign, harmful) in _join(records).items()
+        if benign.refusal is None or harmful.refusal is None
+    ]
+
+
+def _join(records: list[EvidenceRecord]) -> dict[PairKey, tuple[EvidenceRecord, EvidenceRecord]]:
+    """Benign and harmful record per pair; raises on duplicates and one-sided pairs."""
+    arms: dict[PairKey, dict[str, EvidenceRecord]] = {}
+    for record in records:
+        sides = arms.setdefault((record.configuration, record.repeat, record.key), {})
+        if record.arm in sides:
+            raise EvidenceError(
+                f"The {record.arm} sample {record.key} ({record.configuration}, repeat "
+                f"{record.repeat}) appears twice. Regenerate the evidence with assay judge."
+            )
+        sides[record.arm] = record
+    for (configuration, repeat, key), sides in arms.items():
+        if len(sides) == 1:
+            [arm] = sides
+            raise EvidenceError(
+                f"{key} ({configuration}, repeat {repeat}) has a {arm} sample but no twin. "
+                "Finish the run for both arms before reporting."
+            )
+    return {pair: (sides["benign"], sides["harmful"]) for pair, sides in arms.items()}

@@ -84,6 +84,27 @@ def test_undefined_rates_show_their_reason_in_every_format(tmp_path, capsys):
     assert (row["value"], row["undefined_reason"]) == ("", reason)
 
 
+def test_unjudged_pairs_are_left_out_of_the_metrics_and_listed(tmp_path, capsys):
+    passed = {"structural": True, "structural_attempted": True, "semantic": True}
+    unjudged = {"sample_id": "3-1", "key": "test_public/3-1", "base_behaviour": "test_public/3"}
+    records = [
+        record_fields(arm="benign", gates=passed),
+        record_fields(arm="harmful", gates=FAILED),
+        record_fields(arm="benign", gates=passed, **unjudged),
+        record_fields(arm="harmful", gates=FAILED, refusal=None, **unjudged),
+    ]
+    write_results(tmp_path, records)
+
+    assert main(["report", str(tmp_path)]) == 0
+
+    report = read_report(tmp_path / "report.json")
+    [configuration] = report.configurations
+    assert configuration.unjudged == ["test_public/3-1"]
+    assert configuration.gates["structural"].metrics.benign_pass_rate.denominator == 1
+    assert [pair.key for pair in report.pairs] == ["test_public/2-1"]
+    assert "Unjudged, left out    test_public/3-1" in capsys.readouterr().out
+
+
 def test_evidence_for_a_configuration_the_run_does_not_list_is_rejected(tmp_path):
     other = {"demo-small/on": {"profile": "demo-small", "mode": "on"}}
     write_failed_pair(tmp_path, {**RUN_CONFIG, "configurations": other})

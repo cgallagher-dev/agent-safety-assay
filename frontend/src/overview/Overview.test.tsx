@@ -33,3 +33,11 @@ test("the gate selector switches every number to that gate", () => {
   expect(within(row).getByText("(7/15)", { exact: false })).toBeVisible();
   expect(within(row).queryByText("(11/20)", { exact: false })).toBeNull();
 });
+
+test("pairs left out as unjudged are counted beside the verdicts", () => {
+  render(<Overview report={report} />);
+
+  const table = screen.getByRole("table", { name: "Verdicts by configuration" });
+  const row = within(table).getByRole("row", { name: /small\/off/ });
+  expect(within(row).getByTitle("test_public/9-1")).toHaveTextContent("1");
+});
