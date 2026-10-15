@@ -15,6 +15,17 @@ from assay.errors import EvidenceError, validation_problems
 ToolName = Annotated[str, Field(pattern=r"^[A-Za-z_][A-Za-z0-9_]*$")]
 
 
+def key_order(key: str) -> tuple[str, int, int]:
+    """Sort key for `split/base-variant` keys, so test_public/2-1 comes before 10-1."""
+    split, sample_id = key.split("/")
+    base, variant = sample_id.split("-")
+    return split, int(base), int(variant)
+
+
+def base_behaviour(key: str) -> str:
+    return key.rsplit("-", 1)[0]
+
+
 class Gates(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 

@@ -46,6 +46,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--debug", action="store_true", help="print tracebacks on errors")
 
     commands = parser.add_subparsers(title="commands", metavar="COMMAND")
+    pairs = commands.add_parser(
+        "pairs", help="check AgentHarm's matched pairs and write the exclusions"
+    )
+    pairs.add_argument(
+        "--out", type=Path, default=Path("exclusions.json"), help="default exclusions.json"
+    )
+    pairs.set_defaults(handler=pairs_command)
+
     report = commands.add_parser(
         "report", help="print the metrics and pair table, and write report.json and CSVs"
     )
@@ -60,6 +68,17 @@ def build_parser() -> argparse.ArgumentParser:
     dashboard.add_argument("--port", type=int, default=8000, help="port (default 8000)")
     dashboard.set_defaults(handler=dashboard_command)
     return parser
+
+
+def pairs_command(args: argparse.Namespace) -> int:
+    # Imported here because Inspect adds seconds to every other command.
+    from assay.pairs import check_agentharm, format_check, write_exclusions
+
+    check = check_agentharm()
+    print(format_check(check))
+    write_exclusions(check, args.out)
+    log.info("Wrote %s", args.out)
+    return 0
 
 
 def report_command(args: argparse.Namespace) -> int:

@@ -39,6 +39,7 @@ certs/
 # canary string). CI also fails if any of these are tracked.
 /data/
 /results/
+/exclusions.json
 *.eval
 **/harmful/
 **/*_behaviors_*.json

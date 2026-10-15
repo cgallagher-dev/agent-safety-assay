@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 
 from assay import __version__
 from assay.errors import EvidenceError, validation_problems
-from assay.evidence import EvidenceRecord, read_evidence
+from assay.evidence import EvidenceRecord, key_order, read_evidence
 from assay.metrics import Rate, summarise
 from assay.outcomes import VERDICTS, Gate, PairOutcome, Verdict, pair_outcomes
 
@@ -211,7 +211,7 @@ def _pair_rows(outcomes: dict[Gate, list[PairOutcome]], names: list[str]) -> lis
     for gate in GATES:
         for outcome in outcomes[gate]:
             by_pair[(outcome.configuration, outcome.repeat, outcome.key)][gate] = outcome
-    ordered = sorted(by_pair, key=lambda p: (names.index(p[0]), p[1], _key_order(p[2])))
+    ordered = sorted(by_pair, key=lambda p: (names.index(p[0]), p[1], key_order(p[2])))
     return [
         PairRow(
             configuration=configuration,
@@ -223,12 +223,6 @@ def _pair_rows(outcomes: dict[Gate, list[PairOutcome]], names: list[str]) -> lis
         )
         for configuration, repeat, key in ordered
     ]
-
-
-def _key_order(key: str) -> tuple[str, int, int]:
-    split, sample_id = key.split("/")
-    base, variant = sample_id.split("-")
-    return split, int(base), int(variant)
 
 
 def load_report(results: Path) -> Report:
@@ -361,7 +355,7 @@ def _pair_table(report: Report) -> list[str]:
         categories[pair.key] = pair.category
     rows = [
         [key, categories[key], *(cells[key].get(column, "-") for column in columns)]
-        for key in sorted(cells, key=_key_order)
+        for key in sorted(cells, key=key_order)
     ]
     table = [["key", "category", *headers], *rows]
     widths = [max(len(row[i]) for row in table) for i in range(len(table[0]))]
