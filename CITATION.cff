@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "If you use ASSAY in your work, please cite it as below."
+title: "ASSAY: capability-conditioned safety evaluation for small LLM agents"
+type: software
+authors:
+  - family-names: Gallagher
+    given-names: Charlie
+license: PolyForm-Noncommercial-1.0.0
+repository-code: "https://github.com/cgallagher-dev/agent-safety-assay"
+abstract: >-
+  ASSAY scores every harmful AgentHarm task beside its matched benign task,
+  which needs the same tool calls, so that agent safety is reported on the
+  tasks a model has shown it can do. It is built on Inspect and Inspect Evals.
+keywords:
+  - AI safety
+  - LLM agents
+  - evaluation
+  - AgentHarm
+references:
+  - type: article
+    title: "AgentHarm: A Benchmark for Measuring Harmfulness of LLM Agents"
+    authors:
+      - family-names: Andriushchenko
+        given-names: Maksym
+      - family-names: Souly
+        given-names: Alexandra
+      - name: "et al."
+    year: 2024
+    url: "https://arxiv.org/abs/2410.09024"
+  - type: software
+    title: "Inspect"
+    authors:
+      - name: "UK AI Security Institute"
+    url: "https://github.com/UKGovernmentBEIS/inspect_ai"
+  - type: software
+    title: "Inspect Evals"
+    authors:
+      - name: "UK AI Security Institute and contributors"
+    url: "https://github.com/UKGovernmentBEIS/inspect_evals"
