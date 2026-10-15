@@ -80,7 +80,8 @@ version 8-B):
   brackets the `or` in memory. That only changes the crashing case, which
   now fails the search criterion; such a sample already fails the gate
   because the search is a target tool. Found on 15 October 2026 by running
-  every grader on an empty reply: no other grader crashes.
+  every grader on an empty reply: no other grader crashes. Reported as
+  [inspect_evals #2703](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2703).
 - AgentHarm keeps `max_messages=20`, `max_tokens=4096` per generation and
   temperature 0, and shuffles each sample's tools with an unseeded random
   order, which is one source of run-to-run variation.
