@@ -15,11 +15,14 @@ from inspect_ai.tool import ToolDef
 from inspect_evals.agentharm.benchmark import benign_tools, harmful_tools
 from inspect_evals.agentharm.utils import AGENTHARM_DATASET_REVISION, load_dataset
 
-from assay.errors import DataError
+from assay.errors import DataError, EvidenceError
 from assay.evidence import base_behaviour, key_order
+from assay.graders import order_asymmetric
 
 # ASSAY split name -> the name AgentHarm's loader uses for it.
 SPLITS = {"test_public": "test_public", "validation": "val"}
+# Inspect task name -> arm.
+TASK_ARMS = {"agentharm": "harmful", "agentharm_benign": "benign"}
 
 # (arm, tool name) -> what the model is shown for that tool.
 ToolSpec = Callable[[str, str], dict]
@@ -30,6 +33,7 @@ class Task:
     key: str
     category: str
     target_functions: tuple[str, ...]
+    grader: str
 
 
 @dataclass(frozen=True)
@@ -58,6 +62,8 @@ class PairCheck:
     mismatched: list[Exclusion]
     unpaired: list[Exclusion]
     tool_differences: list[ToolDifference]
+    # Kept pairs whose grader checks tool order differently on each arm.
+    order_asymmetric: list[str]
     # category -> (kept pairs, all tasks)
     categories: dict[str, tuple[int, int]]
 
@@ -97,7 +103,8 @@ def check_pairs(
         totals[task.category][1] += 1
         totals[task.category][0] += key in kept
     categories = {name: (k, n) for name, (k, n) in sorted(totals.items())}
-    return PairCheck(kept, mismatched, unpaired, tool_differences, categories)
+    asymmetric = [key for key in kept if order_asymmetric(harmful[key].grader)]
+    return PairCheck(kept, mismatched, unpaired, tool_differences, asymmetric, categories)
 
 
 def _differences(harmful: object, benign: object, path: str = "") -> list[FieldDifference]:
@@ -124,8 +131,21 @@ def load_tasks(arm: str) -> dict[str, Task]:
         for sample in dataset:
             metadata = sample.metadata or {}
             key = f"{split}/{metadata['id']}"
-            tasks[key] = Task(key, metadata["category"], tuple(metadata["target_functions"]))
+            tasks[key] = Task(
+                key,
+                metadata["category"],
+                tuple(metadata["target_functions"]),
+                metadata["grading_function"],
+            )
     return tasks
+
+
+def arm_of(task: str, source: object) -> str:
+    """The arm of an Inspect task name, which may carry an inspect_evals/ prefix."""
+    name = task.rsplit("/", 1)[-1]
+    if name not in TASK_ARMS:
+        raise EvidenceError(f"{source} is a log of task {name!r}, not an AgentHarm arm.")
+    return TASK_ARMS[name]
 
 
 def agentharm_tool_spec(arm: str, tool: str) -> dict:
@@ -147,6 +167,7 @@ def write_exclusions(check: PairCheck, path: Path) -> None:
         "kept": len(check.kept),
         "exclusions": [asdict(e) for e in check.mismatched + check.unpaired],
         "tool_differences": [asdict(d) for d in check.tool_differences],
+        "order_asymmetric": check.order_asymmetric,
     }
     path.write_text(json.dumps(content, indent=2) + "\n", encoding="utf-8")
 
@@ -178,6 +199,12 @@ def format_check(check: PairCheck) -> str:
                 f"      harmful: {field.harmful!r}",
                 f"      benign:  {field.benign!r}",
             ]
+    behaviours = sorted({base_behaviour(key) for key in check.order_asymmetric}, key=_base_order)
+    lines += [
+        "",
+        f"Kept pairs graded for order differently per arm ({len(check.order_asymmetric)}):",
+        *(f"  {behaviour}" for behaviour in behaviours),
+    ]
     return "\n".join(lines)
 
 

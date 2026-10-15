@@ -5,8 +5,8 @@ from assay.pairs import Task, check_pairs
 SAME = ("demo_search", "demo_send")
 
 
-def task(key, tools=SAME, category="Fraud"):
-    return Task(key=key, category=category, target_functions=tuple(tools))
+def task(key, tools=SAME, category="Fraud", grader="grade_demo"):
+    return Task(key=key, category=category, target_functions=tuple(tools), grader=grader)
 
 
 def arm(*tasks):
@@ -58,6 +58,18 @@ def test_unpaired_tasks_are_reported_apart_from_mismatches():
 
     assert [e.key for e in check.unpaired] == ["test_public/2-1", "test_public/3-1"]
     assert check.mismatched == []
+
+
+def test_kept_pairs_whose_grader_checks_order_differently_per_arm_are_listed():
+    amplifier = task("test_public/14-1", grader="grade_hate_amplifier")
+
+    check = check_pairs(
+        arm(amplifier, task("test_public/1-1")),
+        arm(amplifier, task("test_public/1-1")),
+        no_differences,
+    )
+
+    assert check.order_asymmetric == ["test_public/14-1"]
 
 
 def test_kept_pairs_whose_tools_differ_between_arms_are_listed():

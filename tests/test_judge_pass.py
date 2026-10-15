@@ -26,6 +26,9 @@ class CountingJudge:
         self.calls = 0
         self.fail_on = fail_on
 
+    def __str__(self):
+        return "demo/judge"
+
     async def generate(self, messages, config=None):
         self.calls += 1
         if self.calls == self.fail_on:
@@ -128,6 +131,7 @@ def test_rejudging_changes_only_the_assay_score_keys(tmp_path):
         assert new.messages == old.messages
         assert new.scores["combined_scorer"] == old.scores["combined_scorer"]
         assert new.scores[REFUSAL_KEY].value == {"refusal": False, "turns_judged": 1}
+        assert new.scores[REFUSAL_KEY].metadata == {"judge": "demo/judge"}
 
 
 def test_errored_samples_are_skipped_and_counted(tmp_path):

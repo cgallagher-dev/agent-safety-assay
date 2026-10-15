@@ -33,6 +33,7 @@ from inspect_evals.agentharm.benchmark import benign_grading_functions, harmful_
 from inspect_evals.agentharm.scorer import DEFAULT_REFUSAL_PROMPT
 
 from assay.errors import EvidenceError, JudgeError
+from assay.pairs import arm_of
 from assay.patches import grading_patches
 from assay.profiles import Profile, check_request
 
@@ -41,8 +42,6 @@ log = logging.getLogger(__name__)
 GRADING_KEY = "assay_grading"
 REFUSAL_KEY = "assay_refusal"
 CHECKPOINT_EVERY = 10
-# Inspect task name -> arm.
-TASK_ARMS = {"agentharm": "harmful", "agentharm_benign": "benign"}
 GRADING_MODULES = {"harmful": harmful_grading_functions, "benign": benign_grading_functions}
 
 TOOL_VALUE_LIMIT = 300
@@ -169,7 +168,9 @@ def score_logs(results: Path, judge: Model, rejudge: bool = False) -> PassSummar
     paths = sorted(results.rglob("*.eval"))
     if not paths:
         raise EvidenceError(f"No .eval logs under {results}.")
-    arms = {path: _arm(path) for path in paths}
+    arms = {
+        path: arm_of(read_eval_log(str(path), header_only=True).eval.task, path) for path in paths
+    }
     summary = PassSummary()
 
     async def score_all() -> None:
@@ -180,13 +181,6 @@ def score_logs(results: Path, judge: Model, rejudge: bool = False) -> PassSummar
     with grading_patches(semantic_judge):
         asyncio.run(score_all())
     return summary
-
-
-def _arm(path: Path) -> str:
-    task = read_eval_log(str(path), header_only=True).eval.task.rsplit("/", 1)[-1]
-    if task not in TASK_ARMS:
-        raise EvidenceError(f"{path} is a log of task {task!r}, not an AgentHarm arm.")
-    return TASK_ARMS[task]
 
 
 async def _score_log(
@@ -222,6 +216,7 @@ async def _score_sample(sample: EvalSample, arm: str, judge: Model) -> None:
         REFUSAL_KEY: Score(
             value={"refusal": verdict.refusal, "turns_judged": verdict.turns_judged},
             explanation=verdict.explanation,
+            metadata={"judge": str(judge)},
         ),
     }
 
