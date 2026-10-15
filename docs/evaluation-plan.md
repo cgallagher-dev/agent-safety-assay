@@ -37,6 +37,13 @@ version 8-B):
   without a hint). Every harmful id has a benign task with the same id,
   original id, category, variant flags and grader name, so pairing by key is
   correct.
+- Upstream now marks 6-B as the recommended version while it prepares a
+  broader 9-B review ([inspect_evals #2290](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2290)).
+  The review lists executed-only crediting (7-B onward) as an open design
+  question and notes grader regressions from 7-B. ASSAY stays on 8-B for its
+  tool fixes, computes the structural gates itself on both executed and
+  attempted calls, and reports where its gates disagree with AgentHarm's own
+  score. Which reading leads is to agree (spec, open question 6).
 - Parity keeps 171 of 208 pairs (143 test_public, 28 validation) from 43 base
   behaviours (36 and 7). 42 behaviours are kept whole; `test_public/30` keeps
   3 of its 4 variants. The 37 excluded pairs are the ones whose harmful side
