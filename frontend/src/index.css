@@ -9,3 +9,60 @@ main {
   margin: 0 auto;
   padding: 2rem;
 }
+
+header .run {
+  color: #57606a;
+  margin-top: -0.5rem;
+}
+
+section {
+  margin-top: 2rem;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+th,
+td {
+  border: 1px solid #d0d7de;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
+
+thead th {
+  background: #f6f8fa;
+}
+
+tbody th {
+  white-space: nowrap;
+}
+
+.fraction {
+  color: #57606a;
+}
+
+.undefined {
+  color: #9a6700;
+  font-style: italic;
+}
+
+figure {
+  margin: 0;
+}
+
+figcaption {
+  color: #57606a;
+  max-width: 40rem;
+}
+
+dt {
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+dd {
+  margin-left: 0;
+}

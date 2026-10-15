@@ -53,6 +53,11 @@ uv run ruff check            # lint
 cd frontend && npm ci && npm test && npm run build
 ```
 
+`npm run build` writes the dashboard into `src/assay/dashboard_static/`, where
+`assay dashboard` serves it. While working on the frontend, run
+`uv run assay dashboard src/assay/demo` and `npm run dev` side by side; the
+Vite dev server proxies `/api` to the backend on port 8000.
+
 ## Responsible use
 
 AgentHarm tasks are harmful by design and run against synthetic tools only.
