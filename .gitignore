@@ -16,6 +16,7 @@ frontend/dist/
 src/assay/dashboard_static/
 # Written by `assay report src/assay/demo`; only the fixture itself is tracked.
 src/assay/demo/report.json
+src/assay/demo/report.pdf
 src/assay/demo/*.csv
 
 # Editors and OS

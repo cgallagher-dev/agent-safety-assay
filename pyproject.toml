@@ -28,6 +28,13 @@ assay = "assay.cli:main"
 [project.urls]
 Repository = "https://github.com/cgallagher-dev/safety-assay"
 
+[project.optional-dependencies]
+pdf = [
+    "jinja2>=3.1",
+    "matplotlib>=3.10",
+    "weasyprint>=66",
+]
+
 [dependency-groups]
 dev = [
     "httpx>=0.28.1",

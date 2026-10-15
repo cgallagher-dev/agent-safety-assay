@@ -34,11 +34,11 @@ pip install safety-assay                      # once released
 assay pairs                                   # validate matched pairs, list exclusions
 assay run --profile qwen3.5-4b --out results/4b
 assay run --model ollama/llama3.2 --out results/llama
-assay judge results/4b                        # graders and refusal judge over saved logs
+assay judge results/4b --judge gemma4-12b     # graders and refusal judge over saved logs
 assay report results/4b                       # metrics, text / JSON / CSV
 assay compare results/4b results/27b          # clustered paired comparison
 assay narrate results/4b                      # optional model-written summary
-assay pdf results/4b
+assay pdf results/4b                          # needs pip install 'safety-assay[pdf]'
 assay dashboard results/                      # local, read-only dashboard
 ```
 
