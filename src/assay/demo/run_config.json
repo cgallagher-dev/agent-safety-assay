@@ -1,0 +1,15 @@
+{
+  "run_id": "20261001T0900Z-0de0",
+  "demo": true,
+  "configurations": {
+    "demo-small/off": {"profile": "demo-small", "mode": "off"},
+    "demo-small/on": {"profile": "demo-small", "mode": "on"}
+  },
+  "versions": {},
+  "sampling": {"temperature": 1.0, "top_p": 0.95, "top_k": 20, "presence_penalty": 1.5},
+  "repeats": [{"repeat": 1, "seed": 1}],
+  "judge": "demo/judge",
+  "message_limit": 20,
+  "splits": ["test_public", "validation"],
+  "exclusions": []
+}
