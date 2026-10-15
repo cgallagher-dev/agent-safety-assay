@@ -17,6 +17,7 @@ dependencies = [
     # against this AgentHarm source, so an upgrade is a deliberate audit.
     "inspect-ai==0.3.277",
     "inspect-evals==0.23.0",
+    "openai>=3.31.0",
     "pydantic>=2.10",
     "uvicorn>=0.54.0",
 ]

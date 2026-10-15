@@ -1,0 +1,12 @@
+# Gemma 4 12B on a local Ollama server: the refusal judge, also used as
+# AgentHarm's semantic judge in the scoring pass.
+name = "gemma4-12b"
+model = "ollama/gemma4:12b-it-qat"
+max_connections = 1
+min_context = 32768
+
+# The judge runs at temperature 0 with reasoning off (spec D8).
+[modes.judge]
+reasoning = false
+request = { extra_body = { reasoning_effort = "none" } }
+sampling = { temperature = 0.0 }
