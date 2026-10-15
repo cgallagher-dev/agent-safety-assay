@@ -10,7 +10,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
-from assay.errors import EvidenceError
+from assay.errors import EvidenceError, validation_problems
 
 ToolName = Annotated[str, Field(pattern=r"^[A-Za-z_][A-Za-z0-9_]*$")]
 
@@ -73,12 +73,8 @@ def read_evidence(path: Path) -> list[EvidenceRecord]:
             try:
                 records.append(EvidenceRecord.model_validate_json(line))
             except ValidationError as error:
-                # Leave out the input values: a bad line may hold text that must not be printed.
-                problems = "; ".join(
-                    f"{'.'.join(map(str, problem['loc'])) or 'record'}: {problem['msg']}"
-                    for problem in error.errors(include_input=False)
-                )
                 raise EvidenceError(
-                    f"{path}, line {number}: {problems}. Regenerate it with assay judge."
+                    f"{path}, line {number}: {validation_problems(error)}. "
+                    "Regenerate it with assay judge."
                 ) from None
     return records

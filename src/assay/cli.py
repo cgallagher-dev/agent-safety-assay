@@ -9,10 +9,12 @@ import logging
 import sys
 import traceback
 from collections.abc import Callable
+from pathlib import Path
 
 from assay import __version__
 from assay.errors import ERROR_TYPES, AssayError
 from assay.logs import configure_console
+from assay.report import format_report, load_report, write_report
 
 log = logging.getLogger(__name__)
 
@@ -42,7 +44,24 @@ def build_parser() -> argparse.ArgumentParser:
     loudness.add_argument("-v", "--verbose", action="store_true", help="show debug messages")
     loudness.add_argument("-q", "--quiet", action="store_true", help="show only problems")
     parser.add_argument("--debug", action="store_true", help="print tracebacks on errors")
+
+    commands = parser.add_subparsers(title="commands", metavar="COMMAND")
+    report = commands.add_parser(
+        "report", help="print the metrics and pair table, and write report.json and CSVs"
+    )
+    report.add_argument("results", type=Path, help="results directory with evidence.jsonl")
+    report.add_argument("--out", type=Path, help="write the files here, not in the results")
+    report.set_defaults(handler=report_command)
     return parser
+
+
+def report_command(args: argparse.Namespace) -> int:
+    report = load_report(args.results)
+    out = args.out or args.results
+    write_report(report, out)
+    print(format_report(report))
+    log.info("Wrote report.json, metrics.csv and pairs.csv to %s", out)
+    return 0
 
 
 def run_command(handler: Handler, args: argparse.Namespace) -> int:
