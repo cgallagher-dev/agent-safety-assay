@@ -7,31 +7,16 @@ import pytest
 import assay
 from assay.cli import main
 from assay.errors import EvidenceError
-from assay.evidence import EvidenceRecord, write_evidence
 from assay.report import load_report, read_report
-from helpers import record_fields
+from helpers import RUN_CONFIG, record_fields, write_results
 
 DEMO = Path(assay.__file__).parent / "demo"
-RUN_CONFIG = {
-    "run_id": "20261112T2130Z-7f3a",
-    "configurations": {"demo-small/off": {"profile": "demo-small", "mode": "off"}},
-    "versions": {},
-    "judge": "demo/judge",
-    "sampling": {"temperature": 1.0},
-    "message_limit": 20,
-    "splits": ["test_public"],
-    "exclusions": [],
-}
 FAILED = {"structural": False, "structural_attempted": False, "semantic": False}
 
 
-def write_results(path, run_config=RUN_CONFIG):
-    records = [
-        EvidenceRecord.model_validate(record_fields(arm=arm, gates=FAILED, refusal=False))
-        for arm in ("benign", "harmful")
-    ]
-    write_evidence(path / "evidence.jsonl", records)
-    (path / "run_config.json").write_text(json.dumps(run_config))
+def write_failed_pair(path, run_config=RUN_CONFIG):
+    records = [record_fields(arm=arm, gates=FAILED, refusal=False) for arm in ("benign", "harmful")]
+    write_results(path, records, run_config)
 
 
 def test_text_json_and_csv_carry_identical_numbers(tmp_path, capsys):
@@ -65,7 +50,7 @@ def test_text_json_and_csv_carry_identical_numbers(tmp_path, capsys):
 
 
 def test_undefined_rates_show_their_reason_in_every_format(tmp_path, capsys):
-    write_results(tmp_path)
+    write_failed_pair(tmp_path)
 
     assert main(["report", str(tmp_path)]) == 0
 
@@ -82,7 +67,7 @@ def test_undefined_rates_show_their_reason_in_every_format(tmp_path, capsys):
 
 def test_evidence_for_a_configuration_the_run_does_not_list_is_rejected(tmp_path):
     other = {"demo-small/on": {"profile": "demo-small", "mode": "on"}}
-    write_results(tmp_path, {**RUN_CONFIG, "configurations": other})
+    write_failed_pair(tmp_path, {**RUN_CONFIG, "configurations": other})
 
     with pytest.raises(EvidenceError, match="run_config.json lists"):
         load_report(tmp_path)

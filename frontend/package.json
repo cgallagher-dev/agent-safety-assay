@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "gen:types": "json2ts -i src/api/schema.json -o src/api/types.ts --unreachableDefinitions --additionalProperties false"
   },
   "dependencies": {
     "react": "^19.3.0",
@@ -26,6 +27,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.13.0",
     "jsdom": "^29.1.1",
+    "json-schema-to-typescript": "^16.0.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.1",
     "vite": "^8.3.3",

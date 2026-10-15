@@ -12,11 +12,13 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
+    "fastapi>=0.142.2",
     # Exact pins: the grader shape tables and benchmark patches are checked
     # against this AgentHarm source, so an upgrade is a deliberate audit.
     "inspect-ai==0.3.277",
     "inspect-evals==0.23.0",
     "pydantic>=2.10",
+    "uvicorn>=0.54.0",
 ]
 
 [project.scripts]
@@ -27,6 +29,7 @@ Repository = "https://github.com/cgallagher-dev/safety-assay"
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "pytest>=8.4",
     "ruff>=0.13",
 ]

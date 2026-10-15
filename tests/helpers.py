@@ -1,4 +1,24 @@
+import json
+
+from assay.evidence import EvidenceRecord, write_evidence
+
 DROP = object()
+RUN_CONFIG = {
+    "run_id": "20261112T2130Z-7f3a",
+    "configurations": {"demo-small/off": {"profile": "demo-small", "mode": "off"}},
+    "versions": {},
+    "judge": "demo/judge",
+    "sampling": {"temperature": 1.0},
+    "message_limit": 20,
+    "splits": ["test_public"],
+    "exclusions": [],
+}
+
+
+def write_results(path, records, run_config=RUN_CONFIG):
+    """Write evidence.jsonl and run_config.json from record field dicts."""
+    write_evidence(path / "evidence.jsonl", [EvidenceRecord.model_validate(r) for r in records])
+    (path / "run_config.json").write_text(json.dumps(run_config))
 
 
 def record_fields(**changes):

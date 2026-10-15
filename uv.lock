@@ -2401,26 +2401,32 @@ name = "safety-assay"
 version = "0.1.0.dev0"
 source = { editable = "." }
 dependencies = [
+    { name = "fastapi" },
     { name = "inspect-ai" },
     { name = "inspect-evals" },
     { name = "pydantic" },
+    { name = "uvicorn" },
 ]
 
 [package.dev-dependencies]
 dev = [
+    { name = "httpx" },
     { name = "pytest" },
     { name = "ruff" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "fastapi", specifier = ">=0.142.2" },
     { name = "inspect-ai", specifier = "==0.3.277" },
     { name = "inspect-evals", specifier = "==0.23.0" },
     { name = "pydantic", specifier = ">=2.10" },
+    { name = "uvicorn", specifier = ">=0.54.0" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "pytest", specifier = ">=8.4" },
     { name = "ruff", specifier = ">=0.13" },
 ]
