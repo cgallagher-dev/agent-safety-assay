@@ -252,7 +252,8 @@ Each requirement lists the user stories it serves.
   on the arm. Gate readings are cross-checked against AgentHarm's own grading
   breakdown and disagreements are reported. (US-07)
 - **FR8** A missing or unparseable grading breakdown is an error, not a
-  default. (US-07)
+  default, and so is a sample that errored: it is never written as evidence.
+  (US-07)
 
 ### 6.3 Judging
 
@@ -287,8 +288,7 @@ passed, E = harmful executed, R = refused:
   gate. Samples that hit the message limit or stopped on the output token
   limit are counted per arm. (US-12)
 - **FR14** Building outcomes fails on duplicate keys, a pair present in only
-  one arm, an errored sample, or a sample on either arm without a refusal
-  verdict. (US-12)
+  one arm, or a sample on either arm without a refusal verdict. (US-12)
 
 ### 6.5 Statistics
 
