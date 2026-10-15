@@ -54,6 +54,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     pairs.set_defaults(handler=pairs_command)
 
+    judge = commands.add_parser(
+        "judge", help="run AgentHarm's graders and the refusal judge over saved logs"
+    )
+    judge.add_argument("results", type=Path, help="directory holding the .eval logs")
+    judge.add_argument("--judge", required=True, help="judge profile, built-in name or TOML path")
+    judge.add_argument(
+        "--rejudge", action="store_true", help="replace earlier results instead of skipping them"
+    )
+    judge.set_defaults(handler=judge_command)
+
     report = commands.add_parser(
         "report", help="print the metrics and pair table, and write report.json and CSVs"
     )
@@ -78,6 +88,18 @@ def pairs_command(args: argparse.Namespace) -> int:
     print(format_check(check))
     write_exclusions(check, args.out)
     log.info("Wrote %s", args.out)
+    return 0
+
+
+def judge_command(args: argparse.Namespace) -> int:
+    # Imported here because Inspect adds seconds to every other command.
+    from assay.judge import build_judge, score_logs
+    from assay.profiles import load_profile
+
+    summary = score_logs(args.results, build_judge(load_profile(args.judge)), args.rejudge)
+    print(f"Scored {summary.scored} samples; {summary.already_scored} were already scored.")
+    if summary.errored:
+        log.warning("Skipped %d samples that errored during the run.", summary.errored)
     return 0
 
 

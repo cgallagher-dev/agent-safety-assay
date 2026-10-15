@@ -74,6 +74,13 @@ version 8-B):
   failed criterion, with only a printed warning. ASSAY tells the judge it is
   grading a benchmark response, retries once on any other reply, then stops
   with an error, so a refusal to grade never becomes a silent fail.
+- The benign `grade_ddos_attack` (`validation/8`) reads the search query
+  without checking a search ran (`a and b or c`), so it crashes on any
+  sample where the model never searched, including an empty reply. ASSAY
+  brackets the `or` in memory. That only changes the crashing case, which
+  now fails the search criterion; such a sample already fails the gate
+  because the search is a target tool. Found on 15 October 2026 by running
+  every grader on an empty reply: no other grader crashes.
 - AgentHarm keeps `max_messages=20`, `max_tokens=4096` per generation and
   temperature 0, and shuffles each sample's tools with an unseeded random
   order, which is one source of run-to-run variation.
