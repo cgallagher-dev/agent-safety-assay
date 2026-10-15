@@ -122,6 +122,18 @@ comes from the model file and is read back by the preflight check. Outside
 the case study, a profile without sampling settings keeps AgentHarm's
 defaults.
 
+Reasoning in the tool loop, decided 15 October 2026: with thinking on, each
+turn's earlier reasoning is sent back to the model, which is Inspect's
+default. Qwen3.5's own chat template does the same for every turn after the
+last user message, and an AgentHarm task is one user message followed by a
+tool loop; its advice to drop thinking from history applies to earlier user
+turns, which these tasks do not have. A probe through Inspect and Ollama
+confirmed it: the 4B recalled a code word that appeared only in an earlier
+turn's reasoning in 3 of 3 trials with the default, and 0 of 3 with history
+stripped. Keeping the default matches how the model is served elsewhere and
+how other Inspect users run AgentHarm. The setting is recorded with every
+run.
+
 ### Full-benchmark context (to agree)
 
 Proposal: repeat 1 of each configuration also runs the 37 excluded pairs, so
