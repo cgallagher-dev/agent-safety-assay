@@ -66,3 +66,37 @@ dt {
 dd {
   margin-left: 0;
 }
+
+nav a {
+  margin-right: 1rem;
+}
+
+.filters .filter {
+  margin-right: 1.5rem;
+}
+
+tr.selected th,
+tr.selected td {
+  background: #ddf4ff;
+}
+
+.arms {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.transcript li {
+  margin-bottom: 0.75rem;
+}
+
+.transcript .text,
+.transcript pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0.25rem 0;
+}
+
+.withheld {
+  color: #9a6700;
+}

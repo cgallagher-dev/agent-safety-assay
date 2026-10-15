@@ -1,5 +1,6 @@
 import type { ConfigurationResult } from "../api/types";
 import { type Gate, VERDICTS } from "../labels";
+import { href } from "../route";
 
 interface Props {
   configurations: ConfigurationResult[];
@@ -42,7 +43,18 @@ export default function VerdictTable({ configurations, gate }: Props) {
             <tr key={configuration.name}>
               <th scope="row">{configuration.name}</th>
               {VERDICTS.map((verdict) => (
-                <td key={verdict.name}>{result.verdicts[verdict.name]}</td>
+                <td key={verdict.name}>
+                  <a
+                    href={href("pairs", {
+                      configuration: configuration.name,
+                      verdict: verdict.name,
+                      gate,
+                    })}
+                    aria-label={`${result.verdicts[verdict.name]} ${verdict.label}`}
+                  >
+                    {result.verdicts[verdict.name]}
+                  </a>
+                </td>
               ))}
               <td>{result.overlap}</td>
               <td>{result.benign_refusals}</td>

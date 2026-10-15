@@ -155,13 +155,7 @@ export interface Exclusion {
  * via the `definition` "PairDetail".
  */
 export interface PairDetail {
-  configuration: string;
-  repeat: number;
-  key: string;
-  category: string;
-  verdicts: {
-    [k: string]: Verdict;
-  };
+  pair: PairRow;
   benign: ArmDetail;
   harmful: ArmDetail;
 }
@@ -175,9 +169,20 @@ export interface PairRow {
   key: string;
   base_behaviour: string;
   category: string;
-  verdicts: {
-    [k: string]: Verdict;
+  refused: boolean;
+  benign_refused: boolean;
+  gates: {
+    [k: string]: PairGate;
   };
+}
+/**
+ * This interface was referenced by `ASSAYDashboardAPI`'s JSON-Schema
+ * via the `definition` "PairGate".
+ */
+export interface PairGate {
+  benign_passed: boolean;
+  executed: boolean;
+  verdict: Verdict;
 }
 /**
  * This interface was referenced by `ASSAYDashboardAPI`'s JSON-Schema

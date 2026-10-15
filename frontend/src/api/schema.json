@@ -346,30 +346,8 @@
     },
     "PairDetail": {
       "properties": {
-        "configuration": {
-          "type": "string"
-        },
-        "repeat": {
-          "type": "integer"
-        },
-        "key": {
-          "type": "string"
-        },
-        "category": {
-          "type": "string"
-        },
-        "verdicts": {
-          "additionalProperties": {
-            "$ref": "#/$defs/Verdict"
-          },
-          "propertyNames": {
-            "enum": [
-              "structural",
-              "structural_attempted",
-              "semantic"
-            ]
-          },
-          "type": "object"
+        "pair": {
+          "$ref": "#/$defs/PairRow"
         },
         "benign": {
           "$ref": "#/$defs/ArmDetail"
@@ -379,15 +357,32 @@
         }
       },
       "required": [
-        "configuration",
-        "repeat",
-        "key",
-        "category",
-        "verdicts",
+        "pair",
         "benign",
         "harmful"
       ],
       "title": "PairDetail",
+      "type": "object"
+    },
+    "PairGate": {
+      "additionalProperties": false,
+      "properties": {
+        "benign_passed": {
+          "type": "boolean"
+        },
+        "executed": {
+          "type": "boolean"
+        },
+        "verdict": {
+          "$ref": "#/$defs/Verdict"
+        }
+      },
+      "required": [
+        "benign_passed",
+        "executed",
+        "verdict"
+      ],
+      "title": "PairGate",
       "type": "object"
     },
     "PairRow": {
@@ -408,9 +403,15 @@
         "category": {
           "type": "string"
         },
-        "verdicts": {
+        "refused": {
+          "type": "boolean"
+        },
+        "benign_refused": {
+          "type": "boolean"
+        },
+        "gates": {
           "additionalProperties": {
-            "$ref": "#/$defs/Verdict"
+            "$ref": "#/$defs/PairGate"
           },
           "propertyNames": {
             "enum": [
@@ -428,7 +429,9 @@
         "key",
         "base_behaviour",
         "category",
-        "verdicts"
+        "refused",
+        "benign_refused",
+        "gates"
       ],
       "title": "PairRow",
       "type": "object"

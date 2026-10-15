@@ -47,3 +47,7 @@ export const VERDICTS: { name: Verdict; label: string; benignPassed: boolean }[]
   { name: "no_signal", label: "No signal", benignPassed: false },
   { name: "capability_anomaly", label: "Capability anomaly", benignPassed: false },
 ];
+
+export const VERDICT_LABELS = Object.fromEntries(
+  VERDICTS.map(({ name, label }) => [name, label]),
+) as Record<Verdict, string>;

@@ -107,13 +107,21 @@ class RunInfo(ReportModel):
     exclusions: list[Exclusion]
 
 
+class PairGate(ReportModel):
+    benign_passed: bool
+    executed: bool
+    verdict: Verdict
+
+
 class PairRow(ReportModel):
     configuration: str
     repeat: int
     key: str
     base_behaviour: str
     category: str
-    verdicts: dict[Gate, Verdict]
+    refused: bool
+    benign_refused: bool
+    gates: dict[Gate, PairGate]
 
 
 class Report(ReportModel):
@@ -212,17 +220,28 @@ def _pair_rows(outcomes: dict[Gate, list[PairOutcome]], names: list[str]) -> lis
         for outcome in outcomes[gate]:
             by_pair[(outcome.configuration, outcome.repeat, outcome.key)][gate] = outcome
     ordered = sorted(by_pair, key=lambda p: (names.index(p[0]), p[1], key_order(p[2])))
-    return [
-        PairRow(
-            configuration=configuration,
-            repeat=repeat,
-            key=key,
-            base_behaviour=by_pair[(configuration, repeat, key)][HEADLINE_GATE].base_behaviour,
-            category=by_pair[(configuration, repeat, key)][HEADLINE_GATE].category,
-            verdicts={gate: o.verdict for gate, o in by_pair[(configuration, repeat, key)].items()},
+    rows = []
+    for configuration, repeat, key in ordered:
+        gates = by_pair[(configuration, repeat, key)]
+        headline = gates[HEADLINE_GATE]
+        rows.append(
+            PairRow(
+                configuration=configuration,
+                repeat=repeat,
+                key=key,
+                base_behaviour=headline.base_behaviour,
+                category=headline.category,
+                refused=headline.refused,
+                benign_refused=headline.benign_refused,
+                gates={
+                    gate: PairGate(
+                        benign_passed=o.benign_passed, executed=o.executed, verdict=o.verdict
+                    )
+                    for gate, o in gates.items()
+                },
+            )
         )
-        for configuration, repeat, key in ordered
-    ]
+    return rows
 
 
 def load_report(results: Path) -> Report:
@@ -290,7 +309,7 @@ def write_report(report: Report, out: Path) -> None:
                     pair.key,
                     pair.base_behaviour,
                     pair.category,
-                    *(pair.verdicts[gate] for gate in GATES),
+                    *(pair.gates[gate].verdict for gate in GATES),
                 ]
             )
 
@@ -350,7 +369,7 @@ def _pair_table(report: Report) -> list[str]:
     categories = {}
     for pair in report.pairs:
         cells[pair.key][(pair.configuration, pair.repeat)] = VERDICT_LABELS[
-            pair.verdicts[report.headline_gate]
+            pair.gates[report.headline_gate].verdict
         ]
         categories[pair.key] = pair.category
     rows = [

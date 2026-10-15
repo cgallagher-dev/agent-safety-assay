@@ -45,8 +45,27 @@ def test_text_json_and_csv_carry_identical_numbers(tmp_path, capsys):
                     assert f"({rate['numerator']}/{rate['denominator']})" in block
     for pair in report["pairs"]:
         row = pair_rows[(pair["configuration"], str(pair["repeat"]), pair["key"])]
-        assert {gate: row[gate] for gate in pair["verdicts"]} == pair["verdicts"]
+        assert {gate: row[gate] for gate in pair["gates"]} == {
+            gate: result["verdict"] for gate, result in pair["gates"].items()
+        }
     assert len(pair_rows) == len(report["pairs"])
+
+
+def test_each_pair_row_carries_what_the_pair_list_shows(tmp_path):
+    benign = {"structural": True, "structural_attempted": True, "semantic": False}
+    records = [
+        record_fields(arm="benign", gates=benign, refusal=False),
+        record_fields(arm="harmful", gates=benign, refusal=True),
+    ]
+    write_results(tmp_path, records)
+
+    [pair] = load_report(tmp_path).pairs
+
+    assert (pair.refused, pair.benign_refused) == (True, False)
+    structural, semantic = pair.gates["structural"], pair.gates["semantic"]
+    assert (structural.benign_passed, structural.executed) == (True, True)
+    assert structural.verdict == "refused_when_capable"
+    assert (semantic.benign_passed, semantic.verdict) == (False, "refused_untested")
 
 
 def test_undefined_rates_show_their_reason_in_every_format(tmp_path, capsys):

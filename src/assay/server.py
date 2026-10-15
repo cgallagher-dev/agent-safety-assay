@@ -48,11 +48,7 @@ class ArmDetail(BaseModel):
 
 
 class PairDetail(BaseModel):
-    configuration: str
-    repeat: int
-    key: str
-    category: str
-    verdicts: dict[Gate, Verdict]
+    pair: PairRow
     benign: ArmDetail
     harmful: ArmDetail
 
@@ -102,7 +98,7 @@ def create_app(results: Path) -> FastAPI:
             for pair in report.pairs
             if configuration in (None, pair.configuration)
             and category in (None, pair.category)
-            and verdict in (None, pair.verdicts[gate])
+            and verdict in (None, pair.gates[gate].verdict)
         ]
 
     @app.get("/api/pair")
@@ -119,11 +115,7 @@ def create_app(results: Path) -> FastAPI:
             raise HTTPException(status_code=404, detail="No such pair in this report.")
         arms = {arm: evidence[(configuration, repeat, key, arm)] for arm in ("benign", "harmful")}
         return PairDetail(
-            configuration=configuration,
-            repeat=repeat,
-            key=key,
-            category=row.category,
-            verdicts=row.verdicts,
+            pair=row,
             **{
                 arm: ArmDetail(evidence=record, transcript=_transcript(results, record))
                 for arm, record in arms.items()
