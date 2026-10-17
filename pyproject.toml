@@ -12,6 +12,10 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
+    # Exact pins: the grader shape tables are checked against this
+    # AgentHarm source, so an upgrade is a deliberate audit.
+    "inspect-ai==0.3.277",
+    "inspect-evals==0.23.0",
     "pydantic>=2.10",
 ]
 
