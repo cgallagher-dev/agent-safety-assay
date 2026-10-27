@@ -60,6 +60,13 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("results", type=Path, help="results directory with evidence.jsonl")
     report.add_argument("--out", type=Path, help="write the files here, not in the results")
     report.set_defaults(handler=report_command)
+
+    dashboard = commands.add_parser(
+        "dashboard", help="serve the read-only dashboard for a results directory on 127.0.0.1"
+    )
+    dashboard.add_argument("results", type=Path, help="results directory with evidence.jsonl")
+    dashboard.add_argument("--port", type=int, default=8000, help="port (default 8000)")
+    dashboard.set_defaults(handler=dashboard_command)
     return parser
 
 
@@ -80,6 +87,16 @@ def report_command(args: argparse.Namespace) -> int:
     write_report(report, out)
     print(format_report(report))
     log.info("Wrote report.json, metrics.csv and pairs.csv to %s", out)
+    return 0
+
+
+def dashboard_command(args: argparse.Namespace) -> int:
+    # Imported here because FastAPI and Inspect add seconds to every other command.
+    from assay.server import HOST, create_app, serve
+
+    app = create_app(args.results)
+    log.info("Dashboard for %s at http://%s:%d (Ctrl+C to stop)", args.results, HOST, args.port)
+    serve(app, args.port)
     return 0
 
 
