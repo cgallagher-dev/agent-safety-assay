@@ -246,5 +246,3 @@ no interaction p-value is claimed unless the supervisor agrees a method.
   committed. Evidence files hold no harmful text.
 - Hand labelling is done by the author only; no participants are involved.
 - Public examples use the synthetic fixture or benign tasks.
-- Release permission (TUS and employer) is confirmed before the repository is
-  made public.

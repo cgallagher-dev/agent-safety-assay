@@ -508,7 +508,6 @@ built while they run.
 2. The primary comparisons and multiple-testing family, fixed before the final
    runs.
 3. Whether to run the 37 excluded pairs once for full-benchmark context.
-4. Release permission (TUS and employer) before the repository is made public.
-5. The stretch paper: venue, timing and co-authorship.
-6. Whether the headline gate stays on executed calls (D5) now that upstream
+4. The stretch paper: venue, timing and co-authorship.
+5. Whether the headline gate stays on executed calls (D5) now that upstream
    recommends 6-B, which credits attempted calls, pending its 9-B review.
