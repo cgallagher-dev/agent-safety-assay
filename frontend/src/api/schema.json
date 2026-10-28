@@ -1,0 +1,701 @@
+{
+  "$defs": {
+    "ArmDetail": {
+      "properties": {
+        "evidence": {
+          "$ref": "#/$defs/EvidenceRecord"
+        },
+        "transcript": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Turn"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "evidence",
+        "transcript"
+      ],
+      "title": "ArmDetail",
+      "type": "object"
+    },
+    "ConfigurationResult": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "profile": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "repeats": {
+          "type": "integer"
+        },
+        "pairs": {
+          "type": "integer"
+        },
+        "unjudged": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "gates": {
+          "additionalProperties": {
+            "$ref": "#/$defs/GateResult"
+          },
+          "propertyNames": {
+            "enum": [
+              "structural",
+              "structural_attempted",
+              "semantic"
+            ]
+          },
+          "type": "object"
+        },
+        "limits": {
+          "additionalProperties": {
+            "$ref": "#/$defs/LimitCounts"
+          },
+          "propertyNames": {
+            "enum": [
+              "benign",
+              "harmful"
+            ]
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "profile",
+        "mode",
+        "repeats",
+        "pairs",
+        "unjudged",
+        "gates",
+        "limits"
+      ],
+      "title": "ConfigurationResult",
+      "type": "object"
+    },
+    "EvidenceRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "type": "string"
+        },
+        "configuration": {
+          "type": "string"
+        },
+        "repeat": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "arm": {
+          "enum": [
+            "benign",
+            "harmful"
+          ],
+          "type": "string"
+        },
+        "split": {
+          "enum": [
+            "test_public",
+            "validation"
+          ],
+          "type": "string"
+        },
+        "sample_id": {
+          "pattern": "^\\d+-\\d+$",
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "base_behaviour": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "detailed": {
+          "type": "boolean"
+        },
+        "hint": {
+          "type": "boolean"
+        },
+        "declared_tools": {
+          "items": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "observed_tools": {
+          "items": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "executed_tools": {
+          "items": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "gates": {
+          "$ref": "#/$defs/Gates"
+        },
+        "benchmark_score": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "refusal": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "judge": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "messages": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "capped": {
+          "type": "boolean"
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "log": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "configuration",
+        "repeat",
+        "arm",
+        "split",
+        "sample_id",
+        "key",
+        "base_behaviour",
+        "category",
+        "detailed",
+        "hint",
+        "declared_tools",
+        "observed_tools",
+        "executed_tools",
+        "gates",
+        "benchmark_score",
+        "refusal",
+        "judge",
+        "messages",
+        "capped",
+        "truncated",
+        "log"
+      ],
+      "title": "EvidenceRecord",
+      "type": "object"
+    },
+    "Exclusion": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "reason"
+      ],
+      "title": "Exclusion",
+      "type": "object"
+    },
+    "GateResult": {
+      "additionalProperties": false,
+      "properties": {
+        "metrics": {
+          "$ref": "#/$defs/MetricSet"
+        },
+        "verdicts": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/Verdict"
+          },
+          "type": "object"
+        },
+        "overlap": {
+          "type": "integer"
+        },
+        "anomalies": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "benign_refusals": {
+          "type": "integer"
+        },
+        "cgr_benign_refused": {
+          "$ref": "#/$defs/ReportRate"
+        }
+      },
+      "required": [
+        "metrics",
+        "verdicts",
+        "overlap",
+        "anomalies",
+        "benign_refusals",
+        "cgr_benign_refused"
+      ],
+      "title": "GateResult",
+      "type": "object"
+    },
+    "Gates": {
+      "additionalProperties": false,
+      "properties": {
+        "structural": {
+          "type": "boolean"
+        },
+        "structural_attempted": {
+          "type": "boolean"
+        },
+        "semantic": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "structural",
+        "structural_attempted",
+        "semantic"
+      ],
+      "title": "Gates",
+      "type": "object"
+    },
+    "LimitCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "capped": {
+          "type": "integer"
+        },
+        "truncated": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "capped",
+        "truncated"
+      ],
+      "title": "LimitCounts",
+      "type": "object"
+    },
+    "MetricSet": {
+      "additionalProperties": false,
+      "properties": {
+        "benign_pass_rate": {
+          "$ref": "#/$defs/ReportRate"
+        },
+        "asr": {
+          "$ref": "#/$defs/ReportRate"
+        },
+        "cc_asr": {
+          "$ref": "#/$defs/ReportRate"
+        },
+        "cc_rr": {
+          "$ref": "#/$defs/ReportRate"
+        },
+        "cgr": {
+          "$ref": "#/$defs/ReportRate"
+        }
+      },
+      "required": [
+        "benign_pass_rate",
+        "asr",
+        "cc_asr",
+        "cc_rr",
+        "cgr"
+      ],
+      "title": "MetricSet",
+      "type": "object"
+    },
+    "PairDetail": {
+      "properties": {
+        "pair": {
+          "$ref": "#/$defs/PairRow"
+        },
+        "benign": {
+          "$ref": "#/$defs/ArmDetail"
+        },
+        "harmful": {
+          "$ref": "#/$defs/ArmDetail"
+        }
+      },
+      "required": [
+        "pair",
+        "benign",
+        "harmful"
+      ],
+      "title": "PairDetail",
+      "type": "object"
+    },
+    "PairGate": {
+      "additionalProperties": false,
+      "properties": {
+        "benign_passed": {
+          "type": "boolean"
+        },
+        "executed": {
+          "type": "boolean"
+        },
+        "verdict": {
+          "$ref": "#/$defs/Verdict"
+        }
+      },
+      "required": [
+        "benign_passed",
+        "executed",
+        "verdict"
+      ],
+      "title": "PairGate",
+      "type": "object"
+    },
+    "PairRow": {
+      "additionalProperties": false,
+      "properties": {
+        "configuration": {
+          "type": "string"
+        },
+        "repeat": {
+          "type": "integer"
+        },
+        "key": {
+          "type": "string"
+        },
+        "base_behaviour": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "refused": {
+          "type": "boolean"
+        },
+        "benign_refused": {
+          "type": "boolean"
+        },
+        "gates": {
+          "additionalProperties": {
+            "$ref": "#/$defs/PairGate"
+          },
+          "propertyNames": {
+            "enum": [
+              "structural",
+              "structural_attempted",
+              "semantic"
+            ]
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "configuration",
+        "repeat",
+        "key",
+        "base_behaviour",
+        "category",
+        "refused",
+        "benign_refused",
+        "gates"
+      ],
+      "title": "PairRow",
+      "type": "object"
+    },
+    "Report": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "type": "integer"
+        },
+        "assay_version": {
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "headline_gate": {
+          "enum": [
+            "structural",
+            "structural_attempted",
+            "semantic"
+          ],
+          "type": "string"
+        },
+        "runs": {
+          "items": {
+            "$ref": "#/$defs/RunInfo"
+          },
+          "type": "array"
+        },
+        "configurations": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationResult"
+          },
+          "type": "array"
+        },
+        "pairs": {
+          "items": {
+            "$ref": "#/$defs/PairRow"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_version",
+        "assay_version",
+        "created_at",
+        "headline_gate",
+        "runs",
+        "configurations",
+        "pairs"
+      ],
+      "title": "Report",
+      "type": "object"
+    },
+    "ReportRate": {
+      "additionalProperties": false,
+      "properties": {
+        "numerator": {
+          "type": "integer"
+        },
+        "denominator": {
+          "type": "integer"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "undefined_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "numerator",
+        "denominator",
+        "value",
+        "undefined_reason"
+      ],
+      "title": "ReportRate",
+      "type": "object"
+    },
+    "RunInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "type": "string"
+        },
+        "versions": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "judge": {
+          "type": "string"
+        },
+        "sampling": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "type": "object"
+        },
+        "message_limit": {
+          "type": "integer"
+        },
+        "splits": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "exclusions": {
+          "items": {
+            "$ref": "#/$defs/Exclusion"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "run_id",
+        "versions",
+        "judge",
+        "sampling",
+        "message_limit",
+        "splits",
+        "exclusions"
+      ],
+      "title": "RunInfo",
+      "type": "object"
+    },
+    "ToolCallView": {
+      "properties": {
+        "function": {
+          "type": "string"
+        },
+        "arguments": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "function",
+        "arguments"
+      ],
+      "title": "ToolCallView",
+      "type": "object"
+    },
+    "Turn": {
+      "properties": {
+        "role": {
+          "enum": [
+            "system",
+            "user",
+            "assistant",
+            "tool"
+          ],
+          "type": "string"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reasoning": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tool_calls": {
+          "items": {
+            "$ref": "#/$defs/ToolCallView"
+          },
+          "type": "array"
+        },
+        "function": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tool_error": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "role",
+        "text",
+        "reasoning",
+        "tool_calls",
+        "function",
+        "tool_error"
+      ],
+      "title": "Turn",
+      "type": "object"
+    },
+    "Verdict": {
+      "enum": [
+        "complied",
+        "refused_when_capable",
+        "failed_when_capable",
+        "refused_untested",
+        "no_signal",
+        "capability_anomaly"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "title": "ASSAY dashboard API"
+}
