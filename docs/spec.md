@@ -371,6 +371,7 @@ passed, E = harmful executed, R = refused:
 | NFR11 | Errors | Every failure raises a typed ASSAY error that says what failed and what to do next. The CLI prints that message without a traceback (unless `--debug`) and exits with a code per error type. Nothing is swallowed: a step that cannot finish stops, and partial results are marked incomplete. |
 | NFR12 | Logging | Standard Python logging per module. `-v` and `-q` set the console level; each run also writes `assay.log` at debug level in its results directory, every line tagged with the run id. Log lines carry ids, counts and timings, never prompt, response, reasoning or tool-argument text. |
 | NFR13 | Distribution | Published on PyPI as `safety-assay` from CI with trusted publishing; a release is installable with `pip install safety-assay`. |
+| NFR14 | Presentation | The CLI, dashboard and PDF share one look and are accessible. The CLI uses colour and symbols together, and drops colour when output is not a terminal, when `NO_COLOR` is set or with `--no-color`. The dashboard meets WCAG AA contrast and works by keyboard. Nothing is shown by colour alone. |
 
 ## 8. Data contracts
 
@@ -456,6 +457,7 @@ built while they run.
 | 11 | SCRUM-16 Grading saved logs | M1 |
 | 12 | SCRUM-22 Pair explorer and detail | M1 |
 | 13 | SCRUM-23 PDF report | M1 |
+| 13a | SCRUM-52 CLI colour and layout, SCRUM-53 dashboard polish, SCRUM-54 PDF layout | M1 |
 | 14 | SCRUM-24 Demo 1 rehearsal | M1 |
 | 15 | SCRUM-25 Model profiles | M2 |
 | 16 | SCRUM-27 Ollama preflight | M2 |
