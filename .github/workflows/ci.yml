@@ -40,4 +40,27 @@ jobs:
       - run: uv run ruff check
       - run: uv run ruff format --check
       - run: uv run pytest
+      - name: Fail if the dashboard API schema is stale
+        run: uv run python scripts/api_schema.py | diff - frontend/src/api/schema.json
       - run: uv build
+
+  frontend:
+    name: Dashboard
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Fail if the generated API types are stale
+        run: npm run gen:types && git diff --exit-code src/api/types.ts
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build

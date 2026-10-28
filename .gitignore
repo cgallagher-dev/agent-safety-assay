@@ -37,3 +37,8 @@ certs/
 **/*_behaviors_*.json
 **/chat_validation.json
 **/chat_*_test.json
+
+# Frontend
+node_modules/
+frontend/dist/
+src/assay/dashboard_static/
