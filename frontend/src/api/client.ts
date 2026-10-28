@@ -1,4 +1,4 @@
-import type { Report } from "./types";
+import type { PairDetail, Report } from "./types";
 
 async function get<T>(url: string): Promise<T> {
   const response = await fetch(url);
@@ -10,4 +10,9 @@ async function get<T>(url: string): Promise<T> {
 
 export function fetchReport(): Promise<Report> {
   return get<Report>("/api/report");
+}
+
+export function fetchPair(configuration: string, repeat: number, key: string): Promise<PairDetail> {
+  const query = new URLSearchParams({ configuration, repeat: String(repeat), key });
+  return get<PairDetail>(`/api/pair?${query}`);
 }
