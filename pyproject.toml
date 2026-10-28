@@ -35,6 +35,10 @@ dev = [
 requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+# The built dashboard is ignored by git but ships in the sdist and wheel when present.
+artifacts = ["src/assay/dashboard_static/**"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/assay"]
 
