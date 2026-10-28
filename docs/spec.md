@@ -324,7 +324,8 @@ passed, E = harmful executed, R = refused:
   results directory. (US-20, US-21)
 - **FR30** `assay narrate <results>` asks the narrative model for short prose
   (a summary, one paragraph per configuration, and the limitations that apply)
-  from `report.json`. Output containing any digit, or a placeholder that does
+  from `report.json`. Numbers, configuration names, model names and pair keys
+  enter only through placeholders. Output containing any digit, or a placeholder that does
   not resolve, is rejected and retried, then dropped with a warning. Accepted
   prose is saved as `narrative.md` with the model id and prompt hash, and is
   shown in the PDF and dashboard under a "model-written" label. (US-28)
@@ -371,7 +372,7 @@ passed, E = harmful executed, R = refused:
 | NFR11 | Errors | Every failure raises a typed ASSAY error that says what failed and what to do next. The CLI prints that message without a traceback (unless `--debug`) and exits with a code per error type. Nothing is swallowed: a step that cannot finish stops, and partial results are marked incomplete. |
 | NFR12 | Logging | Standard Python logging per module. `-v` and `-q` set the console level; each run also writes `assay.log` at debug level in its results directory, every line tagged with the run id. Log lines carry ids, counts and timings, never prompt, response, reasoning or tool-argument text. |
 | NFR13 | Distribution | Published on PyPI as `safety-assay` from CI with trusted publishing; a release is installable with `pip install safety-assay`. |
-| NFR14 | Presentation | The CLI, dashboard and PDF share one look and are accessible. The CLI uses colour and symbols together, and drops colour when output is not a terminal, when `NO_COLOR` is set or with `--no-color`. The dashboard meets WCAG AA contrast and works by keyboard. Nothing is shown by colour alone. |
+| NFR14 | Presentation | The CLI, dashboard and PDF share one look and are accessible. The CLI uses colour and symbols together, and drops colour when output is not a terminal, when `NO_COLOR` is set or with `--no-color`. The dashboard meets WCAG AA contrast and works by keyboard. Nothing is shown by colour alone. Details in `docs/presentation.md`. |
 
 ## 8. Data contracts
 
