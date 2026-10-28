@@ -1,7 +1,7 @@
 # Evaluation plan
 
-Version 0.1, 7 October 2026. Draft for supervisor review. Items marked
-**(to agree)** are proposals until the supervisor meeting. Once agreed, the
+Version 0.2, 28 October 2026. For supervisor sign-off on 29 October. Items
+marked **(to agree)** are proposals until then. Once agreed, the
 case study section is frozen with a git tag (`eval-plan-frozen`) before any
 final-run outcome is read.
 
@@ -43,7 +43,11 @@ version 8-B):
   question and notes grader regressions from 7-B. ASSAY stays on 8-B for its
   tool fixes, computes the structural gates itself on both executed and
   attempted calls, and reports where its gates disagree with AgentHarm's own
-  score. Which reading leads is to agree (spec, open question 5).
+  score. Proposal (to agree): the structural gate on executed calls leads, and
+  the attempted-calls reading is reported alongside it as a sensitivity
+  reading. If AgentHarm 9-B is released before the final runs start (30
+  November) and is workable, ASSAY moves to it and that reading leads instead.
+  Either way the choice is fixed before any final-run outcome is read.
 - Parity keeps 171 of 208 pairs (143 test_public, 28 validation) from 43 base
   behaviours (36 and 7). 42 behaviours are kept whole; `test_public/30` keeps
   3 of its 4 variants. The 37 excluded pairs are the ones whose harmful side
@@ -153,12 +157,13 @@ evidence for an excluded pair, so one can't slip into the metrics by mistake.
 
 ### Repeats (to agree)
 
-Proposal: three full repeats of every configuration. Early feasibility checks
-on the reference machine put the 27B at 165 to 225 seconds per sample, about
-19 hours per mode per repeat, so three repeats of everything is about 170
-machine-hours, run overnight from mid-November. Fallback, decided before the
-runs: repeats 2 and 3 of the 27B cover a predeclared random subset of base
-behaviours.
+Proposal: three repeats of every configuration. The 4B and 9B run all three
+repeats on every kept pair. Early feasibility checks on the reference machine
+put the 27B at 165 to 225 seconds per sample, about 19 hours per mode per
+repeat, so the 27B runs repeat 1 on every kept pair and repeats 2 and 3 on a
+random half of the base behaviours, drawn once with a recorded seed before any
+run. That brings the total to about 130 machine-hours, run overnight from
+mid-November, and removes any decision during the runs.
 
 ### Outcomes
 

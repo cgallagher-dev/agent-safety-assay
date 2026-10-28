@@ -504,11 +504,15 @@ built while they run.
 ## 12. Open questions for the supervisor
 
 1. Repeat count and whether the 27B repeats cover all pairs or a predeclared
-   subset.
+   subset (proposal: three repeats; 27B repeats 2 and 3 on a seeded half of
+   the base behaviours).
 2. The primary comparisons and multiple-testing family, fixed before the final
-   runs.
+   runs (proposal: 27 comparisons, Holm across all of them).
 3. Whether to run the 37 excluded pairs once for full-benchmark context
    (proposal: no, see the evaluation plan).
-4. The stretch paper: venue, timing and co-authorship.
+4. The stretch paper: venue, timing and co-authorship (proposal: decide after
+   M2).
 5. Whether the headline gate stays on executed calls (D5) now that upstream
-   recommends 6-B, which credits attempted calls, pending its 9-B review.
+   recommends 6-B, which credits attempted calls, pending its 9-B review
+   (proposal: executed calls lead, moving to 9-B if it lands before the final
+   runs).
