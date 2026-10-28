@@ -43,7 +43,7 @@ version 8-B):
   question and notes grader regressions from 7-B. ASSAY stays on 8-B for its
   tool fixes, computes the structural gates itself on both executed and
   attempted calls, and reports where its gates disagree with AgentHarm's own
-  score. Which reading leads is to agree (spec, open question 6).
+  score. Which reading leads is to agree (spec, open question 5).
 - Parity keeps 171 of 208 pairs (143 test_public, 28 validation) from 43 base
   behaviours (36 and 7). 42 behaviours are kept whole; `test_public/30` keeps
   3 of its 4 variants. The 37 excluded pairs are the ones whose harmful side
@@ -144,11 +144,12 @@ run.
 
 ### Full-benchmark context (to agree)
 
-Proposal: repeat 1 of each configuration also runs the 37 excluded pairs, so
-ASR, refusal rate and benign pass rate can be reported on all 208 tasks for
-comparison with published AgentHarm results, and the effect of the parity
-filter on those rates is visible. Conditioned metrics still use kept pairs
-only. Cost: about 22% more on repeat 1.
+Proposal: the 37 excluded pairs are not run. Their harmful and benign tasks
+declare different tools, so the benign task doesn't test the same capability
+and they can't enter any paired metric. Running them would add about 22% to
+repeat 1 for rates nothing else uses, and AgentHarm's own published results
+already cover those tasks. Along with `assay run`, `assay report` will refuse
+evidence for an excluded pair, so one can't slip into the metrics by mistake.
 
 ### Repeats (to agree)
 

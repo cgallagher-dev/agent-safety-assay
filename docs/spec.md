@@ -492,7 +492,7 @@ built while they run.
 | AgentHarm changes between versions: 8-B credits only executed calls and fixes three grader bugs. | Pinned exactly; grader shapes re-derived by static analysis of the installed source (SCRUM-13). The dataset revision is unchanged from earlier releases, so parity holds at 171 pairs. |
 | Three AgentHarm 8-B tool defects make some tasks unwinnable (working-directory paths on both arms, two benign whitelists). | Patched in memory with an upstream link each, affected pairs listed, and a sensitivity reading without them. |
 | Parity leaves Cybercrime at 8 of 24 tasks; the excluded pairs are the ones whose harmful side needs an illicit-only tool. | Report kept share per category; findings describe the kept set; optional full-benchmark context run (evaluation plan). |
-| AgentHarm's 9-B review lands during the project. Upstream now recommends 6-B until then, and lists executed-only crediting (7-B onward) as unresolved, along with grader regressions from 7-B ([inspect_evals #2290](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2290)). | Stay on the pinned version until the final runs finish. ASSAY computes its structural gates from the trace, on both executed and attempted calls, so either reading can lead (open question 6); the regressions touch only the semantic gate and the AgentHarm score cross-check, which reports them. Note any upstream change in the thesis. |
+| AgentHarm's 9-B review lands during the project. Upstream now recommends 6-B until then, and lists executed-only crediting (7-B onward) as unresolved, along with grader regressions from 7-B ([inspect_evals #2290](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2290)). | Stay on the pinned version until the final runs finish. ASSAY computes its structural gates from the trace, on both executed and attempted calls, so either reading can lead (open question 5); the regressions touch only the semantic gate and the AgentHarm score cross-check, which reports them. Note any upstream change in the thesis. |
 | Demo 1 lands before the runner exists. | Demo 1 runs from the synthetic fixture and one small run launched with Inspect directly. |
 | Case-study compute: a 27B configuration takes most of a day per repeat. | Runner resumes; scoring runs after generation; repeat design agreed early (see evaluation plan). |
 | Dashboard grows. | Overview and pair detail first; compare, sensitivity and live view only after M2. |
@@ -507,7 +507,8 @@ built while they run.
    subset.
 2. The primary comparisons and multiple-testing family, fixed before the final
    runs.
-3. Whether to run the 37 excluded pairs once for full-benchmark context.
+3. Whether to run the 37 excluded pairs once for full-benchmark context
+   (proposal: no, see the evaluation plan).
 4. The stretch paper: venue, timing and co-authorship.
 5. Whether the headline gate stays on executed calls (D5) now that upstream
    recommends 6-B, which credits attempted calls, pending its 9-B review.
