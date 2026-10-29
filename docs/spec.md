@@ -84,7 +84,7 @@ Outside the tool, and only after code freeze (M3):
   evidence only.
 - A short paper for an IEEE venue, agreed with the supervisor.
 - A live demonstration on real code in a sandbox, shown on the dashboard
-  (issue 44). Illustrative only; it adds nothing to the case-study numbers.
+  (SCRUM-44). Illustrative only; it adds nothing to the case-study numbers.
 
 ## 3. Glossary
 
@@ -117,9 +117,9 @@ told.
 
 | ID | Decision | Why |
 | --- | --- | --- |
-| D1 | Repository and package `safety-assay` (CLI and import name `assay`), MIT licence from the first commit. | As the proposal says. `agent-assay` was dropped because PyPI treats it as too close to the unrelated `agentassay` project. |
+| D1 | Repository `agent-safety-assay`, package `safety-assay` (CLI and import name `assay`), PolyForm Noncommercial 1.0.0 licence. | `agent-assay` was dropped because PyPI treats it as too close to the unrelated `agentassay` project. The proposal said MIT; the licence changed so that anyone can use and change ASSAY for research or study, but not sell it, and must credit it. |
 | D2 | Every reported number comes from a tagged release of this tool, run under the frozen evaluation plan. | Results are reproducible from one versioned codebase. |
-| D3 | Python 3.12+, uv with a committed lock file. `inspect-ai` and `inspect-evals` are pinned exactly (0.3.277 and 0.23.0, AgentHarm task version 8-B). | Grader shape tables and benchmark patches are checked against this exact AgentHarm source. Upgrading is a deliberate audit (see issue on the AgentHarm audit). |
+| D3 | Python 3.12+, uv with a committed lock file. `inspect-ai` and `inspect-evals` are pinned exactly (0.3.277 and 0.23.0, AgentHarm task version 8-B). | Grader shape tables and benchmark patches are checked against this exact AgentHarm source. Upgrading is a deliberate audit (see SCRUM-13, the AgentHarm audit). |
 | D4 | Models are described by TOML profiles, including each mode's sampling settings. No model name, provider quirk or size rule appears in code. A bare `--model` runs with a default single-mode profile. | O3. Model quirks such as how Qwen's thinking is switched off stay out of code. |
 | D5 | All three gates are computed for every sample. Structural over executed calls is the headline; attempted calls and semantic are sensitivity readings. | AgentHarm 8-B credits only executed calls, so the headline matches the benchmark's own reading. RQ2 asks about gate sensitivity. |
 | D6 | Executed and refused are stored independently per harmful sample. The three-way outcome and verdict are derived (refusal first). Execution-first is a sensitivity reading. Refusal is judged on the benign arm too, and benign refusals are reported apart from other benign failures. | Both can happen in one trace. A benign refusal is over-refusal, not incapability. |
@@ -205,7 +205,7 @@ responsibility. The line count is checked at each milestone.
 results/<run>/
   run_config.json
   assay.log
-  logs/<configuration>/<arm>/repeat-<k>/*.eval
+  logs/<profile>-<mode>/<arm>/repeat-<k>/*.eval
   evidence.jsonl
   report.json
   pairs.csv, metrics.csv
@@ -366,7 +366,7 @@ passed, E = harmful executed, R = refused:
 | NFR6 | Long runs | A 27B configuration takes most of a day on the reference machine, so runs must resume and must not lose judged work on interruption. |
 | NFR7 | Clarity | Every displayed rate shows its numerator and denominator; undefined is never shown as zero; anomalies are visible. |
 | NFR8 | Maintainability | Size budget and engineering rules in section 5. Comments explain why, not what. |
-| NFR9 | Licence | MIT for ASSAY. AgentHarm data keeps its own licence and is downloaded at run time. |
+| NFR9 | Licence | PolyForm Noncommercial 1.0.0 for ASSAY, with upstream credits in NOTICE. AgentHarm data keeps its own licence and is downloaded at run time. |
 | NFR10 | Security | API keys are read from the environment and never written to run records, reports or logs. The dashboard reads files only inside the results directory it was started on. |
 | NFR11 | Errors | Every failure raises a typed ASSAY error that says what failed and what to do next. The CLI prints that message without a traceback (unless `--debug`) and exits with a code per error type. Nothing is swallowed: a step that cannot finish stops, and partial results are marked incomplete. |
 | NFR12 | Logging | Standard Python logging per module. `-v` and `-q` set the console level; each run also writes `assay.log` at debug level in its results directory, every line tagged with the run id. Log lines carry ids, counts and timings, never prompt, response, reasoning or tool-argument text. |
@@ -437,43 +437,43 @@ the proposal's risk table says.
 
 ### Order of work
 
-Issue numbers are GitHub issue numbers. Within a milestone, work top to bottom;
+Tickets are in Jira (project SCRUM). Within a milestone, work top to bottom;
 the case-study runs start as soon as the runner works, and the statistics are
 built while they run.
 
-| Step | Issue | Milestone |
+| Step | Ticket | Milestone |
 | --- | --- | --- |
-| 1 | #2 Agree the evaluation plan with the supervisor (start now) | M0 |
-| 2 | #3 Finish the AgentHarm 8-B audit | M0 |
-| 3 | #29 Run ids, errors and logging | M1 |
-| 4 | #4 Evidence record and synthetic fixture | M1 |
-| 5 | #8 Paired outcomes, verdicts and metrics | M1 |
-| 6 | #9 Report schema and `assay report` | M1 |
-| 7 | #10 Dashboard backend | M1 |
-| 8 | #11 Dashboard overview page | M1 |
-| 9 | #5 Pair validation | M1 |
-| 10 | #7 Scoring pass | M1 |
-| 11 | #6 Grading saved logs | M1 |
-| 12 | #12 Pair explorer and detail | M1 |
-| 13 | #13 PDF report | M1 |
-| 14 | #14 Demo 1 rehearsal | M1 |
-| 15 | #15 Model profiles | M2 |
-| 16 | #17 Ollama preflight | M2 |
-| 17 | #16 `assay run` | M2 |
-| 18 | #21 Case-study runs (overnight, alongside 19 to 23) | M2 |
-| 19 | #18 Repeats and bootstrap intervals | M2 |
-| 20 | #19 `assay compare` | M2 |
-| 21 | #20 Sensitivity readings | M2 |
-| 22 | #28 `assay show` and `assay ls` | M2 |
-| 23 | #22 Second-family check | M2 |
-| 24 | #23 Judge agreement | M3 |
-| 25 | #24 Dashboard compare and sensitivity | M3 |
-| 26 | #30 Model-written narrative | M3 |
-| 27 | #26 Clean-install check | M3 |
-| 28 | #31 Publish to PyPI | M3 |
-| 29 | #27 Release v1.0 | M3 |
-| 30 | #25 Live run progress (cut first) | M3 |
-| 31 | #32 Jacobian lens, #33 IEEE paper, #44 live code demo | Stretch |
+| 1 | SCRUM-12 Agree the evaluation plan with the supervisor (start now) | M0 |
+| 2 | SCRUM-13 Finish the AgentHarm 8-B audit | M0 |
+| 3 | SCRUM-39 Run ids, errors and logging | M1 |
+| 4 | SCRUM-14 Evidence record and synthetic fixture | M1 |
+| 5 | SCRUM-18 Paired outcomes, verdicts and metrics | M1 |
+| 6 | SCRUM-19 Report schema and `assay report` | M1 |
+| 7 | SCRUM-20 Dashboard backend | M1 |
+| 8 | SCRUM-21 Dashboard overview page | M1 |
+| 9 | SCRUM-15 Pair validation | M1 |
+| 10 | SCRUM-17 Scoring pass | M1 |
+| 11 | SCRUM-16 Grading saved logs | M1 |
+| 12 | SCRUM-22 Pair explorer and detail | M1 |
+| 13 | SCRUM-23 PDF report | M1 |
+| 14 | SCRUM-24 Demo 1 rehearsal | M1 |
+| 15 | SCRUM-25 Model profiles | M2 |
+| 16 | SCRUM-27 Ollama preflight | M2 |
+| 17 | SCRUM-26 `assay run` | M2 |
+| 18 | SCRUM-31 Case-study runs (overnight, alongside 19 to 23) | M2 |
+| 19 | SCRUM-28 Repeats and bootstrap intervals | M2 |
+| 20 | SCRUM-29 `assay compare` | M2 |
+| 21 | SCRUM-30 Sensitivity readings | M2 |
+| 22 | SCRUM-38 `assay show` and `assay ls` | M2 |
+| 23 | SCRUM-32 Second-family check | M2 |
+| 24 | SCRUM-33 Judge agreement | M3 |
+| 25 | SCRUM-34 Dashboard compare and sensitivity | M3 |
+| 26 | SCRUM-40 Model-written narrative | M3 |
+| 27 | SCRUM-36 Clean-install check | M3 |
+| 28 | SCRUM-41 Publish to PyPI | M3 |
+| 29 | SCRUM-37 Release v1.0 | M3 |
+| 30 | SCRUM-35 Live run progress (cut first) | M3 |
+| 31 | SCRUM-42 Jacobian lens, SCRUM-43 IEEE paper, SCRUM-44 live code demo | Stretch |
 
 ## 10. Traceability
 
@@ -489,7 +489,7 @@ built while they run.
 
 | Risk | Response |
 | --- | --- |
-| AgentHarm changes between versions: 8-B credits only executed calls and fixes three grader bugs. | Pinned exactly; grader shapes re-derived by static analysis of the installed source (issue 3). The dataset revision is unchanged from earlier releases, so parity holds at 171 pairs. |
+| AgentHarm changes between versions: 8-B credits only executed calls and fixes three grader bugs. | Pinned exactly; grader shapes re-derived by static analysis of the installed source (SCRUM-13). The dataset revision is unchanged from earlier releases, so parity holds at 171 pairs. |
 | Three AgentHarm 8-B tool defects make some tasks unwinnable (working-directory paths on both arms, two benign whitelists). | Patched in memory with an upstream link each, affected pairs listed, and a sensitivity reading without them. |
 | Parity leaves Cybercrime at 8 of 24 tasks; the excluded pairs are the ones whose harmful side needs an illicit-only tool. | Report kept share per category; findings describe the kept set; optional full-benchmark context run (evaluation plan). |
 | AgentHarm's 9-B review lands during the project. Upstream now recommends 6-B until then, and lists executed-only crediting (7-B onward) as unresolved, along with grader regressions from 7-B ([inspect_evals #2290](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2290)). | Stay on the pinned version until the final runs finish. ASSAY computes its structural gates from the trace, on both executed and attempted calls, so either reading can lead (open question 6); the regressions touch only the semantic gate and the AgentHarm score cross-check, which reports them. Note any upstream change in the thesis. |

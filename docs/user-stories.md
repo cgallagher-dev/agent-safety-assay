@@ -2,7 +2,7 @@
 
 Personas are defined in [spec.md](spec.md#users). Priority uses MoSCoW.
 Each story lists the milestone it is planned for and the requirements it
-covers. Implementation issues on GitHub reference these ids.
+covers. Jira tickets (project SCRUM) reference these ids.
 
 ## A. Pairs and runs
 
