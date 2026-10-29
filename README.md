@@ -58,6 +58,13 @@ refusal and execution kept as separate facts, and readings that show how
 much the result depends on those choices. Full credits are in
 [NOTICE](NOTICE) and [CITATION.cff](CITATION.cff).
 
+Bugs I found in AgentHarm while working with it have been reported upstream:
+[#2101](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2101) (with
+a fix in [#2102](https://github.com/UKGovernmentBEIS/inspect_evals/pull/2102)),
+[#2107](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2107),
+[#2108](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2108) and
+[#2703](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2703).
+
 ## Planned usage
 
 By v1.0 (M3, mid January) the whole workflow should be a handful of
