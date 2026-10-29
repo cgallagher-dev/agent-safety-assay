@@ -1,9 +1,9 @@
 # Presentation
 
-How the CLI, the PDF report and the dashboard look and what each one shows.
-Agreed 28 October 2026. Requirements are in the spec (FR19 to FR30, NFR7,
-NFR14); work is tracked in SCRUM-52 (CLI), SCRUM-53 (dashboard) and SCRUM-54
-(PDF).
+This page sets out how the CLI, the PDF report and the dashboard look and
+what each one shows. I settled it on 28 October 2026. The requirements are in
+the spec (FR19 to FR30, NFR7, NFR14), and the work is tracked in SCRUM-52
+(CLI), SCRUM-53 (dashboard) and SCRUM-54 (PDF).
 
 ## Shared rules
 
@@ -43,7 +43,7 @@ Built on `rich`. Colour is dropped when output is not a terminal, when
   for example `next: assay judge results/<run id>`. `-q` hides it.
 - Errors print as a red panel: what failed, then what to do next. No
   traceback unless `--debug` (NFR11).
-- Long steps show progress; `-q` hides it.
+- Long steps show progress, and `-q` hides it.
 
 ## PDF report
 
@@ -78,8 +78,8 @@ visible focus, and meets WCAG AA contrast (NFR14).
 
 ## Narrative
 
-The judge model writes it by default (D13, FR30). It never writes a digit:
-numbers, configuration names, model names and pair keys all come in through
+The judge model writes it by default (D13, FR30). It never writes a digit.
+Numbers, configuration names, model names and pair keys all come in through
 placeholders that are filled from `report.json`, for example
 `{metric:ccASR:qwen3.5-4b/on}` or `{config:qwen3.5-4b/on}`. Output with a
 digit or an unresolved placeholder is rejected. The narrative appears at the

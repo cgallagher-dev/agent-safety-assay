@@ -1,15 +1,15 @@
 # ASSAY
 
-ASSAY is a CLI-based LLM safety evaluation harness investigating capability-conditioned safety evaluation for small LLM agents.
+ASSAY is a command-line harness for LLM safety evaluation. I'm building it to look at capability-conditioned safety evaluation for small LLM agents.
 
 When an agent does not complete a harmful task, it may have refused, made an
 execution error, or simply lacked the capability. Attack success rate (ASR)
-counts all of these the same way. ASSAY scores every harmful
+counts all of these in the same way. ASSAY scores every harmful
 [AgentHarm](https://arxiv.org/abs/2410.09024) task beside its matched benign
 task, which needs the same tool calls, so that safety is reported on the tasks
 a model has shown it can actually do.
 
-It reports, side by side and always with numerators and denominators:
+It reports these metrics side by side, always with numerators and denominators:
 
 | Metric | Definition |
 | --- | --- |
@@ -22,14 +22,14 @@ It reports, side by side and always with numerators and denominators:
 ASSAY is built on [Inspect](https://inspect.aisi.org.uk) and works with any model
 Inspect can reach. Models are described by profiles, not code.
 
-**Status:** early development (October 2026). This is a final-year project at
-TUS Athlone. The command surface below is the target, not what exists yet;
-see [docs/spec.md](docs/spec.md) and the [Jira board](https://cgallagherdev.atlassian.net/jira/software/projects/SCRUM/boards/1).
+**Status:** early development (October 2026). This is my final-year project at
+TUS Athlone. The commands below are what I'm aiming for, not what exists yet.
+See [docs/spec.md](docs/spec.md) and the [Jira board](https://cgallagherdev.atlassian.net/jira/software/projects/SCRUM/boards/1).
 
 ## Prior art
 
 ASSAY doesn't invent paired benign tasks or conditional reporting. It builds
-on, and is shaped by, this work:
+on this work and was shaped by it:
 
 - **AgentHarm** (Andriushchenko et al., 2024,
   [arXiv:2410.09024](https://arxiv.org/abs/2410.09024)). The benchmark ASSAY
@@ -40,7 +40,7 @@ on, and is shaped by, this work:
 - **AgentDojo** (Debenedetti et al., 2024,
   [arXiv:2406.13352](https://arxiv.org/abs/2406.13352)). Reports benign
   utility beside attack success, and notes that low-utility agents can look
-  robust just by failing the task.
+  secure just by failing the task.
 - **Hofer et al., 2026** ([arXiv:2606.10525](https://arxiv.org/abs/2606.10525)).
   Suggests a small model's lower utility partly explains why it looks harder
   to attack.

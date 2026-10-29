@@ -6,7 +6,7 @@ test.
 ## Harmful content
 
 AgentHarm contains harmful task prompts, and evaluated models can produce
-harmful text and tool arguments. ASSAY handles that material as follows:
+harmful text and tool arguments. This is how ASSAY handles that material:
 
 - Tools are AgentHarm's synthetic tools. No run takes a real-world action.
 - Benchmark data is downloaded at run time and never committed.
@@ -25,4 +25,4 @@ harmful text and tool arguments. ASSAY handles that material as follows:
 
 If you find harmful content in this repository, a way to leak it through the
 tool, or a security issue, open a GitHub issue without quoting the content, or
-contact the maintainer through GitHub.
+contact me (the maintainer) through GitHub.

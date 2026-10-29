@@ -27,8 +27,8 @@ uv run ruff format --check
 
 Once contributions open, this is the process. Until then it's how I work.
 
-1. Open an issue first for anything bigger than a small fix, so it can be
-   checked against the [spec](docs/spec.md).
+1. Open an issue first for anything bigger than a small fix, so I can check
+   it against the [spec](docs/spec.md).
 2. Write the test first for anything touching pairing, grading, outcomes,
    metrics or redaction. Tests use synthetic fixtures and need no model or
    network.

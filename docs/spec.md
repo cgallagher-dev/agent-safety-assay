@@ -1,20 +1,21 @@
 # ASSAY requirements specification
 
-Version 0.1, 7 October 2026. Draft for supervisor review.
+Version 0.1, 7 October 2026. This is a draft for my supervisor to review.
 
-This document turns the project proposal (Project 4, SFTW08030, submitted
-1 October 2026) into requirements for the public tool. User stories are in
-[user-stories.md](user-stories.md) and the case study and software evaluation
-protocol is in [evaluation-plan.md](evaluation-plan.md).
+In this document I turn my project proposal (Project 4, SFTW08030, submitted
+1 October 2026) into requirements for the public tool. The user stories are in
+[user-stories.md](user-stories.md), and the protocol for the case study and
+for evaluating the software is in [evaluation-plan.md](evaluation-plan.md).
 
 ## 1. Purpose
 
-LLM agents are commonly scored by attack success rate (ASR): the share of
-harmful tasks they complete. An agent can fail a harmful task because it
-refused or because it could not use its tools, and ASR counts both the same
-way. ASSAY scores every harmful AgentHarm task beside its matched benign task,
-which needs the same tool calls, so that safety is reported on the tasks a
-model has shown it can do.
+LLM agents are usually scored by attack success rate (ASR), which is the share
+of harmful tasks they complete. The problem is that an agent can fail a
+harmful task for two very different reasons: it refused, or it simply could
+not use its tools. ASR counts both the same way. ASSAY scores every harmful
+AgentHarm task next to its matched benign task, which needs the same tool
+calls, so that I can report safety on the tasks a model has shown it is able
+to do.
 
 ### Research questions
 
@@ -34,17 +35,19 @@ model has shown it can do.
 | O4 | Add a local dashboard and PDF report that trace every aggregate number back to the matched tasks and agent traces behind it. |
 | O5 | Run a case study on Qwen3.5 4B, 9B and 27B with reasoning on and off, and evaluate the tool itself (tests, judge agreement, gate sensitivity, clean install). |
 
-O1 is thesis work and has no software requirements here.
+O1 is part of the thesis write-up, so it has no software requirements here.
 
 ### Users
 
-- **Evaluator:** runs ASSAY against a model they are allowed to test.
-- **Researcher:** analyses and compares results and needs to trust them.
-- **Engineer:** chooses between small open-weight models for an agent
-  deployment and needs a readable verdict.
+- **Evaluator:** someone who runs ASSAY against a model they are allowed to
+  test.
+- **Researcher:** someone who analyses and compares the results and needs to
+  be able to trust them.
+- **Engineer:** someone choosing between small open-weight models for an
+  agent deployment, who needs a verdict they can read.
 
-Supervisors and examiners see the tool through demonstrations, so the
-dashboard and report must explain themselves.
+My supervisor and the examiners will mostly see the tool through
+demonstrations, so the dashboard and the report have to explain themselves.
 
 ## 2. Scope
 
@@ -64,27 +67,28 @@ dashboard and report must explain themselves.
 
 ### Out of scope
 
-From the proposal: adaptive attack generation, training or fine-tuning, hosted
-multi-agent deployments, other model families in the case study, and any
-general claim linking model size to safety.
+The proposal already ruled out adaptive attack generation, training or
+fine-tuning, hosted multi-agent deployments, other model families in the case
+study, and any general claim linking model size to safety.
 
-Also out of scope:
+I have also left out:
 
 - A live attacker/target/judge demonstration mesh.
 - Near-miss and save trace annotations.
-- Message-cap reruns. The cap stays at AgentHarm's 20 messages and the capped
-  share is reported.
+- Message-cap reruns. The cap stays at AgentHarm's 20 messages, and I report
+  the share of samples that hit it.
 - Machine-specific preflight (swap, competing processes) and hardware probes.
 
 ### Stretch goals
 
-Outside the tool, and only after code freeze (M3):
+These sit outside the tool, and I will only start them after code freeze (M3):
 
-- The proposal's Jacobian lens exploration on the 4B model, as supporting
-  evidence only.
-- A short paper for an IEEE venue, agreed with the supervisor.
+- The Jacobian lens exploration on the 4B model from the proposal, used as
+  supporting evidence only.
+- A short paper for an IEEE venue, if my supervisor agrees.
 - A live demonstration on real code in a sandbox, shown on the dashboard
-  (SCRUM-44). Illustrative only; it adds nothing to the case-study numbers.
+  (SCRUM-44). This is only an illustration and adds nothing to the case-study
+  numbers.
 
 ## 3. Glossary
 
@@ -108,12 +112,12 @@ Outside the tool, and only after code freeze (M3):
 | Scoring pass | After generation, AgentHarm's graders (with the same local model as semantic judge) and the refusal judge run over the saved logs. |
 | Narrative | Optional model-written prose around the report. It refers to numbers only through placeholders that the template fills from `report.json`. |
 
-Metric definitions are in section 6.4.
+The metric definitions are in section 6.4.
 
 ## 4. Decisions
 
-These are settled. Changing one needs a note in this section and the supervisor
-told.
+These decisions are settled. If I change one, I will add a note in this
+section and tell my supervisor.
 
 | ID | Decision | Why |
 | --- | --- | --- |
@@ -177,27 +181,28 @@ src/assay/
 frontend/         React + TypeScript dashboard source
 ```
 
-Size budget: the package should stay under about 5,000 lines of Python
-excluding tests, and a module over about 400 lines should be split by
-responsibility. The line count is checked at each milestone.
+Size budget: the package should stay under about 5,000 lines of Python, not
+counting tests, and any module that grows past about 400 lines should be split
+by responsibility. I check the line count at each milestone.
 
 ### Engineering rules
 
-- One module, one job. Data loading, grading, pairing, metrics, reporting and
-  command parsing stay apart; CLI commands only parse arguments and call
-  library functions.
-- Rules that vary by grader or model live in data (shape tables, profiles),
-  not in special-case branches.
-- Pure functions for grading, outcomes, metrics and statistics; file and
+- Each module does one job. Data loading, grading, pairing, metrics,
+  reporting and command parsing are kept apart, and CLI commands only parse
+  arguments and call library functions.
+- Rules that vary by grader or model are kept in data (shape tables,
+  profiles) rather than in special-case branches.
+- Grading, outcomes, metrics and statistics are pure functions. File and
   network access stays at the edges.
-- Tests cover critical paths only: pairing, grading, outcomes, metrics,
-  statistics, redaction and every rule that rejects input. They come first,
-  use synthetic fixtures, and state each behaviour once rather than once per
-  permutation. There is no coverage target.
-- Every AgentHarm-specific fact is checked against the pinned source.
-- No compatibility shims, unused options or placeholders for future features.
-- Comments explain a rule or a workaround in a line, with an upstream link
-  where one exists.
+- Tests only cover the critical paths: pairing, grading, outcomes, metrics,
+  statistics, redaction and every rule that rejects input. I write them
+  first, use synthetic fixtures, and test each behaviour once rather than once
+  per permutation. There is no coverage target.
+- I check every AgentHarm-specific fact against the pinned source.
+- There are no compatibility shims, unused options or placeholders for
+  future features.
+- A comment explains a rule or a workaround in one line, with an upstream
+  link where there is one.
 
 ### Results directory
 
@@ -215,7 +220,7 @@ results/<run>/
 
 ## 6. Functional requirements
 
-Each requirement lists the user stories it serves.
+Each requirement lists the user stories it supports.
 
 ### 6.1 Pairs and runs
 
@@ -403,7 +408,8 @@ passed, E = harmful executed, R = refused:
 | `truncated` | boolean | a generation stopped on the output token limit |
 | `log` | string | log path relative to the results directory, and sample uuid |
 
-No prompt, response, reasoning, tool argument or judge explanation is stored.
+The record never stores a prompt, response, reasoning, tool argument or judge
+explanation.
 
 ### Report (`report.json`)
 
@@ -414,8 +420,8 @@ limit, splits, exclusions),
 metrics per gate with numerator, denominator, value or undefined reason and
 interval, verdict counts, overlap, anomalies, capped counts), `comparisons`
 and `pairs` (one row per configuration, repeat and pair with per-gate verdict).
-The exact schema lives in `report.py` and is exported as JSON Schema for the
-dashboard.
+The exact schema is defined in `report.py`, and it is exported as JSON Schema
+for the dashboard to use.
 
 ### CSV
 
@@ -434,14 +440,14 @@ dashboard.
 | M4 Thesis | approx. May 2027 | Analysis, thesis, Semester 2 demonstrations. Defect fixes only. |
 | Stretch | after M3 | Jacobian lens exploration; a short paper for an IEEE venue. |
 
-If time slips, dashboard extras (FR27, FR28) are cut before research work, as
-the proposal's risk table says.
+If time slips, I will cut the dashboard extras (FR27, FR28) before any of the
+research work, as the risk table in my proposal says.
 
 ### Order of work
 
-Tickets are in Jira (project SCRUM). Within a milestone, work top to bottom;
-the case-study runs start as soon as the runner works, and the statistics are
-built while they run.
+The tickets are in Jira (project SCRUM). Within a milestone I work from top to
+bottom. The case-study runs start as soon as the runner works, and I build the
+statistics while they run.
 
 | Step | Ticket | Milestone |
 | --- | --- | --- |
