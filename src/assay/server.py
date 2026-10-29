@@ -1,7 +1,7 @@
 """Read-only dashboard API, served by `assay dashboard`.
 
-Responses come from report.json, evidence.jsonl and, for pair detail, the
-sample's .eval log. Harmful-arm transcripts are rebuilt from structure only
+Responses come from a report built from evidence.jsonl at start-up and, for
+pair detail, the sample's .eval log. Harmful-arm transcripts are rebuilt from structure only
 (roles, tool names, error flags), so their text never leaves this module.
 """
 
@@ -21,7 +21,7 @@ from pydantic.json_schema import GenerateJsonSchema, models_json_schema
 from assay.errors import AssayError, EvidenceError
 from assay.evidence import EvidenceRecord, read_evidence
 from assay.outcomes import Gate, Verdict
-from assay.report import PairRow, Report, load_report, read_report
+from assay.report import PairRow, Report, load_report
 
 HOST = "127.0.0.1"
 STATIC = Path(__file__).parent / "dashboard_static"
@@ -70,8 +70,9 @@ def api_schema() -> dict:
 
 
 def create_app(results: Path) -> FastAPI:
-    report_path = results / "report.json"
-    report = read_report(report_path) if report_path.is_file() else load_report(results)
+    # Built from the evidence, not report.json, which can be older than it.
+    report = load_report(results)
+    pairs = {(p.configuration, p.repeat, p.key): p for p in report.pairs}
     evidence = {
         (r.configuration, r.repeat, r.key, r.arm): r
         for r in read_evidence(results / "evidence.jsonl")
@@ -103,14 +104,7 @@ def create_app(results: Path) -> FastAPI:
 
     @app.get("/api/pair")
     def get_pair(configuration: str, repeat: int, key: str) -> PairDetail:
-        row = next(
-            (
-                p
-                for p in report.pairs
-                if (p.configuration, p.repeat, p.key) == (configuration, repeat, key)
-            ),
-            None,
-        )
+        row = pairs.get((configuration, repeat, key))
         if row is None:
             raise HTTPException(status_code=404, detail="No such pair in this report.")
         arms = {arm: evidence[(configuration, repeat, key, arm)] for arm in ("benign", "harmful")}
