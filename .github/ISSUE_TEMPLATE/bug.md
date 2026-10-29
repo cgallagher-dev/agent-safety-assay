@@ -16,4 +16,4 @@ samples by id (for example `test_public/2-1`, harmful arm, thinking off).
 
 ## Environment
 
-`assay --version`, Python version, OS, model profile.
+Please include the output of `assay --version`, your Python version, OS and model profile.

@@ -1,15 +1,15 @@
 # ASSAY
 
-ASSAY is a CLI-based LLM safety evaluation harness investigating capability-conditioned safety evaluation for small LLM agents.
+ASSAY is a CLI-based LLM safety evaluation harness. I'm building it to look at capability-conditioned safety evaluation for small LLM agents.
 
 When an agent does not complete a harmful task, it may have refused, made an
 execution error, or simply lacked the capability. Attack success rate (ASR)
-counts all of these the same way. ASSAY scores every harmful
+counts all of these in the same way. ASSAY scores every harmful
 [AgentHarm](https://arxiv.org/abs/2410.09024) task beside its matched benign
 task, which needs the same tool calls, so that safety is reported on the tasks
 a model has shown it can actually do.
 
-It reports, side by side and always with numerators and denominators:
+It reports these metrics side by side, always with numerators and denominators:
 
 | Metric | Definition |
 | --- | --- |
@@ -22,14 +22,14 @@ It reports, side by side and always with numerators and denominators:
 ASSAY is built on [Inspect](https://inspect.aisi.org.uk) and works with any model
 Inspect can reach. Models are described by profiles, not code.
 
-**Status:** early development (October 2026). This is a final-year project at
-TUS Athlone. The command surface below is the target, not what exists yet;
-see [docs/spec.md](docs/spec.md) and the [Jira board](https://cgallagherdev.atlassian.net/jira/software/projects/SCRUM/boards/1).
+**Status:** early development (October 2026). This is my final-year project at
+TUS Athlone. The commands below are what I'm aiming for, not what exists yet.
+See [docs/spec.md](docs/spec.md) and the [Jira board](https://cgallagherdev.atlassian.net/jira/software/projects/SCRUM/boards/1).
 
 ## Prior art
 
 ASSAY doesn't invent paired benign tasks or conditional reporting. It builds
-on, and is shaped by, this work:
+on this work and was shaped by it:
 
 - **AgentHarm** (Andriushchenko et al., 2024,
   [arXiv:2410.09024](https://arxiv.org/abs/2410.09024)). The benchmark ASSAY
@@ -40,7 +40,7 @@ on, and is shaped by, this work:
 - **AgentDojo** (Debenedetti et al., 2024,
   [arXiv:2406.13352](https://arxiv.org/abs/2406.13352)). Reports benign
   utility beside attack success, and notes that low-utility agents can look
-  robust just by failing the task.
+  secure just by failing the task.
 - **Hofer et al., 2026** ([arXiv:2606.10525](https://arxiv.org/abs/2606.10525)).
   Suggests a small model's lower utility partly explains why it looks harder
   to attack.
@@ -60,9 +60,10 @@ much the result depends on those choices. Full credits are in
 
 ## Planned usage
 
-```text
-pip install safety-assay                      # once released
+By v1.0 (M3, mid January) the whole workflow should be a handful of
+commands, installed with `pip install agent-safety-assay`:
 
+```text
 assay pairs                                   # validate matched pairs, list exclusions
 assay run --profile qwen3.5-4b --out results/4b
 assay run --model ollama/llama3.2 --out results/llama
@@ -70,7 +71,7 @@ assay judge results/4b --judge gemma4-12b     # graders and refusal judge over s
 assay report results/4b                       # metrics, text / JSON / CSV
 assay compare results/4b results/27b          # clustered paired comparison
 assay narrate results/4b                      # optional model-written summary
-assay pdf results/4b                          # needs pip install 'safety-assay[pdf]'
+assay pdf results/4b                          # needs pip install 'agent-safety-assay[pdf]'
 assay dashboard results/                      # local, read-only dashboard
 ```
 
@@ -93,9 +94,10 @@ dashboard never sends harmful-task text to the browser. See
 
 ## Licence
 
-[PolyForm Noncommercial 1.0.0](LICENSE). Free to use, study and change for
-research, teaching and personal projects, but not for anything commercial.
-If you share it or build on it, keep the licence and credit the original.
+[MIT License with an added clause](LICENSE), the same terms AgentHarm uses.
+You're free to use, change and share ASSAY, as long as it's to improve the
+safety and security of AI systems. If you share it or build on it, keep the
+licence and credit the original.
 
 ASSAY is built on Inspect, Inspect Evals and AgentHarm, which keep their own
 licences. AgentHarm data is downloaded at run time and is only to be used to

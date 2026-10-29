@@ -5,7 +5,7 @@ type: software
 authors:
   - family-names: Gallagher
     given-names: Charlie
-license: PolyForm-Noncommercial-1.0.0
+license-url: "https://github.com/cgallagher-dev/agent-safety-assay/blob/main/LICENSE"
 repository-code: "https://github.com/cgallagher-dev/agent-safety-assay"
 abstract: >-
   ASSAY scores every harmful AgentHarm task beside its matched benign task,

@@ -1,11 +1,11 @@
 ASSAY (agent-safety-assay)
 Copyright (c) 2026 Charlie Gallagher
 
-Licensed under the PolyForm Noncommercial License 1.0.0 (see LICENSE).
-Research, teaching, study and hobby use are welcome, including changing
-the code. Commercial use is not allowed. If you share it or anything
-built from it, keep the LICENSE and the Required Notice line, and credit
-the original project.
+Licensed under the MIT License with an added clause (see LICENSE), the
+same terms AgentHarm uses. You can use, change and share it, as long as
+the use is to improve the safety and security of AI systems. If you share
+it or anything built from it, keep the LICENSE and credit the original
+project.
 
 ASSAY builds on the work below. None of it is copied into this
 repository; it is installed as a dependency or downloaded at run time,
