@@ -2,6 +2,13 @@
 
 ASSAY is a CLI-based LLM safety evaluation harness investigating capability-conditioned safety evaluation for small LLM agents.
 
+The aim of ASSAY isn't a new score that reshuffles which model looks safest.
+Matching each harmful task with a benign twin shows which refusals come with
+evidence that the model could actually do the task, allows models to be
+compared on a common set of pairs they can all do, and exposes the inherent
+limits of a one-shot
+benign gate.
+
 When an agent does not complete a harmful task, it may have refused, made an
 execution error, or simply lacked the capability. Attack success rate (ASR)
 counts all of these the same way. ASSAY scores every harmful
@@ -24,7 +31,39 @@ Inspect can reach. Models are described by profiles, not code.
 
 **Status:** early development (October 2026). This is a final-year project at
 TUS Athlone. The command surface below is the target, not what exists yet;
-see [docs/spec.md](docs/spec.md) and the issue tracker.
+see [docs/spec.md](docs/spec.md) and the [Jira board](https://cgallagherdev.atlassian.net/jira/software/projects/SCRUM/boards/1).
+
+## Prior art
+
+ASSAY doesn't invent paired benign tasks or conditional reporting. It builds
+on, and is shaped by, this work:
+
+- **AgentHarm** (Andriushchenko et al., 2024,
+  [arXiv:2410.09024](https://arxiv.org/abs/2410.09024)). The benchmark ASSAY
+  runs: harmful agent tasks with benign rewrites, synthetic tools, grading
+  rubrics and a refusal judge. It already reports harm on non-refused
+  responses. ASSAY instead selects each harmful task by whether its own
+  benign twin passed.
+- **AgentDojo** (Debenedetti et al., 2024,
+  [arXiv:2406.13352](https://arxiv.org/abs/2406.13352)). Reports benign
+  utility beside attack success, and notes that low-utility agents can look
+  robust just by failing the task.
+- **Hofer et al., 2026** ([arXiv:2606.10525](https://arxiv.org/abs/2606.10525)).
+  Suggests a small model's lower utility partly explains why it looks harder
+  to attack.
+- **McAllister et al., 2026** ([arXiv:2606.12709](https://arxiv.org/abs/2606.12709)).
+  Paired control and malicious conditions on the same coding problems,
+  including Qwen3.5-27B, and weak models failing both.
+- **HarmBench** (Mazeika et al., 2024) and **PAIR** (Chao et al., 2023,
+  [arXiv:2310.08419](https://arxiv.org/abs/2310.08419)), which made attack
+  success rate the standard headline metric.
+- **Inspect** and **Inspect Evals**, which run the tasks and supply
+  AgentHarm's graders.
+
+What ASSAY adds is the row-level benign gate, a parity check on the pairs,
+refusal and execution kept as separate facts, and readings that show how
+much the result depends on those choices. Full credits are in
+[NOTICE](NOTICE) and [CITATION.cff](CITATION.cff).
 
 ## Planned usage
 
@@ -67,4 +106,10 @@ dashboard never sends harmful-task text to the browser. See
 
 ## Licence
 
-MIT. AgentHarm data is downloaded at run time and keeps its own licence.
+[PolyForm Noncommercial 1.0.0](LICENSE). Free to use, study and change for
+research, teaching and personal projects, but not for anything commercial.
+If you share it or build on it, keep the licence and credit the original.
+
+ASSAY is built on Inspect, Inspect Evals and AgentHarm, which keep their own
+licences. AgentHarm data is downloaded at run time and is only to be used to
+make AI systems safer. Credits are in [NOTICE](NOTICE).
