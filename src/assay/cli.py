@@ -122,9 +122,11 @@ def run_command(handler: Handler, args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
     configure_console(verbose=args.verbose, quiet=args.quiet)
     handler = getattr(args, "handler", None)
     if handler is None:
+        parser.print_help()
         return 0
     return run_command(handler, args)
