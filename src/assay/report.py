@@ -168,8 +168,23 @@ def build_report(
         )
     outcomes = {gate: pair_outcomes(records, gate) for gate in GATES}
     unjudged = unjudged_pairs(records)
+    records_by = defaultdict(list)
+    for record in records:
+        records_by[record.configuration].append(record)
+    outcomes_by: dict[str, dict[Gate, list[PairOutcome]]] = defaultdict(
+        lambda: {gate: [] for gate in GATES}
+    )
+    for gate in GATES:
+        for outcome in outcomes[gate]:
+            outcomes_by[outcome.configuration][gate].append(outcome)
     configurations = [
-        _configuration_result(name, mode, records, outcomes, unjudged)
+        _configuration_result(
+            name,
+            mode,
+            records_by[name],
+            outcomes_by[name],
+            [p for p in unjudged if p[0] == name],
+        )
         for name, mode in run_config.configurations.items()
     ]
     return Report(
@@ -186,11 +201,10 @@ def build_report(
 def _configuration_result(
     name: str,
     configured: ConfiguredMode,
-    records: list[EvidenceRecord],
+    mine: list[EvidenceRecord],
     outcomes: dict[Gate, list[PairOutcome]],
     unjudged: list[PairKey],
 ) -> ConfigurationResult:
-    mine = [r for r in records if r.configuration == name]
     # Repeats are pooled here; per-repeat readings come with the statistics.
     return ConfigurationResult(
         name=name,
@@ -198,16 +212,8 @@ def _configuration_result(
         mode=configured.mode,
         repeats=len({r.repeat for r in mine}),
         pairs=len({r.key for r in mine}),
-        unjudged=[
-            key
-            for _, _, key in sorted(
-                (p for p in unjudged if p[0] == name), key=lambda p: (p[1], key_order(p[2]))
-            )
-        ],
-        gates={
-            gate: _gate_result([o for o in outcomes[gate] if o.configuration == name])
-            for gate in GATES
-        },
+        unjudged=[key for _, _, key in sorted(unjudged, key=lambda p: (p[1], key_order(p[2])))],
+        gates={gate: _gate_result(outcomes[gate]) for gate in GATES},
         limits={
             arm: LimitCounts(
                 capped=sum(r.capped for r in mine if r.arm == arm),
@@ -237,7 +243,8 @@ def _pair_rows(outcomes: dict[Gate, list[PairOutcome]], names: list[str]) -> lis
     for gate in GATES:
         for outcome in outcomes[gate]:
             by_pair[(outcome.configuration, outcome.repeat, outcome.key)][gate] = outcome
-    ordered = sorted(by_pair, key=lambda p: (names.index(p[0]), p[1], key_order(p[2])))
+    order = {name: index for index, name in enumerate(names)}
+    ordered = sorted(by_pair, key=lambda p: (order[p[0]], p[1], key_order(p[2])))
     rows = []
     for configuration, repeat, key in ordered:
         gates = by_pair[(configuration, repeat, key)]
