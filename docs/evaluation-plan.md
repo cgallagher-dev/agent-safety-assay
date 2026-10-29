@@ -1,11 +1,11 @@
 # Evaluation plan
 
-Version 0.2, 28 October 2026. For supervisor sign-off on 29 October. Items
-marked **(to agree)** are proposals until then. Once agreed, the
-case study section is frozen with a git tag (`eval-plan-frozen`) before any
-final-run outcome is read.
+Version 0.2, 28 October 2026, for my supervisor to sign off on 29 October.
+Anything marked **(to agree)** is my proposal until then. Once it's agreed I
+tag the case study section (`eval-plan-frozen`) and don't change it before
+looking at any final-run results.
 
-The plan has two parts, matching objective O5: a case study that uses the tool,
+There are two parts, matching objective O5: a case study that uses the tool,
 and an evaluation of the tool itself.
 
 ## Part 1: Case study
@@ -18,8 +18,8 @@ and an evaluation of the tool itself.
 | Qwen3.5 9B | `qwen3.5:9b-q4_K_M` | on, off |
 | Qwen3.5 27B | `qwen3.5:27b-q4_K_M` | on, off |
 
-Six configurations. One family and one quantisation keep size and reasoning
-mode apart from training differences.
+That's six configurations. Sticking to one family and one quantisation means
+size and reasoning mode don't get mixed up with differences in training.
 
 ### Task set
 
@@ -43,11 +43,12 @@ version 8-B):
   question and notes grader regressions from 7-B. ASSAY stays on 8-B for its
   tool fixes, computes the structural gates itself on both executed and
   attempted calls, and reports where its gates disagree with AgentHarm's own
-  score. Proposal (to agree): the structural gate on executed calls leads, and
-  the attempted-calls reading is reported alongside it as a sensitivity
-  reading. If AgentHarm 9-B is released before the final runs start (30
-  November) and is workable, ASSAY moves to it and that reading leads instead.
-  Either way the choice is fixed before any final-run outcome is read.
+  score. My proposal (to agree): the structural gate on executed calls is the
+  headline, with the attempted-calls reading next to it as a sensitivity
+  check. If AgentHarm 9-B comes out before the final runs start on 30
+  November and works with ASSAY, I'll move to it and use that as the
+  headline instead. Either way it's settled before I look at any final
+  results.
 - Parity keeps 171 of 208 pairs (143 test_public, 28 validation) from 43 base
   behaviours (36 and 7). 42 behaviours are kept whole; `test_public/30` keeps
   3 of its 4 variants. The 37 excluded pairs are the ones whose harmful side
@@ -55,7 +56,8 @@ version 8-B):
   malware, credit-card purchase, log deletion) or has an extra step.
 - Kept share per category: Copyright 28/28, Drugs 24/24, Harassment 28/28,
   Hate 23/24, Disinformation 20/24, Fraud 20/28, Sexual 20/28, Cybercrime
-  8/24. Findings describe the kept set, which under-represents Cybercrime.
+  8/24. So the findings are about the kept set, which is light on
+  Cybercrime.
 - Of the 75 tool names shared by the two arms, 72 present the same schema to
   the model. Two kept tools differ in description only: `share_on_pinterest`
   (the harmful side adds "starts with @", pairs `test_public/7` and
@@ -113,20 +115,20 @@ only thing that changes between modes. Each repeat uses a different, recorded
 seed. One extra run of the 4B in both modes at AgentHarm's temperature 0 is a
 decoding sensitivity check.
 
-Why:
+Why I went with this:
 
-- These are the settings a person running these models through Ollama gets
-  by default, which matches the proposal's setting of small models deployed
-  locally.
-- Holding decoding constant across all six configurations keeps size and
-  reasoning mode the only factors. Qwen's separate non-thinking settings
-  (temperature 0.7, top_p 0.8) would add a second difference between modes.
-- With sampling on, repeats measure generation-to-generation variation, which
-  RQ2 asks about. At temperature 0 they would only capture serving
-  non-determinism and the tool-order shuffle.
-- AgentHarm's own default is temperature 0, so results are not directly
-  comparable with published AgentHarm numbers; the 4B check shows how much
-  that matters.
+- It's what someone running these models through Ollama gets by default,
+  which fits the proposal's focus on small models run locally.
+- Keeping decoding the same for all six configurations means size and
+  reasoning mode are the only things that change. Qwen's separate
+  non-thinking settings (temperature 0.7, top_p 0.8) would add a second
+  difference between the modes.
+- With sampling on, repeats show how much results move from one generation
+  to the next, which is what RQ2 asks. At temperature 0 they'd only pick up
+  serving non-determinism and the tool-order shuffle.
+- AgentHarm defaults to temperature 0, so my numbers won't line up exactly
+  with published AgentHarm results. The 4B check shows how much that
+  matters.
 
 The settings live in the built-in profiles and are recorded with every run.
 `top_k` cannot be sent through Ollama's OpenAI-compatible endpoint, so it
@@ -148,22 +150,24 @@ run.
 
 ### Full-benchmark context (to agree)
 
-Proposal: the 37 excluded pairs are not run. Their harmful and benign tasks
-declare different tools, so the benign task doesn't test the same capability
-and they can't enter any paired metric. Running them would add about 22% to
-repeat 1 for rates nothing else uses, and AgentHarm's own published results
-already cover those tasks. Along with `assay run`, `assay report` will refuse
-evidence for an excluded pair, so one can't slip into the metrics by mistake.
+My proposal: don't run the 37 excluded pairs. Their harmful and benign tasks
+use different tools, so the benign task isn't testing the same ability and
+they can't go into any paired metric. Running them would add about 22% to
+repeat 1 for rates I wouldn't use anywhere, and AgentHarm's published results
+already cover those tasks. As well as `assay run` skipping them,
+`assay report` will refuse evidence for an excluded pair, so one can't end up
+in the metrics by accident.
 
 ### Repeats (to agree)
 
-Proposal: three repeats of every configuration. The 4B and 9B run all three
-repeats on every kept pair. Early feasibility checks on the reference machine
-put the 27B at 165 to 225 seconds per sample, about 19 hours per mode per
-repeat, so the 27B runs repeat 1 on every kept pair and repeats 2 and 3 on a
-random half of the base behaviours, drawn once with a recorded seed before any
-run. That brings the total to about 130 machine-hours, run overnight from
-mid-November, and removes any decision during the runs.
+My proposal: three repeats of every configuration. The 4B and 9B do all
+three on every kept pair. The 27B is the slow one: early checks on my machine
+had it at 165 to 225 seconds per sample, so about 19 hours per mode per
+repeat. So the 27B does repeat 1 on every kept pair, and repeats 2 and 3 on a
+random half of the base behaviours, picked once with a recorded seed before
+anything runs. That comes to about 130 machine-hours, run overnight from
+mid-November, and means I don't have to make any calls while the runs are
+going.
 
 ### Outcomes
 
@@ -184,15 +188,15 @@ For each primary metric:
 - Size within a mode: 4B vs 9B, 9B vs 27B, 4B vs 27B, for each mode (6).
 - Mode within a size: on vs off at 4B, 9B and 27B (3).
 
-That is 9 comparisons per metric and 27 in total. Proposal: Holm correction
-across all 27. Each comparison uses the same pairs in both configurations, a
-cluster-level randomisation test over base behaviours and a cluster bootstrap
+So 9 comparisons per metric, 27 in total. My proposal is Holm correction
+across all 27. Each comparison uses the same pairs in both configurations,
+with a randomisation test over base behaviours and a cluster bootstrap
 interval for the difference.
 
-Model-by-mode interaction is reported descriptively. A cluster label-swap test
-does not justify an exact test of zero interaction without further
-assumptions, so
-no interaction p-value is claimed unless the supervisor agrees a method.
+The model-by-mode interaction is only described, not tested. Swapping labels
+within clusters doesn't give a valid exact test of zero interaction without
+extra assumptions, so I won't report an interaction p-value unless my
+supervisor and I agree a method.
 
 ### Sensitivity analyses
 
@@ -210,9 +214,9 @@ no interaction p-value is claimed unless the supervisor agrees a method.
 
 ### Limitations stated up front
 
-- No held-out data: all kept behaviours are public and were seen while the
-  tool was designed, so design choices could reflect them. The plan is frozen before the
-  final runs to limit this.
+- No held-out data: every kept behaviour is public and I saw them while
+  building the tool, so my design choices could be shaped by them. Freezing
+  the plan before the final runs is how I try to limit that.
 - Coverage: the kept set under-represents Cybercrime (8 of 24 tasks), and
   tasks that need an illicit-only tool cannot be conditioned at all.
 - A benign pass shows related capability on a task with the same tools, not
