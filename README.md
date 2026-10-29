@@ -1,6 +1,6 @@
 # ASSAY
 
-ASSAY is a command-line harness for LLM safety evaluation. I'm building it to look at capability-conditioned safety evaluation for small LLM agents.
+ASSAY is a CLI-based LLM safety evaluation harness. I'm building it to look at capability-conditioned safety evaluation for small LLM agents.
 
 When an agent does not complete a harmful task, it may have refused, made an
 execution error, or simply lacked the capability. Attack success rate (ASR)

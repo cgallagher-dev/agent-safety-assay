@@ -2,8 +2,7 @@
 
 Thanks for looking. ASSAY is a final-year project at TUS Athlone, so it isn't
 open to contributions until it has been graded (around May 2027). Pull
-requests from others won't be merged before then. Bug reports are still
-welcome as issues.
+requests from others won't be allowed before then.
 
 ## Before you start
 

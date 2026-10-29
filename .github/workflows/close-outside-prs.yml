@@ -1,0 +1,22 @@
+name: Close outside pull requests
+
+# ASSAY isn't open to contributions until it has been graded (see CONTRIBUTING.md).
+on:
+  pull_request_target:
+    types: [opened, reopened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  close:
+    if: github.event.pull_request.user.login != github.repository_owner
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Comment and close
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr comment "$PR" --body "Thanks for this. ASSAY is a final-year project and isn't open to contributions until it has been graded (around May 2027), so I'm closing this. See CONTRIBUTING.md."
+          gh pr close "$PR"
