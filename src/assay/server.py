@@ -77,6 +77,7 @@ def create_app(results: Path) -> FastAPI:
         (r.configuration, r.repeat, r.key, r.arm): r
         for r in read_evidence(results / "evidence.jsonl")
     }
+    transcripts: dict[tuple[str, str], list[Turn] | None] = {}
     app = FastAPI(title="ASSAY dashboard", openapi_url=None)
 
     @app.exception_handler(AssayError)
@@ -108,10 +109,13 @@ def create_app(results: Path) -> FastAPI:
         if row is None:
             raise HTTPException(status_code=404, detail="No such pair in this report.")
         arms = {arm: evidence[(configuration, repeat, key, arm)] for arm in ("benign", "harmful")}
+        for record in arms.values():
+            if (record.log, record.arm) not in transcripts:
+                transcripts[(record.log, record.arm)] = _transcript(results, record)
         return PairDetail(
             pair=row,
             **{
-                arm: ArmDetail(evidence=record, transcript=_transcript(results, record))
+                arm: ArmDetail(evidence=record, transcript=transcripts[(record.log, arm)])
                 for arm, record in arms.items()
             },
         )

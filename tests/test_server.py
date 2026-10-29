@@ -13,6 +13,7 @@ from inspect_ai.model import (
 from inspect_ai.tool import ToolCall, ToolCallError
 
 import assay
+from assay import server
 from assay.server import create_app
 from helpers import record_fields, write_results
 
@@ -126,6 +127,23 @@ def test_an_unknown_pair_is_not_found(tmp_path):
     response = client.get("/api/pair", params={**PAIR, "key": "test_public/9-9"})
 
     assert response.status_code == 404
+
+
+def test_a_transcript_is_read_once(tmp_path, monkeypatch):
+    reads = []
+    real = server.read_eval_log_sample
+
+    def counted(*args, **kwargs):
+        reads.append(args)
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(server, "read_eval_log_sample", counted)
+    client = TestClient(create_app(results_with_logs(tmp_path)))
+
+    first, second = (client.get("/api/pair", params=PAIR).json() for _ in range(2))
+
+    assert first == second
+    assert len(reads) == 2
 
 
 def test_demo_pairs_show_structure_without_logs():
