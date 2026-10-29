@@ -2,4 +2,4 @@
 
 from importlib.metadata import version
 
-__version__ = version("safety-assay")
+__version__ = version("agent-safety-assay")

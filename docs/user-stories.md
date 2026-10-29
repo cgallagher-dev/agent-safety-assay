@@ -258,7 +258,7 @@ Must, M3. Evaluation plan.
 ### US-26 Clean install
 As any user, I want to install and run ASSAY on a fresh machine with
 documented steps, so that the tool works outside my laptop.
-- It installs with `pip install safety-assay` from PyPI.
+- It installs with `pip install agent-safety-assay` from PyPI.
 - On a clean machine or VM I can install it, run the fixture report, open
   the dashboard and render the PDF.
 

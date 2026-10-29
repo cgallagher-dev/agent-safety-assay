@@ -60,9 +60,10 @@ much the result depends on those choices. Full credits are in
 
 ## Planned usage
 
-```text
-pip install safety-assay                      # once released
+By v1.0 (M3, mid January) the whole workflow should be a handful of
+commands, installed with `pip install agent-safety-assay`:
 
+```text
 assay pairs                                   # validate matched pairs, list exclusions
 assay run --profile qwen3.5-4b --out results/4b
 assay run --model ollama/llama3.2 --out results/llama
@@ -70,7 +71,7 @@ assay judge results/4b --judge gemma4-12b     # graders and refusal judge over s
 assay report results/4b                       # metrics, text / JSON / CSV
 assay compare results/4b results/27b          # clustered paired comparison
 assay narrate results/4b                      # optional model-written summary
-assay pdf results/4b                          # needs pip install 'safety-assay[pdf]'
+assay pdf results/4b                          # needs pip install 'agent-safety-assay[pdf]'
 assay dashboard results/                      # local, read-only dashboard
 ```
 
@@ -93,9 +94,10 @@ dashboard never sends harmful-task text to the browser. See
 
 ## Licence
 
-[PolyForm Noncommercial 1.0.0](LICENSE). Free to use, study and change for
-research, teaching and personal projects, but not for anything commercial.
-If you share it or build on it, keep the licence and credit the original.
+[MIT License with an added clause](LICENSE), the same terms AgentHarm uses.
+You're free to use, change and share ASSAY, as long as it's to improve the
+safety and security of AI systems. If you share it or build on it, keep the
+licence and credit the original.
 
 ASSAY is built on Inspect, Inspect Evals and AgentHarm, which keep their own
 licences. AgentHarm data is downloaded at run time and is only to be used to

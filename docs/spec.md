@@ -61,7 +61,7 @@ demonstrations, so the dashboard and the report have to explain themselves.
 - CLI, JSON, CSV, PDF and a local read-only React dashboard.
 - An optional model-written narrative around the report, which cannot
   introduce numbers of its own.
-- Release on GitHub and PyPI as `safety-assay`.
+- Release on GitHub and PyPI as `agent-safety-assay`.
 - Case study: Qwen3.5 4B, 9B and 27B (q4_K_M, Ollama), thinking on and off,
   with repeats.
 
@@ -121,7 +121,7 @@ section and tell my supervisor.
 
 | ID | Decision | Why |
 | --- | --- | --- |
-| D1 | Repository `agent-safety-assay`, package `safety-assay` (CLI and import name `assay`), PolyForm Noncommercial 1.0.0 licence. | `agent-assay` was dropped because PyPI treats it as too close to the unrelated `agentassay` project. The proposal said MIT; the licence changed so that anyone can use and change ASSAY for research or study, but not sell it, and must credit it. |
+| D1 | Repository and PyPI package `agent-safety-assay` (CLI and import name `assay`), MIT License with an added clause limiting use to AI safety. | `agent-assay` was dropped because PyPI treats it as too close to the unrelated `agentassay` project, and one name for the repository and the package is simpler. The proposal said MIT. I kept MIT and added the same clause AgentHarm uses, so ASSAY can only be used to make AI systems safer, which fits a tool built around a harmful-task benchmark. |
 | D2 | Every reported number comes from a tagged release of this tool, run under the frozen evaluation plan. | Results are reproducible from one versioned codebase. |
 | D3 | Python 3.12+, uv with a committed lock file. `inspect-ai` and `inspect-evals` are pinned exactly (0.3.277 and 0.23.0, AgentHarm task version 8-B). | Grader shape tables and benchmark patches are checked against this exact AgentHarm source. Upgrading is a deliberate audit (see SCRUM-13, the AgentHarm audit). |
 | D4 | Models are described by TOML profiles, including each mode's sampling settings. No model name, provider quirk or size rule appears in code. A bare `--model` runs with a default single-mode profile. | O3. Model quirks such as how Qwen's thinking is switched off stay out of code. |
@@ -135,7 +135,7 @@ section and tell my supervisor.
 | D12 | PDF: Jinja2 HTML rendered by WeasyPrint, plots as matplotlib SVG, behind an optional `pdf` extra. | HTML templates are easy to test; system libraries stay optional. |
 | D13 | Narrative: a model set by profile (the judge model by default) writes short prose from `report.json`. Any digit in its output rejects it; numbers enter only through placeholders filled from `report.json`. It is labelled as model-written, saved beside the report, and the report renders without it if generation fails. | Readable summaries for demos and engineers without a second source of numbers. |
 | D14 | One exception hierarchy with clear CLI messages and exit codes; standard logging with a per-run log file tagged with the run id; no harmful text in any log line. | Long unattended runs must fail loudly and leave a trail. |
-| D15 | Releases go to GitHub and PyPI from CI using PyPI trusted publishing, after a TestPyPI dry run. | `pip install safety-assay` is the shortest path for users and for the clean-install check. |
+| D15 | Releases go to GitHub and PyPI from CI using PyPI trusted publishing, after a TestPyPI dry run. | `pip install agent-safety-assay` is the shortest path for users and for the clean-install check. |
 | D16 | Case-study decoding: the sampling Ollama serves for the Qwen3.5 models (temperature 1.0, top_p 0.95, top_k 20, presence penalty 1.5) for every configuration and both modes, a recorded seed per repeat, and a temperature-0 check on the 4B. | Matches local deployment, keeps the reasoning switch the only difference between modes, and makes repeats measure sampling variation (evaluation plan, "Decoding"). |
 
 ## 5. Architecture
@@ -368,15 +368,15 @@ passed, E = harmful executed, R = refused:
 | NFR2 | Privacy | No benchmark data, `.eval` logs, results or model output in git (CI enforces this). Evidence files and API responses carry no harmful text (FR26). |
 | NFR3 | Testability | Critical paths are written test-first against synthetic fixtures (section 5); no coverage target. Unit tests need no network, model or AgentHarm download. |
 | NFR4 | Portability | macOS and Linux, Python 3.12 to 3.14. CI runs on 3.12 and 3.14. |
-| NFR5 | Install | `pip install safety-assay` (or `uv sync`) gives a working CLI and dashboard without Node. PDF needs the `pdf` extra. A clean-install check is part of the evaluation. |
+| NFR5 | Install | `pip install agent-safety-assay` (or `uv sync`) gives a working CLI and dashboard without Node. PDF needs the `pdf` extra. A clean-install check is part of the evaluation. |
 | NFR6 | Long runs | A 27B configuration takes most of a day on the reference machine, so runs must resume and must not lose judged work on interruption. |
 | NFR7 | Clarity | Every displayed rate shows its numerator and denominator; undefined is never shown as zero; anomalies are visible. |
 | NFR8 | Maintainability | Size budget and engineering rules in section 5. Comments explain why, not what. |
-| NFR9 | Licence | PolyForm Noncommercial 1.0.0 for ASSAY, with upstream credits in NOTICE. AgentHarm data keeps its own licence and is downloaded at run time. |
+| NFR9 | Licence | MIT License with an added clause limiting use to AI safety (the same terms as AgentHarm), with upstream credits in NOTICE. AgentHarm data keeps its own licence and is downloaded at run time. |
 | NFR10 | Security | API keys are read from the environment and never written to run records, reports or logs. The dashboard reads files only inside the results directory it was started on. |
 | NFR11 | Errors | Every failure raises a typed ASSAY error that says what failed and what to do next. The CLI prints that message without a traceback (unless `--debug`) and exits with a code per error type. Nothing is swallowed: a step that cannot finish stops, and partial results are marked incomplete. |
 | NFR12 | Logging | Standard Python logging per module. `-v` and `-q` set the console level; each run also writes `assay.log` at debug level in its results directory, every line tagged with the run id. Log lines carry ids, counts and timings, never prompt, response, reasoning or tool-argument text. |
-| NFR13 | Distribution | Published on PyPI as `safety-assay` from CI with trusted publishing; a release is installable with `pip install safety-assay`. |
+| NFR13 | Distribution | Published on PyPI as `agent-safety-assay` from CI with trusted publishing; a release is installable with `pip install agent-safety-assay`. |
 | NFR14 | Presentation | The CLI, dashboard and PDF share one look and are accessible. The CLI uses colour and symbols together, and drops colour when output is not a terminal, when `NO_COLOR` is set or with `--no-color`. The dashboard meets WCAG AA contrast and works by keyboard. Nothing is shown by colour alone. Details in `docs/presentation.md`. |
 
 ## 8. Data contracts

@@ -23,6 +23,35 @@ wheels = [
 ]
 
 [[package]]
+name = "agent-safety-assay"
+version = "0.1.0.dev0"
+source = { editable = "." }
+dependencies = [
+    { name = "inspect-ai" },
+    { name = "inspect-evals" },
+    { name = "pydantic" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "inspect-ai", specifier = "==0.3.277" },
+    { name = "inspect-evals", specifier = "==0.23.0" },
+    { name = "pydantic", specifier = ">=2.10" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.4" },
+    { name = "ruff", specifier = ">=0.13" },
+]
+
+[[package]]
 name = "aiobotocore"
 version = "3.9.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2471,35 +2500,6 @@ wheels = [
 ]
 
 [[package]]
-name = "safety-assay"
-version = "0.1.0.dev0"
-source = { editable = "." }
-dependencies = [
-    { name = "inspect-ai" },
-    { name = "inspect-evals" },
-    { name = "pydantic" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "inspect-ai", specifier = "==0.3.277" },
-    { name = "inspect-evals", specifier = "==0.23.0" },
-    { name = "pydantic", specifier = ">=2.10" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=8.4" },
-    { name = "ruff", specifier = ">=0.13" },
-]
-
-[[package]]
 name = "semver"
 version = "3.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3074,7 +3074,7 @@ name = "zipfile-zstd"
 version = "0.0.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "zstandard" },
+    { name = "zstandard", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f7/2a/2e0941bc0058d10ab37d8c578b94a19f611f6ae54f124140f2fb451f0932/zipfile-zstd-0.0.4.tar.gz", hash = "sha256:c1498e15b7922a3d1af0ea55df8b11b2af4e8f7e0e80e414e25d66899f7def89", size = 4603, upload-time = "2021-12-08T07:38:16.245Z" }
 wheels = [

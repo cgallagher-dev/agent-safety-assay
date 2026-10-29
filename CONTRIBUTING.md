@@ -6,7 +6,8 @@ requests from others won't be allowed before then.
 
 ## Before you start
 
-- ASSAY is licensed under [PolyForm Noncommercial 1.0.0](LICENSE).
+- ASSAY is licensed under the [MIT License with an added clause](LICENSE)
+  that limits use to improving the safety and security of AI systems.
 - AgentHarm tasks are harmful by design. Never commit benchmark data, `.eval`
   logs, results or model output, and don't paste harmful model output into
   issues. CI fails if any of these are tracked.
