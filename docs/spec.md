@@ -1,20 +1,21 @@
 # ASSAY requirements specification
 
-Version 0.1, 7 October 2026. Draft for supervisor review.
+Version 0.1, 7 October 2026. This is a draft for my supervisor to review.
 
-This document turns the project proposal (Project 4, SFTW08030, submitted
-1 October 2026) into requirements for the public tool. User stories are in
-[user-stories.md](user-stories.md) and the case study and software evaluation
-protocol is in [evaluation-plan.md](evaluation-plan.md).
+In this document I turn my project proposal (Project 4, SFTW08030, submitted
+1 October 2026) into requirements for the public tool. The user stories are in
+[user-stories.md](user-stories.md), and the protocol for the case study and
+for evaluating the software is in [evaluation-plan.md](evaluation-plan.md).
 
 ## 1. Purpose
 
-LLM agents are commonly scored by attack success rate (ASR): the share of
-harmful tasks they complete. An agent can fail a harmful task because it
-refused or because it could not use its tools, and ASR counts both the same
-way. ASSAY scores every harmful AgentHarm task beside its matched benign task,
-which needs the same tool calls, so that safety is reported on the tasks a
-model has shown it can do.
+LLM agents are usually scored by attack success rate (ASR), which is the share
+of harmful tasks they complete. The problem is that an agent can fail a
+harmful task for two very different reasons: it refused, or it simply could
+not use its tools. ASR counts both the same way. ASSAY scores every harmful
+AgentHarm task next to its matched benign task, which needs the same tool
+calls, so that I can report safety on the tasks a model has shown it is able
+to do.
 
 ### Research questions
 
@@ -34,17 +35,19 @@ model has shown it can do.
 | O4 | Add a local dashboard and PDF report that trace every aggregate number back to the matched tasks and agent traces behind it. |
 | O5 | Run a case study on Qwen3.5 4B, 9B and 27B with reasoning on and off, and evaluate the tool itself (tests, judge agreement, gate sensitivity, clean install). |
 
-O1 is thesis work and has no software requirements here.
+O1 is part of the thesis write-up, so it has no software requirements here.
 
 ### Users
 
-- **Evaluator:** runs ASSAY against a model they are allowed to test.
-- **Researcher:** analyses and compares results and needs to trust them.
-- **Engineer:** chooses between small open-weight models for an agent
-  deployment and needs a readable verdict.
+- **Evaluator:** someone who runs ASSAY against a model they are allowed to
+  test.
+- **Researcher:** someone who analyses and compares the results and needs to
+  be able to trust them.
+- **Engineer:** someone choosing between small open-weight models for an
+  agent deployment, who needs a verdict they can read.
 
-Supervisors and examiners see the tool through demonstrations, so the
-dashboard and report must explain themselves.
+My supervisor and the examiners will mostly see the tool through
+demonstrations, so the dashboard and the report have to explain themselves.
 
 ## 2. Scope
 
@@ -58,33 +61,34 @@ dashboard and report must explain themselves.
 - CLI, JSON, CSV, PDF and a local read-only React dashboard.
 - An optional model-written narrative around the report, which cannot
   introduce numbers of its own.
-- Release on GitHub and PyPI as `safety-assay`.
+- Release on GitHub and PyPI as `agent-safety-assay`.
 - Case study: Qwen3.5 4B, 9B and 27B (q4_K_M, Ollama), thinking on and off,
   with repeats.
 
 ### Out of scope
 
-From the proposal: adaptive attack generation, training or fine-tuning, hosted
-multi-agent deployments, other model families in the case study, and any
-general claim linking model size to safety.
+The proposal already ruled out adaptive attack generation, training or
+fine-tuning, hosted multi-agent deployments, other model families in the case
+study, and any general claim linking model size to safety.
 
-Also out of scope:
+I have also left out:
 
 - A live attacker/target/judge demonstration mesh.
 - Near-miss and save trace annotations.
-- Message-cap reruns. The cap stays at AgentHarm's 20 messages and the capped
-  share is reported.
+- Message-cap reruns. The cap stays at AgentHarm's 20 messages, and I report
+  the share of samples that hit it.
 - Machine-specific preflight (swap, competing processes) and hardware probes.
 
 ### Stretch goals
 
-Outside the tool, and only after code freeze (M3):
+These sit outside the tool, and I will only start them after code freeze (M3):
 
-- The proposal's Jacobian lens exploration on the 4B model, as supporting
-  evidence only.
-- A short paper for an IEEE venue, agreed with the supervisor.
+- The Jacobian lens exploration on the 4B model from the proposal, used as
+  supporting evidence only.
+- A short paper for an IEEE venue, if my supervisor agrees.
 - A live demonstration on real code in a sandbox, shown on the dashboard
-  (SCRUM-44). Illustrative only; it adds nothing to the case-study numbers.
+  (SCRUM-44). This is only an illustration and adds nothing to the case-study
+  numbers.
 
 ## 3. Glossary
 
@@ -108,16 +112,16 @@ Outside the tool, and only after code freeze (M3):
 | Scoring pass | After generation, AgentHarm's graders (with the same local model as semantic judge) and the refusal judge run over the saved logs. |
 | Narrative | Optional model-written prose around the report. It refers to numbers only through placeholders that the template fills from `report.json`. |
 
-Metric definitions are in section 6.4.
+The metric definitions are in section 6.4.
 
 ## 4. Decisions
 
-These are settled. Changing one needs a note in this section and the supervisor
-told.
+These decisions are settled. If I change one, I will add a note in this
+section and tell my supervisor.
 
 | ID | Decision | Why |
 | --- | --- | --- |
-| D1 | Repository `agent-safety-assay`, package `safety-assay` (CLI and import name `assay`), PolyForm Noncommercial 1.0.0 licence. | `agent-assay` was dropped because PyPI treats it as too close to the unrelated `agentassay` project. The proposal said MIT; the licence changed so that anyone can use and change ASSAY for research or study, but not sell it, and must credit it. |
+| D1 | Repository and PyPI package `agent-safety-assay` (CLI and import name `assay`), MIT License with an added clause limiting use to AI safety. | `agent-assay` was dropped because PyPI treats it as too close to the unrelated `agentassay` project, and one name for the repository and the package is simpler. The proposal said MIT. I kept MIT and added the same clause AgentHarm uses, so ASSAY can only be used to make AI systems safer, which fits a tool built around a harmful-task benchmark. |
 | D2 | Every reported number comes from a tagged release of this tool, run under the frozen evaluation plan. | Results are reproducible from one versioned codebase. |
 | D3 | Python 3.12+, uv with a committed lock file. `inspect-ai` and `inspect-evals` are pinned exactly (0.3.277 and 0.23.0, AgentHarm task version 8-B). | Grader shape tables and benchmark patches are checked against this exact AgentHarm source. Upgrading is a deliberate audit (see SCRUM-13, the AgentHarm audit). |
 | D4 | Models are described by TOML profiles, including each mode's sampling settings. No model name, provider quirk or size rule appears in code. A bare `--model` runs with a default single-mode profile. | O3. Model quirks such as how Qwen's thinking is switched off stay out of code. |
@@ -131,7 +135,7 @@ told.
 | D12 | PDF: Jinja2 HTML rendered by WeasyPrint, plots as matplotlib SVG, behind an optional `pdf` extra. | HTML templates are easy to test; system libraries stay optional. |
 | D13 | Narrative: a model set by profile (the judge model by default) writes short prose from `report.json`. Any digit in its output rejects it; numbers enter only through placeholders filled from `report.json`. It is labelled as model-written, saved beside the report, and the report renders without it if generation fails. | Readable summaries for demos and engineers without a second source of numbers. |
 | D14 | One exception hierarchy with clear CLI messages and exit codes; standard logging with a per-run log file tagged with the run id; no harmful text in any log line. | Long unattended runs must fail loudly and leave a trail. |
-| D15 | Releases go to GitHub and PyPI from CI using PyPI trusted publishing, after a TestPyPI dry run. | `pip install safety-assay` is the shortest path for users and for the clean-install check. |
+| D15 | Releases go to GitHub and PyPI from CI using PyPI trusted publishing, after a TestPyPI dry run. | `pip install agent-safety-assay` is the shortest path for users and for the clean-install check. |
 | D16 | Case-study decoding: the sampling Ollama serves for the Qwen3.5 models (temperature 1.0, top_p 0.95, top_k 20, presence penalty 1.5) for every configuration and both modes, a recorded seed per repeat, and a temperature-0 check on the 4B. | Matches local deployment, keeps the reasoning switch the only difference between modes, and makes repeats measure sampling variation (evaluation plan, "Decoding"). |
 
 ## 5. Architecture
@@ -177,27 +181,28 @@ src/assay/
 frontend/         React + TypeScript dashboard source
 ```
 
-Size budget: the package should stay under about 5,000 lines of Python
-excluding tests, and a module over about 400 lines should be split by
-responsibility. The line count is checked at each milestone.
+Size budget: the package should stay under about 5,000 lines of Python, not
+counting tests, and any module that grows past about 400 lines should be split
+by responsibility. I check the line count at each milestone.
 
 ### Engineering rules
 
-- One module, one job. Data loading, grading, pairing, metrics, reporting and
-  command parsing stay apart; CLI commands only parse arguments and call
-  library functions.
-- Rules that vary by grader or model live in data (shape tables, profiles),
-  not in special-case branches.
-- Pure functions for grading, outcomes, metrics and statistics; file and
+- Each module does one job. Data loading, grading, pairing, metrics,
+  reporting and command parsing are kept apart, and CLI commands only parse
+  arguments and call library functions.
+- Rules that vary by grader or model are kept in data (shape tables,
+  profiles) rather than in special-case branches.
+- Grading, outcomes, metrics and statistics are pure functions. File and
   network access stays at the edges.
-- Tests cover critical paths only: pairing, grading, outcomes, metrics,
-  statistics, redaction and every rule that rejects input. They come first,
-  use synthetic fixtures, and state each behaviour once rather than once per
-  permutation. There is no coverage target.
-- Every AgentHarm-specific fact is checked against the pinned source.
-- No compatibility shims, unused options or placeholders for future features.
-- Comments explain a rule or a workaround in a line, with an upstream link
-  where one exists.
+- Tests only cover the critical paths: pairing, grading, outcomes, metrics,
+  statistics, redaction and every rule that rejects input. I write them
+  first, use synthetic fixtures, and test each behaviour once rather than once
+  per permutation. There is no coverage target.
+- I check every AgentHarm-specific fact against the pinned source.
+- There are no compatibility shims, unused options or placeholders for
+  future features.
+- A comment explains a rule or a workaround in one line, with an upstream
+  link where there is one.
 
 ### Results directory
 
@@ -215,7 +220,7 @@ results/<run>/
 
 ## 6. Functional requirements
 
-Each requirement lists the user stories it serves.
+Each requirement lists the user stories it supports.
 
 ### 6.1 Pairs and runs
 
@@ -324,7 +329,8 @@ passed, E = harmful executed, R = refused:
   results directory. (US-20, US-21)
 - **FR30** `assay narrate <results>` asks the narrative model for short prose
   (a summary, one paragraph per configuration, and the limitations that apply)
-  from `report.json`. Output containing any digit, or a placeholder that does
+  from `report.json`. Numbers, configuration names, model names and pair keys
+  enter only through placeholders. Output containing any digit, or a placeholder that does
   not resolve, is rejected and retried, then dropped with a warning. Accepted
   prose is saved as `narrative.md` with the model id and prompt hash, and is
   shown in the PDF and dashboard under a "model-written" label. (US-28)
@@ -362,15 +368,16 @@ passed, E = harmful executed, R = refused:
 | NFR2 | Privacy | No benchmark data, `.eval` logs, results or model output in git (CI enforces this). Evidence files and API responses carry no harmful text (FR26). |
 | NFR3 | Testability | Critical paths are written test-first against synthetic fixtures (section 5); no coverage target. Unit tests need no network, model or AgentHarm download. |
 | NFR4 | Portability | macOS and Linux, Python 3.12 to 3.14. CI runs on 3.12 and 3.14. |
-| NFR5 | Install | `pip install safety-assay` (or `uv sync`) gives a working CLI and dashboard without Node. PDF needs the `pdf` extra. A clean-install check is part of the evaluation. |
+| NFR5 | Install | `pip install agent-safety-assay` (or `uv sync`) gives a working CLI and dashboard without Node. PDF needs the `pdf` extra. A clean-install check is part of the evaluation. |
 | NFR6 | Long runs | A 27B configuration takes most of a day on the reference machine, so runs must resume and must not lose judged work on interruption. |
 | NFR7 | Clarity | Every displayed rate shows its numerator and denominator; undefined is never shown as zero; anomalies are visible. |
 | NFR8 | Maintainability | Size budget and engineering rules in section 5. Comments explain why, not what. |
-| NFR9 | Licence | PolyForm Noncommercial 1.0.0 for ASSAY, with upstream credits in NOTICE. AgentHarm data keeps its own licence and is downloaded at run time. |
+| NFR9 | Licence | MIT License with an added clause limiting use to AI safety (the same terms as AgentHarm), with upstream credits in NOTICE. AgentHarm data keeps its own licence and is downloaded at run time. |
 | NFR10 | Security | API keys are read from the environment and never written to run records, reports or logs. The dashboard reads files only inside the results directory it was started on. |
 | NFR11 | Errors | Every failure raises a typed ASSAY error that says what failed and what to do next. The CLI prints that message without a traceback (unless `--debug`) and exits with a code per error type. Nothing is swallowed: a step that cannot finish stops, and partial results are marked incomplete. |
 | NFR12 | Logging | Standard Python logging per module. `-v` and `-q` set the console level; each run also writes `assay.log` at debug level in its results directory, every line tagged with the run id. Log lines carry ids, counts and timings, never prompt, response, reasoning or tool-argument text. |
-| NFR13 | Distribution | Published on PyPI as `safety-assay` from CI with trusted publishing; a release is installable with `pip install safety-assay`. |
+| NFR13 | Distribution | Published on PyPI as `agent-safety-assay` from CI with trusted publishing; a release is installable with `pip install agent-safety-assay`. |
+| NFR14 | Presentation | The CLI, dashboard and PDF share one look and are accessible. The CLI uses colour and symbols together, and drops colour when output is not a terminal, when `NO_COLOR` is set or with `--no-color`. The dashboard meets WCAG AA contrast and works by keyboard. Nothing is shown by colour alone. Details in `docs/presentation.md`. |
 
 ## 8. Data contracts
 
@@ -401,7 +408,8 @@ passed, E = harmful executed, R = refused:
 | `truncated` | boolean | a generation stopped on the output token limit |
 | `log` | string | log path relative to the results directory, and sample uuid |
 
-No prompt, response, reasoning, tool argument or judge explanation is stored.
+The record never stores a prompt, response, reasoning, tool argument or judge
+explanation.
 
 ### Report (`report.json`)
 
@@ -412,8 +420,8 @@ limit, splits, exclusions),
 metrics per gate with numerator, denominator, value or undefined reason and
 interval, verdict counts, overlap, anomalies, capped counts), `comparisons`
 and `pairs` (one row per configuration, repeat and pair with per-gate verdict).
-The exact schema lives in `report.py` and is exported as JSON Schema for the
-dashboard.
+The exact schema is defined in `report.py`, and it is exported as JSON Schema
+for the dashboard to use.
 
 ### CSV
 
@@ -432,14 +440,14 @@ dashboard.
 | M4 Thesis | approx. May 2027 | Analysis, thesis, Semester 2 demonstrations. Defect fixes only. |
 | Stretch | after M3 | Jacobian lens exploration; a short paper for an IEEE venue. |
 
-If time slips, dashboard extras (FR27, FR28) are cut before research work, as
-the proposal's risk table says.
+If time slips, I will cut the dashboard extras (FR27, FR28) before any of the
+research work, as the risk table in my proposal says.
 
 ### Order of work
 
-Tickets are in Jira (project SCRUM). Within a milestone, work top to bottom;
-the case-study runs start as soon as the runner works, and the statistics are
-built while they run.
+The tickets are in Jira (project SCRUM). Within a milestone I work from top to
+bottom. The case-study runs start as soon as the runner works, and I build the
+statistics while they run.
 
 | Step | Ticket | Milestone |
 | --- | --- | --- |
@@ -456,6 +464,7 @@ built while they run.
 | 11 | SCRUM-16 Grading saved logs | M1 |
 | 12 | SCRUM-22 Pair explorer and detail | M1 |
 | 13 | SCRUM-23 PDF report | M1 |
+| 13a | SCRUM-52 CLI colour and layout, SCRUM-53 dashboard polish, SCRUM-54 PDF layout | M1 |
 | 14 | SCRUM-24 Demo 1 rehearsal | M1 |
 | 15 | SCRUM-25 Model profiles | M2 |
 | 16 | SCRUM-27 Ollama preflight | M2 |
@@ -492,7 +501,7 @@ built while they run.
 | AgentHarm changes between versions: 8-B credits only executed calls and fixes three grader bugs. | Pinned exactly; grader shapes re-derived by static analysis of the installed source (SCRUM-13). The dataset revision is unchanged from earlier releases, so parity holds at 171 pairs. |
 | Three AgentHarm 8-B tool defects make some tasks unwinnable (working-directory paths on both arms, two benign whitelists). | Patched in memory with an upstream link each, affected pairs listed, and a sensitivity reading without them. |
 | Parity leaves Cybercrime at 8 of 24 tasks; the excluded pairs are the ones whose harmful side needs an illicit-only tool. | Report kept share per category; findings describe the kept set; optional full-benchmark context run (evaluation plan). |
-| AgentHarm's 9-B review lands during the project. Upstream now recommends 6-B until then, and lists executed-only crediting (7-B onward) as unresolved, along with grader regressions from 7-B ([inspect_evals #2290](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2290)). | Stay on the pinned version until the final runs finish. ASSAY computes its structural gates from the trace, on both executed and attempted calls, so either reading can lead (open question 6); the regressions touch only the semantic gate and the AgentHarm score cross-check, which reports them. Note any upstream change in the thesis. |
+| AgentHarm's 9-B review lands during the project. Upstream now recommends 6-B until then, and lists executed-only crediting (7-B onward) as unresolved, along with grader regressions from 7-B ([inspect_evals #2290](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2290)). | Stay on the pinned version until the final runs finish. ASSAY computes its structural gates from the trace, on both executed and attempted calls, so either reading can lead (open question 5); the regressions touch only the semantic gate and the AgentHarm score cross-check, which reports them. Note any upstream change in the thesis. |
 | Demo 1 lands before the runner exists. | Demo 1 runs from the synthetic fixture and one small run launched with Inspect directly. |
 | Case-study compute: a 27B configuration takes most of a day per repeat. | Runner resumes; scoring runs after generation; repeat design agreed early (see evaluation plan). |
 | Dashboard grows. | Overview and pair detail first; compare, sensitivity and live view only after M2. |
@@ -504,11 +513,15 @@ built while they run.
 ## 12. Open questions for the supervisor
 
 1. Repeat count and whether the 27B repeats cover all pairs or a predeclared
-   subset.
+   subset (proposal: three repeats; 27B repeats 2 and 3 on a seeded half of
+   the base behaviours).
 2. The primary comparisons and multiple-testing family, fixed before the final
-   runs.
-3. Whether to run the 37 excluded pairs once for full-benchmark context.
-4. Release permission (TUS and employer) before the repository is made public.
-5. The stretch paper: venue, timing and co-authorship.
-6. Whether the headline gate stays on executed calls (D5) now that upstream
-   recommends 6-B, which credits attempted calls, pending its 9-B review.
+   runs (proposal: 27 comparisons, Holm across all of them).
+3. Whether to run the 37 excluded pairs once for full-benchmark context
+   (proposal: no, see the evaluation plan).
+4. The stretch paper: venue, timing and co-authorship (proposal: decide after
+   M2).
+5. Whether the headline gate stays on executed calls (D5) now that upstream
+   recommends 6-B, which credits attempted calls, pending its 9-B review
+   (proposal: executed calls lead, moving to 9-B if it lands before the final
+   runs).
