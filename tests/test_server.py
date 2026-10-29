@@ -110,6 +110,24 @@ def test_the_api_only_reads():
     assert {m for route in app.routes for m in getattr(route, "methods", ())} <= {"GET", "HEAD"}
 
 
+def test_a_stale_report_json_is_not_served(tmp_path):
+    results = results_with_logs(tmp_path)
+    (results / "report.json").write_text('{"stale": true}')
+    client = TestClient(create_app(results))
+
+    report = client.get("/api/report").json()
+
+    assert [p["key"] for p in report["pairs"]] == [PAIR["key"]]
+
+
+def test_an_unknown_pair_is_not_found(tmp_path):
+    client = TestClient(create_app(results_with_logs(tmp_path)))
+
+    response = client.get("/api/pair", params={**PAIR, "key": "test_public/9-9"})
+
+    assert response.status_code == 404
+
+
 def test_demo_pairs_show_structure_without_logs():
     client = TestClient(create_app(DEMO))
 
