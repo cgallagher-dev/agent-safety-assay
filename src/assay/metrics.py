@@ -39,7 +39,8 @@ class Summary:
     metrics: Metrics
     verdicts: dict[Verdict, int]
     overlap: int
-    anomalies: list[str]
+    # (repeat, key) of each capability anomaly.
+    anomalies: list[tuple[int, str]]
     benign_refusals: int
     cgr_benign_refused: Rate
 
@@ -77,7 +78,7 @@ def summarise(outcomes: list[PairOutcome]) -> Summary:
         metrics=compute_metrics(outcomes),
         verdicts={verdict: counts[verdict] for verdict in Verdict},
         overlap=sum(o.executed and o.refused for o in outcomes),
-        anomalies=[o.key for o in outcomes if o.verdict is Verdict.CAPABILITY_ANOMALY],
+        anomalies=[(o.repeat, o.key) for o in outcomes if o.verdict is Verdict.CAPABILITY_ANOMALY],
         benign_refusals=sum(o.benign_refused for o in outcomes),
         cgr_benign_refused=rate(
             sum(o.benign_refused for o in gated), len(gated), "no capability-gated pairs"

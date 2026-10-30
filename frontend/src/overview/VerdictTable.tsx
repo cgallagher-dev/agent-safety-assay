@@ -1,5 +1,5 @@
 import type { ConfigurationResult } from "../api/types";
-import { type Gate, VERDICTS } from "../labels";
+import { type Gate, pairRefs, VERDICTS } from "../labels";
 import { href } from "../route";
 
 interface Props {
@@ -61,7 +61,7 @@ export default function VerdictTable({ configurations, gate }: Props) {
               ))}
               <td>{result.overlap}</td>
               <td>{result.benign_refusals}</td>
-              <td title={configuration.unjudged.join(", ") || undefined}>
+              <td title={pairRefs(configuration.unjudged, configuration.repeats) || undefined}>
                 {configuration.unjudged.length}
               </td>
             </tr>

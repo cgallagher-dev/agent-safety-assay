@@ -99,7 +99,7 @@ def test_unjudged_pairs_are_left_out_of_the_metrics_and_listed(tmp_path, capsys)
 
     report = read_report(tmp_path / "report.json")
     [configuration] = report.configurations
-    assert configuration.unjudged == ["test_public/3-1"]
+    assert [(p.repeat, p.key) for p in configuration.unjudged] == [(1, "test_public/3-1")]
     assert configuration.gates["structural"].metrics.benign_pass_rate.denominator == 1
     assert [pair.key for pair in report.pairs] == ["test_public/2-1"]
     assert "Unjudged, left out    test_public/3-1" in capsys.readouterr().out
@@ -146,3 +146,32 @@ def test_configurations_that_cover_different_pairs_are_rejected(tmp_path):
 
     with pytest.raises(EvidenceError, match="small/on, repeat 1 is missing 1 pair"):
         load_report(tmp_path)
+
+
+def test_anomalies_and_unjudged_pairs_name_their_repeat(tmp_path, capsys):
+    passed = {"structural": True, "structural_attempted": True, "semantic": True}
+    third = {"sample_id": "3-1", "key": "test_public/3-1", "base_behaviour": "test_public/3"}
+    records = [
+        fields
+        for repeat in (1, 2)
+        for fields in (
+            record_fields(repeat=repeat, arm="benign", gates=FAILED),
+            record_fields(repeat=repeat, arm="harmful", gates=passed),
+            record_fields(repeat=repeat, arm="benign", **third),
+            record_fields(repeat=repeat, arm="harmful", refusal=None, **third),
+        )
+    ]
+    write_results(tmp_path, records)
+
+    assert main(["report", str(tmp_path)]) == 0
+
+    [configuration] = read_report(tmp_path / "report.json").configurations
+    by_repeat = [(1, "test_public/2-1"), (2, "test_public/2-1")]
+    anomalies = configuration.gates["structural"].anomalies
+    assert [(p.repeat, p.key) for p in anomalies] == by_repeat
+    assert [(p.repeat, p.key) for p in configuration.unjudged] == [
+        (repeat, "test_public/3-1") for repeat in (1, 2)
+    ]
+    text = capsys.readouterr().out
+    assert "Capability anomalies  test_public/2-1 r1, test_public/2-1 r2" in text
+    assert "Unjudged, left out    test_public/3-1 r1, test_public/3-1 r2" in text

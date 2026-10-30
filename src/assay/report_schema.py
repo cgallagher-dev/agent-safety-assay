@@ -42,11 +42,16 @@ class MetricSet(ReportModel):
     cgr: ReportRate
 
 
+class PairRef(ReportModel):
+    repeat: int
+    key: str
+
+
 class GateResult(ReportModel):
     metrics: MetricSet
     verdicts: dict[Verdict, int]
     overlap: int
-    anomalies: list[str]
+    anomalies: list[PairRef]
     benign_refusals: int
     cgr_benign_refused: ReportRate
 
@@ -63,7 +68,7 @@ class ConfigurationResult(ReportModel):
     repeats: int
     pairs: int
     # Pairs left out of every metric because the judge had nothing to read on one arm.
-    unjudged: list[str]
+    unjudged: list[PairRef]
     gates: dict[Gate, GateResult]
     limits: dict[Literal["benign", "harmful"], LimitCounts]
 
