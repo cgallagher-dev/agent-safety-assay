@@ -21,7 +21,8 @@ from pydantic.json_schema import GenerateJsonSchema, models_json_schema
 from assay.errors import AssayError, EvidenceError
 from assay.evidence import EvidenceRecord, read_evidence
 from assay.outcomes import Gate, Verdict
-from assay.report import PairRow, Report, load_report
+from assay.report import load_report
+from assay.report_schema import PairRow, Report
 
 HOST = "127.0.0.1"
 STATIC = Path(__file__).parent / "dashboard_static"
