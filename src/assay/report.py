@@ -13,7 +13,7 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from assay import __version__
-from assay.errors import EvidenceError, validation_problems
+from assay.errors import ConfigError, EvidenceError, validation_problems
 from assay.evidence import EvidenceRecord, key_order, read_evidence
 from assay.metrics import summarise
 from assay.outcomes import (
@@ -43,6 +43,7 @@ from assay.report_schema import (
     RunInfo,
 )
 
+PACKAGE = Path(__file__).parent.resolve()
 HEADLINE_GATE: Gate = "structural"
 GATES: tuple[Gate, ...] = ("structural", "structural_attempted", "semantic")
 ARMS = ("benign", "harmful")
@@ -233,6 +234,11 @@ def read_report(path: Path) -> Report:
 
 def write_report(report: Report, out: Path) -> None:
     """Write report.json, metrics.csv and pairs.csv to out."""
+    if out.resolve().is_relative_to(PACKAGE):
+        raise ConfigError(
+            f"{out} is inside the installed assay package, such as the bundled demo. "
+            "Pass --out to write the report somewhere else."
+        )
     out.mkdir(parents=True, exist_ok=True)
     (out / "report.json").write_text(report.model_dump_json(indent=2) + "\n", encoding="utf-8")
     with (out / "metrics.csv").open("w", newline="", encoding="utf-8") as file:

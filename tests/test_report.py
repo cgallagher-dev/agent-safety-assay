@@ -6,7 +6,7 @@ import pytest
 
 import assay
 from assay.cli import main
-from assay.errors import EvidenceError
+from assay.errors import ConfigError, EvidenceError
 from assay.report import load_report, read_report
 from helpers import RUN_CONFIG, record_fields, write_results
 
@@ -175,3 +175,10 @@ def test_anomalies_and_unjudged_pairs_name_their_repeat(tmp_path, capsys):
     text = capsys.readouterr().out
     assert "Capability anomalies  test_public/2-1 r1, test_public/2-1 r2" in text
     assert "Unjudged, left out    test_public/3-1 r1, test_public/3-1 r2" in text
+
+
+def test_report_never_writes_into_the_package(capsys):
+    assert main(["report", str(DEMO)]) == ConfigError.exit_code
+
+    assert "--out" in capsys.readouterr().err
+    assert not (DEMO / "report.json").exists()
