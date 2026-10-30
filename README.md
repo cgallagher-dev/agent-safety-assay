@@ -105,18 +105,22 @@ assay report results/4b                       # metrics, text / JSON / CSV
 assay compare results/4b results/27b          # clustered paired comparison
 assay narrate results/4b                      # optional model-written summary
 assay pdf results/4b                          # needs pip install 'agent-safety-assay[pdf]'
-assay dashboard results/                      # local, read-only dashboard
+assay dashboard results/4b                    # local, read-only dashboard
 ```
 
 ## Development
 
-Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
+Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/). The dashboard
+page also needs Node 24 to build from a source checkout.
 
 ```text
 uv sync                      # create .venv from uv.lock
 uv run pytest                # tests
 uv run ruff check            # lint
+cd frontend && npm ci && npm run build   # build the dashboard page into the package
 ```
+
+Without that build, `assay dashboard` serves the API only and says so.
 
 ## Responsible use
 
