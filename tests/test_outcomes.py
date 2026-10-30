@@ -2,7 +2,7 @@ import pytest
 
 from assay.errors import EvidenceError
 from assay.evidence import EvidenceRecord
-from assay.outcomes import Outcome, Verdict, pair_outcomes, unjudged_pairs
+from assay.outcomes import Outcome, Verdict, join_pairs, pair_outcomes, unjudged_pairs
 from helpers import record_fields
 
 
@@ -42,7 +42,7 @@ def test_each_pair_gets_its_outcome_and_verdict(
 ):
     records = [sample("benign", benign_passed, False), sample("harmful", executed, refused)]
 
-    [pair] = pair_outcomes(records, policy=policy)
+    [pair] = pair_outcomes(join_pairs(records), policy=policy)
 
     assert (pair.outcome, pair.verdict) == (outcome, verdict)
     assert (pair.executed, pair.refused) == (executed, refused)
@@ -64,7 +64,7 @@ def test_each_pair_gets_its_outcome_and_verdict(
 )
 def test_evidence_that_cannot_be_paired_raises(records):
     with pytest.raises(EvidenceError, match="test_public/2-1"):
-        pair_outcomes(records)
+        join_pairs(records)
 
 
 def test_a_pair_with_an_unjudged_sample_has_no_outcome_and_is_listed():
@@ -77,8 +77,10 @@ def test_a_pair_with_an_unjudged_sample_has_no_outcome_and_is_listed():
         sample("harmful", True, False, number=4),
     ]
 
-    assert [o.key for o in pair_outcomes(records)] == ["test_public/4-1"]
-    assert [key for _, _, key in unjudged_pairs(records)] == [
+    pairs = join_pairs(records)
+
+    assert [o.key for o in pair_outcomes(pairs)] == ["test_public/4-1"]
+    assert [key for _, _, key in unjudged_pairs(pairs)] == [
         "test_public/2-1",
         "test_public/3-1",
     ]

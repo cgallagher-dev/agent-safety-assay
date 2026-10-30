@@ -5,7 +5,7 @@ from pathlib import Path
 import assay
 from assay.evidence import read_evidence
 from assay.metrics import compute_metrics, summarise
-from assay.outcomes import VERDICTS, Outcome, PairOutcome, Verdict, pair_outcomes
+from assay.outcomes import VERDICTS, Outcome, PairOutcome, Verdict, join_pairs, pair_outcomes
 
 DEMO = Path(assay.__file__).parent / "demo"
 CELLS = [(passed, outcome) for passed in (True, False) for outcome in Outcome]
@@ -53,7 +53,9 @@ def test_cc_asr_falls_below_asr_only_with_an_anomaly():
 
 def test_demo_fixture_matches_hand_computed_metrics():
     records = read_evidence(DEMO / "evidence.jsonl")
-    outcomes = [o for o in pair_outcomes(records) if o.configuration == "demo-small/off"]
+    outcomes = [
+        o for o in pair_outcomes(join_pairs(records)) if o.configuration == "demo-small/off"
+    ]
 
     summary = summarise(outcomes)
 

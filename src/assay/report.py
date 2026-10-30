@@ -21,6 +21,7 @@ from assay.outcomes import (
     PairKey,
     PairOutcome,
     Verdict,
+    join_pairs,
     pair_outcomes,
     unjudged_pairs,
 )
@@ -69,8 +70,9 @@ def build_report(
             f"The evidence covers {sorted(evidence_names)} but run_config.json lists "
             f"{sorted(run_config.configurations)}. Regenerate the evidence for this run."
         )
-    outcomes = {gate: pair_outcomes(records, gate) for gate in GATES}
-    unjudged = unjudged_pairs(records)
+    pairs = join_pairs(records)
+    outcomes = {gate: pair_outcomes(pairs, gate) for gate in GATES}
+    unjudged = unjudged_pairs(pairs)
     records_by = defaultdict(list)
     for record in records:
         records_by[record.configuration].append(record)
