@@ -11,6 +11,7 @@ from typing import Literal
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from inspect_ai.log import read_eval_log_sample
@@ -77,6 +78,9 @@ def create_app(results: Path) -> FastAPI:
     evidence = {(r.configuration, r.repeat, r.key, r.arm): r for r in records}
     transcripts: dict[tuple[str, str], list[Turn] | None] = {}
     app = FastAPI(title="ASSAY dashboard", openapi_url=None)
+    # Binding to 127.0.0.1 is not enough on its own: DNS rebinding lets another site's
+    # page reach it under that site's name, which this refuses.
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])
 
     @app.exception_handler(AssayError)
     def assay_error(request: Request, error: AssayError) -> JSONResponse:
