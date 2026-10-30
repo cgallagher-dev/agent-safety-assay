@@ -295,9 +295,12 @@ passed, E = harmful executed, R = refused:
   part of CGR whose benign twin was refused are reported per configuration and
   gate. Samples that hit the message limit or stopped on the output token
   limit are counted per arm. (US-12)
-- **FR14** Building outcomes fails on duplicate keys or a pair present in only
-  one arm. A pair with an unjudged sample on either arm has no outcome: it is
-  left out of every metric and listed per configuration. (US-12)
+- **FR14** Building outcomes fails on duplicate keys, a pair present in only
+  one arm, or arms that disagree on the task's category or declared tools. A
+  report also fails on evidence from another run, or on configurations and
+  repeats that cover different pairs. A pair with an unjudged sample on either
+  arm has no outcome: it is left out of every metric and listed per
+  configuration with its repeat. (US-12)
 
 ### 6.5 Statistics
 
@@ -419,7 +422,8 @@ Top level: `schema_version`, `assay_version`, `created_at`, `headline_gate`,
 limit, splits, exclusions),
 `configurations` (per configuration: profile, mode, repeats, pair count,
 metrics per gate with numerator, denominator, value or undefined reason and
-interval, verdict counts, overlap, anomalies, capped counts), `comparisons`
+interval, verdict counts, overlap, anomalies, capped counts, and unjudged
+pairs; anomalies and unjudged pairs carry their repeat and key), `comparisons`
 and `pairs` (one row per configuration, repeat and pair with per-gate verdict).
 The exact schema is defined in `report_schema.py`, and it is exported as
 JSON Schema for the dashboard to use.
