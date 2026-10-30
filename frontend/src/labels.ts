@@ -8,6 +8,12 @@ export const GATES: { name: Gate; label: string }[] = [
   { name: "semantic", label: "Semantic" },
 ];
 
+// A gate read from a link, which may be stale or hand-edited.
+export function gateParam(params: URLSearchParams, fallback: Gate): Gate {
+  const value = params.get("gate");
+  return GATES.find(({ name }) => name === value)?.name ?? fallback;
+}
+
 export const METRICS: { name: keyof MetricSet; label: string; definition: string }[] = [
   {
     name: "benign_pass_rate",

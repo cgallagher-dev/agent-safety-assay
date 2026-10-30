@@ -1,5 +1,5 @@
 import type { Report } from "../api/types";
-import { type Gate, GATES, VERDICT_LABELS, VERDICTS } from "../labels";
+import { GATES, gateParam, VERDICT_LABELS, VERDICTS } from "../labels";
 import { href } from "../route";
 
 interface FilterProps {
@@ -34,7 +34,7 @@ export default function PairList({ report, params }: { report: Report; params: U
     configuration: params.get("configuration") ?? "",
     category: params.get("category") ?? "",
     verdict: params.get("verdict") ?? "",
-    gate: (params.get("gate") ?? report.headline_gate) as Gate,
+    gate: gateParam(params, report.headline_gate),
   };
   const pairs = report.pairs.filter(
     (pair) =>
