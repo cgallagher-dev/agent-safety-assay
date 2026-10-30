@@ -5,6 +5,7 @@ pair detail, the sample's .eval log. Harmful-arm transcripts are rebuilt from st
 (roles, tool names, error flags), so their text never leaves this module.
 """
 
+import logging
 import re
 from pathlib import Path
 from typing import Literal
@@ -23,6 +24,8 @@ from assay.errors import AssayError, EvidenceError
 from assay.evidence import EvidenceRecord, read_evidence
 from assay.report import build_report, read_run_config
 from assay.report_schema import PairRow, Report
+
+log = logging.getLogger(__name__)
 
 HOST = "127.0.0.1"
 STATIC = Path(__file__).parent / "dashboard_static"
@@ -109,6 +112,11 @@ def create_app(results: Path) -> FastAPI:
 
     if STATIC.is_dir():
         app.mount("/", StaticFiles(directory=STATIC, html=True))
+    else:
+        log.warning(
+            "The dashboard page is not built, so only the API is served. Build it with "
+            "`npm ci && npm run build` in frontend/."
+        )
     return app
 
 
