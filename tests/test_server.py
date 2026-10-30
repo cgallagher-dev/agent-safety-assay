@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 from inspect_ai.log import EvalConfig, EvalDataset, EvalLog, EvalSample, EvalSpec, write_eval_log
 from inspect_ai.model import (
@@ -103,6 +104,24 @@ def test_a_log_path_outside_the_results_directory_is_rejected(tmp_path):
 
     assert response.status_code == 400
     assert BENIGN not in response.text
+
+
+@pytest.mark.parametrize(
+    "benign_log",
+    [
+        pytest.param("logs/benign.eval#missing", id="no such sample"),
+        pytest.param("logs/broken.eval#b", id="corrupt log"),
+    ],
+)
+def test_an_unreadable_log_is_reported_not_crashed(tmp_path, benign_log):
+    results = results_with_logs(tmp_path, benign_log=benign_log)
+    (results / "logs/broken.eval").write_bytes(b"not a zip file")
+    client = TestClient(create_app(results))
+
+    response = client.get("/api/pair", params=PAIR)
+
+    assert response.status_code == 400
+    assert "Could not read the benign log for test_public/2-1" in response.json()["detail"]
 
 
 def test_the_api_only_reads():

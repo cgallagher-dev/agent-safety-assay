@@ -136,7 +136,14 @@ def _transcript(results: Path, record: EvidenceRecord) -> list[Turn] | None:
         raise EvidenceError(f"The log for {record.key} points outside the results directory.")
     if not path.is_file():
         return None
-    sample = read_eval_log_sample(path, uuid=uuid, resolve_attachments=True)
+    try:
+        sample = read_eval_log_sample(path, uuid=uuid, resolve_attachments=True)
+    except Exception as error:
+        # The type only: a log's own error text could quote the sample.
+        raise EvidenceError(
+            f"Could not read the {record.arm} log for {record.key} ({type(error).__name__}). "
+            "Check the log is complete and that the evidence came from it."
+        ) from None
     return [_turn(message, harmful=record.arm == "harmful") for message in sample.messages]
 
 
