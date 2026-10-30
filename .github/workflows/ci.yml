@@ -42,7 +42,6 @@ jobs:
       - run: uv run pytest
       - name: Fail if the dashboard API schema is stale
         run: uv run python scripts/api_schema.py | diff - frontend/src/api/schema.json
-      - run: uv build
 
   frontend:
     name: Dashboard
@@ -64,3 +63,22 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  package:
+    name: Package with the dashboard
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v10.2.0
+      - name: Build the dashboard into the package
+        working-directory: frontend
+        run: npm ci && npm run build
+      - run: uv build
+      # pip users get the dashboard without Node only if the wheel carries it.
+      - name: Fail if the wheel has no dashboard
+        run: unzip -l dist/*.whl | grep -q 'assay/dashboard_static/index.html'
