@@ -84,12 +84,12 @@ def results_with_logs(path, benign_log="logs/benign.eval#b"):
 def test_harmful_text_never_reaches_a_response(tmp_path):
     app = create_app(results_with_logs(tmp_path))
     client = TestClient(app)
-    params = {"/api/report": {}, "/api/pairs": {}, "/api/pair": PAIR}
+    params = {"/api/report": {}, "/api/pair": PAIR}
 
     responses = [client.get(url, params=query) for url, query in params.items()]
 
     assert {r.path for r in app.routes if r.path.startswith("/api")} == set(params)
-    assert [r.status_code for r in responses] == [200, 200, 200]
+    assert [r.status_code for r in responses] == [200, 200]
     body = "".join(r.text for r in responses)
     assert HARMFUL not in body
     assert BENIGN in body
