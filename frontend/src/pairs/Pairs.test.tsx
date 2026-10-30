@@ -81,3 +81,21 @@ test("the harmful trace shows structure only, even if text reached the browser",
   expect(within(trace).getByText(/send_email \(tool error\)/)).toBeVisible();
   expect(document.body.textContent).not.toContain(SENTINEL);
 });
+
+test("pair detail shows the backend's reason when it cannot answer", async () => {
+  const detail = "Could not read the benign log for test_public/2-1 (ValueError).";
+  vi.stubGlobal(
+    "fetch",
+    vi.fn((url: string) =>
+      Promise.resolve(
+        url === "/api/report"
+          ? new Response(JSON.stringify(report))
+          : new Response(JSON.stringify({ detail }), { status: 400 }),
+      ),
+    ),
+  );
+  window.location.hash = "#/pair?configuration=small%2Foff&repeat=1&key=test_public%2F2-1";
+  render(<App />);
+
+  expect(await screen.findByRole("alert")).toHaveTextContent(detail);
+});
