@@ -20,6 +20,7 @@ from assay.outcomes import (
     Gate,
     PairKey,
     PairOutcome,
+    Pairs,
     Verdict,
     join_pairs,
     pair_outcomes,
@@ -77,6 +78,7 @@ def build_report(
             f"run_config.json is for run {run_config.run_id}. Report each run on its own."
         )
     pairs = join_pairs(records)
+    _check_same_pairs(pairs)
     outcomes = {gate: pair_outcomes(pairs, gate) for gate in GATES}
     unjudged = unjudged_pairs(pairs)
     records_by = defaultdict(list)
@@ -107,6 +109,22 @@ def build_report(
         configurations=configurations,
         pairs=_pair_rows(outcomes, list(run_config.configurations)),
     )
+
+
+def _check_same_pairs(pairs: Pairs) -> None:
+    """Every configuration and repeat must cover the same pairs, or their rates differ in kind."""
+    covered: dict[tuple[str, int], set[str]] = defaultdict(set)
+    for configuration, repeat, key in pairs:
+        covered[(configuration, repeat)].add(key)
+    every = set().union(*covered.values())
+    for (configuration, repeat), keys in covered.items():
+        missing = sorted(every - keys, key=key_order)
+        if missing:
+            count = "1 pair" if len(missing) == 1 else f"{len(missing)} pairs"
+            raise EvidenceError(
+                f"{configuration}, repeat {repeat} is missing {count} that others cover "
+                f"({', '.join(missing[:5])}). Finish the run before reporting."
+            )
 
 
 def _configuration_result(
