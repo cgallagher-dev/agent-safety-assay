@@ -118,7 +118,7 @@ export const report: Report = {
       mode: "off",
       repeats: 1,
       pairs: 30,
-      unjudged: ["test_public/9-1"],
+      unjudged: [{ repeat: 1, key: "test_public/9-1" }],
       gates: { structural: capable, structural_attempted: capable, semantic: stricter },
       limits,
     },

@@ -46,7 +46,7 @@
         },
         "unjudged": {
           "items": {
-            "type": "string"
+            "$ref": "#/$defs/PairRef"
           },
           "type": "array"
         },
@@ -262,7 +262,7 @@
         },
         "anomalies": {
           "items": {
-            "type": "string"
+            "$ref": "#/$defs/PairRef"
           },
           "type": "array"
         },
@@ -390,6 +390,23 @@
         "verdict"
       ],
       "title": "PairGate",
+      "type": "object"
+    },
+    "PairRef": {
+      "additionalProperties": false,
+      "properties": {
+        "repeat": {
+          "type": "integer"
+        },
+        "key": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "repeat",
+        "key"
+      ],
+      "title": "PairRef",
       "type": "object"
     },
     "PairRow": {

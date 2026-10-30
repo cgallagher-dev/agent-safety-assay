@@ -41,3 +41,14 @@ test("pairs left out as unjudged are counted beside the verdicts", () => {
   const row = within(table).getByRole("row", { name: /small\/off/ });
   expect(within(row).getByTitle("test_public/9-1")).toHaveTextContent("1");
 });
+
+test("unjudged pairs name their repeat when a configuration has several", () => {
+  const [first, ...rest] = report.configurations;
+  const unjudged = [1, 2].map((repeat) => ({ repeat, key: "test_public/9-1" }));
+  const configurations = [{ ...first, repeats: 2, unjudged }, ...rest];
+  render(<Overview report={{ ...report, configurations }} />);
+
+  const table = screen.getByRole("table", { name: "Verdicts by configuration" });
+  const row = within(table).getByRole("row", { name: /small\/off/ });
+  expect(within(row).getByTitle("test_public/9-1 r1, test_public/9-1 r2")).toHaveTextContent("2");
+});

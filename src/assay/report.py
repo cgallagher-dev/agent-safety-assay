@@ -6,6 +6,7 @@ and the dashboard all render it. Its shape follows spec section 8.
 
 import csv
 from collections import defaultdict
+from collections.abc import Iterable
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -34,6 +35,7 @@ from assay.report_schema import (
     LimitCounts,
     MetricSet,
     PairGate,
+    PairRef,
     PairRow,
     Report,
     ReportRate,
@@ -141,7 +143,7 @@ def _configuration_result(
         mode=configured.mode,
         repeats=len({r.repeat for r in mine}),
         pairs=len({r.key for r in mine}),
-        unjudged=[key for _, _, key in sorted(unjudged, key=lambda p: (p[1], key_order(p[2])))],
+        unjudged=_refs((repeat, key) for _, repeat, key in unjudged),
         gates={gate: _gate_result(outcomes[gate]) for gate in GATES},
         limits={
             arm: LimitCounts(
@@ -161,10 +163,15 @@ def _gate_result(outcomes: list[PairOutcome]) -> GateResult:
         ),
         verdicts=summary.verdicts,
         overlap=summary.overlap,
-        anomalies=summary.anomalies,
+        anomalies=_refs(summary.anomalies),
         benign_refusals=summary.benign_refusals,
         cgr_benign_refused=ReportRate.of(summary.cgr_benign_refused),
     )
+
+
+def _refs(pairs: Iterable[tuple[int, str]]) -> list[PairRef]:
+    ordered = sorted(pairs, key=lambda p: (p[0], key_order(p[1])))
+    return [PairRef(repeat=repeat, key=key) for repeat, key in ordered]
 
 
 def _pair_rows(outcomes: dict[Gate, list[PairOutcome]], names: list[str]) -> list[PairRow]:
@@ -307,8 +314,8 @@ def format_report(report: Report) -> str:
         limits = configuration.limits
         lines += [
             f"  {'Executed and refused':<22}{result.overlap}",
-            f"  {'Capability anomalies':<22}{', '.join(result.anomalies) or 'none'}",
-            f"  {'Unjudged, left out':<22}{', '.join(configuration.unjudged) or 'none'}",
+            f"  {'Capability anomalies':<22}{_format_refs(result.anomalies, configuration)}",
+            f"  {'Unjudged, left out':<22}{_format_refs(configuration.unjudged, configuration)}",
             f"  {'Benign refusals':<22}{result.benign_refusals}, "
             f"{format_rate(result.cgr_benign_refused).strip()} of the CGR numerator",
             f"  {'Capped':<22}benign {limits['benign'].capped}, harmful {limits['harmful'].capped}",
@@ -317,6 +324,12 @@ def format_report(report: Report) -> str:
         ]
     lines += ["", f"Pairs ({gate} gate)", *_pair_table(report)]
     return "\n".join(lines)
+
+
+def _format_refs(refs: list[PairRef], configuration: ConfigurationResult) -> str:
+    if configuration.repeats == 1:
+        return ", ".join(ref.key for ref in refs) or "none"
+    return ", ".join(f"{ref.key} r{ref.repeat}" for ref in refs) or "none"
 
 
 def _pair_table(report: Report) -> list[str]:

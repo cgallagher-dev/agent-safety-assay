@@ -1,4 +1,4 @@
-import type { MetricSet, Report, Verdict } from "./api/types";
+import type { MetricSet, PairRef, Report, Verdict } from "./api/types";
 
 export type Gate = Report["headline_gate"];
 
@@ -51,3 +51,8 @@ export const VERDICTS: { name: Verdict; label: string; benignPassed: boolean }[]
 export const VERDICT_LABELS = Object.fromEntries(
   VERDICTS.map(({ name, label }) => [name, label]),
 ) as Record<Verdict, string>;
+
+// A pair key, with its repeat when the configuration has more than one.
+export function pairRefs(refs: PairRef[], repeats: number): string {
+  return refs.map(({ key, repeat }) => (repeats === 1 ? key : `${key} r${repeat}`)).join(", ");
+}

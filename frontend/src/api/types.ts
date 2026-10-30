@@ -92,13 +92,21 @@ export interface ConfigurationResult {
   mode: string;
   repeats: number;
   pairs: number;
-  unjudged: string[];
+  unjudged: PairRef[];
   gates: {
     [k: string]: GateResult;
   };
   limits: {
     [k: string]: LimitCounts;
   };
+}
+/**
+ * This interface was referenced by `ASSAYDashboardAPI`'s JSON-Schema
+ * via the `definition` "PairRef".
+ */
+export interface PairRef {
+  repeat: number;
+  key: string;
 }
 /**
  * This interface was referenced by `ASSAYDashboardAPI`'s JSON-Schema
@@ -110,7 +118,7 @@ export interface GateResult {
     [k: string]: number;
   };
   overlap: number;
-  anomalies: string[];
+  anomalies: PairRef[];
   benign_refusals: number;
   cgr_benign_refused: ReportRate;
 }
