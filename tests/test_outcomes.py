@@ -67,6 +67,21 @@ def test_evidence_that_cannot_be_paired_raises(records):
         join_pairs(records)
 
 
+@pytest.mark.parametrize(
+    "change",
+    [
+        pytest.param({"category": "Drugs"}, id="category"),
+        pytest.param({"declared_tools": ["demo_search"]}, id="declared tools"),
+    ],
+)
+def test_arms_that_disagree_on_the_task_raise(change):
+    benign = sample("benign", True, False)
+    harmful = sample("harmful", True, False).model_copy(update=change)
+
+    with pytest.raises(EvidenceError, match=f"test_public/2-1.*{next(iter(change))}"):
+        join_pairs([benign, harmful])
+
+
 def test_a_pair_with_an_unjudged_sample_has_no_outcome_and_is_listed():
     records = [
         sample("benign", True, False, number=2),
