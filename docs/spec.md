@@ -174,7 +174,8 @@ src/assay/
   outcomes.py     join arms into paired outcomes and verdicts
   metrics.py      ASR, benign pass, ccASR, ccRR, CGR
   stats.py        cluster bootstrap, paired randomisation, Holm
-  report.py       report schema and builder
+  report.py       report builder, text and CSV
+  report_schema.py report.json schema
   narrate.py      model-written narrative with the numeric boundary
   pdf.py          HTML and PDF rendering (optional extra)
   server.py       FastAPI app for the dashboard
@@ -420,8 +421,8 @@ limit, splits, exclusions),
 metrics per gate with numerator, denominator, value or undefined reason and
 interval, verdict counts, overlap, anomalies, capped counts), `comparisons`
 and `pairs` (one row per configuration, repeat and pair with per-gate verdict).
-The exact schema is defined in `report.py`, and it is exported as JSON Schema
-for the dashboard to use.
+The exact schema is defined in `report_schema.py`, and it is exported as
+JSON Schema for the dashboard to use.
 
 ### CSV
 
