@@ -70,6 +70,12 @@ def build_report(
             f"The evidence covers {sorted(evidence_names)} but run_config.json lists "
             f"{sorted(run_config.configurations)}. Regenerate the evidence for this run."
         )
+    other_runs = {r.run_id for r in records} - {run_config.run_id}
+    if other_runs:
+        raise EvidenceError(
+            f"The evidence holds samples from run {', '.join(sorted(other_runs))} but "
+            f"run_config.json is for run {run_config.run_id}. Report each run on its own."
+        )
     pairs = join_pairs(records)
     outcomes = {gate: pair_outcomes(pairs, gate) for gate in GATES}
     unjudged = unjudged_pairs(pairs)
