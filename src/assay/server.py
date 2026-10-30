@@ -21,7 +21,7 @@ from pydantic.json_schema import GenerateJsonSchema, models_json_schema
 from assay.errors import AssayError, EvidenceError
 from assay.evidence import EvidenceRecord, read_evidence
 from assay.outcomes import Gate, Verdict
-from assay.report import load_report
+from assay.report import build_report, read_run_config
 from assay.report_schema import PairRow, Report
 
 HOST = "127.0.0.1"
@@ -72,12 +72,10 @@ def api_schema() -> dict:
 
 def create_app(results: Path) -> FastAPI:
     # Built from the evidence, not report.json, which can be older than it.
-    report = load_report(results)
+    records = read_evidence(results / "evidence.jsonl")
+    report = build_report(read_run_config(results), records)
     pairs = {(p.configuration, p.repeat, p.key): p for p in report.pairs}
-    evidence = {
-        (r.configuration, r.repeat, r.key, r.arm): r
-        for r in read_evidence(results / "evidence.jsonl")
-    }
+    evidence = {(r.configuration, r.repeat, r.key, r.arm): r for r in records}
     transcripts: dict[tuple[str, str], list[Turn] | None] = {}
     app = FastAPI(title="ASSAY dashboard", openapi_url=None)
 
