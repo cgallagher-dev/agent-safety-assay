@@ -24,6 +24,10 @@ BENIGN = "BENIGN-MARKER"
 PAIR = {"configuration": "demo-small/off", "repeat": 1, "key": "test_public/2-1"}
 
 
+def local(app):
+    return TestClient(app, base_url="http://127.0.0.1:8000")
+
+
 def write_log(path, uuid, marker):
     """A one-sample .eval log with the marker in every text field."""
     made_up = f"{marker}_tool"
@@ -83,7 +87,7 @@ def results_with_logs(path, benign_log="logs/benign.eval#b"):
 
 def test_harmful_text_never_reaches_a_response(tmp_path):
     app = create_app(results_with_logs(tmp_path))
-    client = TestClient(app)
+    client = local(app)
     params = {"/api/report": {}, "/api/pair": PAIR}
 
     responses = [client.get(url, params=query) for url, query in params.items()]
@@ -98,7 +102,7 @@ def test_harmful_text_never_reaches_a_response(tmp_path):
 def test_a_log_path_outside_the_results_directory_is_rejected(tmp_path):
     results = tmp_path / "results"
     write_log(tmp_path / "outside.eval", "x", BENIGN)
-    client = TestClient(create_app(results_with_logs(results, benign_log="../outside.eval#x")))
+    client = local(create_app(results_with_logs(results, benign_log="../outside.eval#x")))
 
     response = client.get("/api/pair", params=PAIR)
 
@@ -116,12 +120,26 @@ def test_a_log_path_outside_the_results_directory_is_rejected(tmp_path):
 def test_an_unreadable_log_is_reported_not_crashed(tmp_path, benign_log):
     results = results_with_logs(tmp_path, benign_log=benign_log)
     (results / "logs/broken.eval").write_bytes(b"not a zip file")
-    client = TestClient(create_app(results))
+    client = local(create_app(results))
 
     response = client.get("/api/pair", params=PAIR)
 
     assert response.status_code == 400
     assert "Could not read the benign log for test_public/2-1" in response.json()["detail"]
+
+
+@pytest.mark.parametrize("host", ["127.0.0.1:8000", "localhost:5173"])
+def test_local_hosts_are_served(host):
+    response = local(create_app(DEMO)).get("/api/report", headers={"host": host})
+
+    assert response.status_code == 200
+
+
+def test_another_host_name_is_refused():
+    # A page on another site that rebinds its name to 127.0.0.1 still sends its own Host.
+    response = local(create_app(DEMO)).get("/api/report", headers={"host": "attacker.example"})
+
+    assert response.status_code == 400
 
 
 def test_the_api_only_reads():
@@ -133,7 +151,7 @@ def test_the_api_only_reads():
 def test_a_stale_report_json_is_not_served(tmp_path):
     results = results_with_logs(tmp_path)
     (results / "report.json").write_text('{"stale": true}')
-    client = TestClient(create_app(results))
+    client = local(create_app(results))
 
     report = client.get("/api/report").json()
 
@@ -141,7 +159,7 @@ def test_a_stale_report_json_is_not_served(tmp_path):
 
 
 def test_an_unknown_pair_is_not_found(tmp_path):
-    client = TestClient(create_app(results_with_logs(tmp_path)))
+    client = local(create_app(results_with_logs(tmp_path)))
 
     response = client.get("/api/pair", params={**PAIR, "key": "test_public/9-9"})
 
@@ -157,7 +175,7 @@ def test_a_transcript_is_read_once(tmp_path, monkeypatch):
         return real(*args, **kwargs)
 
     monkeypatch.setattr(server, "read_eval_log_sample", counted)
-    client = TestClient(create_app(results_with_logs(tmp_path)))
+    client = local(create_app(results_with_logs(tmp_path)))
 
     first, second = (client.get("/api/pair", params=PAIR).json() for _ in range(2))
 
@@ -166,7 +184,7 @@ def test_a_transcript_is_read_once(tmp_path, monkeypatch):
 
 
 def test_demo_pairs_show_structure_without_logs():
-    client = TestClient(create_app(DEMO))
+    client = local(create_app(DEMO))
 
     detail = client.get("/api/pair", params=PAIR).json()
 
