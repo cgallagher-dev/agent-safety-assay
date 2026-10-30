@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchPair } from "../api/client";
 import type { EvidenceRecord, PairDetail, Report } from "../api/types";
-import { type Gate, GATES, VERDICT_LABELS } from "../labels";
+import { GATES, gateParam, VERDICT_LABELS } from "../labels";
 import { Transcript, TraceStructure } from "./Transcript";
 
 function judged(arm: string, evidence: EvidenceRecord): string {
@@ -19,7 +19,7 @@ export default function PairDetailPage({ report, params }: { report: Report; par
   const configuration = params.get("configuration") ?? "";
   const repeat = Number(params.get("repeat"));
   const key = params.get("key") ?? "";
-  const gate = (params.get("gate") ?? report.headline_gate) as Gate;
+  const gate = gateParam(params, report.headline_gate);
   const [detail, setDetail] = useState<PairDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 

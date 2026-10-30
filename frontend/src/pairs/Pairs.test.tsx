@@ -99,3 +99,13 @@ test("pair detail shows the backend's reason when it cannot answer", async () =>
 
   expect(await screen.findByRole("alert")).toHaveTextContent(detail);
 });
+
+test("an unknown gate in the link falls back to the headline gate", async () => {
+  serve();
+  window.location.hash = "#/pairs?configuration=small%2Foff&gate=made_up";
+  render(<App />);
+
+  await screen.findByRole("table", { name: "Pairs" });
+  expect(pairKeys()).toHaveLength(3);
+  expect(screen.getByLabelText("Capability gate")).toHaveValue(report.headline_gate);
+});
