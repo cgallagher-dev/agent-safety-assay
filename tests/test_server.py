@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import pytest
@@ -140,6 +141,15 @@ def test_another_host_name_is_refused():
     response = local(create_app(DEMO)).get("/api/report", headers={"host": "attacker.example"})
 
     assert response.status_code == 400
+
+
+def test_an_unbuilt_dashboard_says_how_to_build_it(tmp_path, monkeypatch, caplog):
+    monkeypatch.setattr(server, "STATIC", tmp_path / "missing")
+    monkeypatch.setattr(logging.getLogger("assay"), "propagate", True)
+
+    create_app(DEMO)
+
+    assert "npm run build" in caplog.text
 
 
 def test_the_api_only_reads():
