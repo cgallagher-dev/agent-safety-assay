@@ -122,3 +122,11 @@ def test_report_from_another_schema_version_is_rejected(tmp_path):
 
     with pytest.raises(EvidenceError, match="schema_version"):
         read_report(path)
+
+
+def test_evidence_from_another_run_is_rejected(tmp_path):
+    other = "20261113T0800Z-0000"
+    write_results(tmp_path, [record_fields(arm=arm, run_id=other) for arm in ("benign", "harmful")])
+
+    with pytest.raises(EvidenceError, match=other):
+        load_report(tmp_path)
