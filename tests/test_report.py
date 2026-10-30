@@ -130,3 +130,19 @@ def test_evidence_from_another_run_is_rejected(tmp_path):
 
     with pytest.raises(EvidenceError, match=other):
         load_report(tmp_path)
+
+
+def test_configurations_that_cover_different_pairs_are_rejected(tmp_path):
+    both = {f"small/{mode}": {"profile": "small", "mode": mode} for mode in ("on", "off")}
+    third = {"sample_id": "3-1", "key": "test_public/3-1", "base_behaviour": "test_public/3"}
+    records = [
+        record_fields(configuration=name, arm=arm, **sample)
+        for name in both
+        for sample in ({}, third)
+        for arm in ("benign", "harmful")
+        if not (name == "small/on" and sample)
+    ]
+    write_results(tmp_path, records, {**RUN_CONFIG, "configurations": both})
+
+    with pytest.raises(EvidenceError, match="small/on, repeat 1 is missing 1 pair"):
+        load_report(tmp_path)
