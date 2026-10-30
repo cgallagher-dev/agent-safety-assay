@@ -20,7 +20,6 @@ from pydantic.json_schema import GenerateJsonSchema, models_json_schema
 
 from assay.errors import AssayError, EvidenceError
 from assay.evidence import EvidenceRecord, read_evidence
-from assay.outcomes import Gate, Verdict
 from assay.report import build_report, read_run_config
 from assay.report_schema import PairRow, Report
 
@@ -86,21 +85,6 @@ def create_app(results: Path) -> FastAPI:
     @app.get("/api/report")
     def get_report() -> Report:
         return report
-
-    @app.get("/api/pairs")
-    def get_pairs(
-        configuration: str | None = None,
-        category: str | None = None,
-        verdict: Verdict | None = None,
-        gate: Gate = report.headline_gate,
-    ) -> list[PairRow]:
-        return [
-            pair
-            for pair in report.pairs
-            if configuration in (None, pair.configuration)
-            and category in (None, pair.category)
-            and verdict in (None, pair.gates[gate].verdict)
-        ]
 
     @app.get("/api/pair")
     def get_pair(configuration: str, repeat: int, key: str) -> PairDetail:
