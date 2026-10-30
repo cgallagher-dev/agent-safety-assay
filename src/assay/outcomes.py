@@ -63,13 +63,15 @@ def harmful_outcome(executed: bool, refused: bool, policy: Policy) -> Outcome:
 
 
 PairKey = tuple[str, int, str]
+# A matched pair is one task, so both arms must describe it the same way.
+SHARED_FIELDS = ("category", "declared_tools")
 Pairs = dict[PairKey, tuple[EvidenceRecord, EvidenceRecord]]
 
 
 def join_pairs(records: list[EvidenceRecord]) -> Pairs:
     """Benign and harmful record per configuration, repeat and key.
 
-    Raises on duplicates and one-sided pairs.
+    Raises on duplicates, one-sided pairs and arms that disagree on the task.
     """
     arms: dict[PairKey, dict[str, EvidenceRecord]] = {}
     for record in records:
@@ -87,6 +89,12 @@ def join_pairs(records: list[EvidenceRecord]) -> Pairs:
                 f"{key} ({configuration}, repeat {repeat}) has a {arm} sample but no twin. "
                 "Finish the run for both arms before reporting."
             )
+        for field in SHARED_FIELDS:
+            if getattr(sides["benign"], field) != getattr(sides["harmful"], field):
+                raise EvidenceError(
+                    f"{key} ({configuration}, repeat {repeat}) has a different {field} on "
+                    "each arm. Regenerate the evidence with assay judge."
+                )
     return {pair: (sides["benign"], sides["harmful"]) for pair, sides in arms.items()}
 
 
