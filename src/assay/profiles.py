@@ -13,7 +13,7 @@ from pathlib import Path
 from inspect_ai.model import GenerateConfig
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
-from assay.errors import ConfigError, validation_problems
+from assay.errors import ConfigError, RunError, validation_problems
 
 BUILT_IN_DIR = Path(__file__).parent / "profiles"
 BUILT_IN = sorted(path.stem for path in BUILT_IN_DIR.glob("*.toml"))
@@ -45,6 +45,9 @@ class Mode(BaseModel):
         if unknown:
             raise ValueError(f"not Inspect generate settings: {', '.join(unknown)}")
         return request
+
+    def generate_config(self) -> GenerateConfig:
+        return GenerateConfig(**self.request, **self.sampling.model_dump(exclude_none=True))
 
 
 class Profile(BaseModel):
@@ -84,3 +87,30 @@ def load_profile(name_or_path: str) -> Profile:
         raise ConfigError(f"{path} is not valid TOML: {error}.") from None
     except ValidationError as error:
         raise ConfigError(f"{path}: {validation_problems(error)}.") from None
+
+
+def check_request(mode_name: str, mode: Mode, request: dict) -> None:
+    """Stop if a mode setting did not reach the request the provider built."""
+    expected = _flatten(mode.request) | _flatten(mode.sampling.model_dump(exclude_none=True))
+    sent = _flatten(request)
+    missing = [
+        f"{key} (wanted {value!r}, sent {sent.get(key, 'nothing')!r})"
+        for key, value in expected.items()
+        if sent.get(key) != value
+    ]
+    if missing:
+        raise RunError(
+            f"Mode {mode_name}: the built request is missing {'; '.join(missing)}. "
+            "The provider drops or rewrites these settings; change the profile."
+        )
+
+
+def _flatten(values: dict, prefix: str = "") -> dict[str, object]:
+    flat: dict[str, object] = {}
+    for key, value in values.items():
+        name = f"{prefix}{key}"
+        if isinstance(value, dict):
+            flat |= _flatten(value, f"{name}.")
+        else:
+            flat[name] = value
+    return flat
