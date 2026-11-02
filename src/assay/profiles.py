@@ -6,6 +6,7 @@ profile names, never from the profile itself. Model quirks, such as how a model
 family's reasoning is switched off, belong in profiles and not in code.
 """
 
+import os
 import tomllib
 from pathlib import Path
 
@@ -56,6 +57,17 @@ class Profile(BaseModel):
     max_connections: int = Field(default=1, ge=1)
     min_context: int | None = Field(default=None, ge=1)
     modes: dict[str, Mode] = Field(min_length=1)
+
+    def api_key(self) -> str | None:
+        if self.api_key_env is None:
+            return None
+        key = os.environ.get(self.api_key_env)
+        if not key:
+            raise ConfigError(
+                f"Profile {self.name} reads its API key from {self.api_key_env}, which is not "
+                "set. Set it in the environment and run again."
+            )
+        return key
 
 
 def load_profile(name_or_path: str) -> Profile:
