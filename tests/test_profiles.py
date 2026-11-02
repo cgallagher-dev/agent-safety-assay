@@ -2,7 +2,7 @@ import pytest
 from inspect_ai.model import GenerateConfig, get_model
 
 from assay.errors import ConfigError, RunError
-from assay.profiles import BUILT_IN, Mode, check_request, load_profile
+from assay.profiles import BUILT_IN, Mode, check_reasoning, check_request, load_profile
 
 VALID = """
 name = "local-small"
@@ -96,3 +96,23 @@ def test_a_mode_setting_missing_from_the_request_stops_the_run(request_body):
 
     with pytest.raises(RunError, match="extra_body.reasoning_effort"):
         check_request("off", mode, request_body)
+
+
+@pytest.mark.parametrize(
+    ("expected", "with_reasoning", "stops"),
+    [
+        pytest.param(False, 1, True, id="off mode reasoned"),
+        pytest.param(True, 0, True, id="on mode did not"),
+        pytest.param(False, 0, False, id="off mode quiet"),
+        pytest.param(True, 3, False, id="on mode reasoned"),
+        pytest.param(None, 3, False, id="unchecked mode"),
+    ],
+)
+def test_reasoning_output_must_match_the_mode(expected, with_reasoning, stops):
+    mode = Mode(reasoning=expected)
+
+    if stops:
+        with pytest.raises(RunError, match="reasoning"):
+            check_reasoning("mode", mode, with_reasoning, checked=3)
+    else:
+        check_reasoning("mode", mode, with_reasoning, checked=3)

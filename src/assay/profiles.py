@@ -105,6 +105,20 @@ def check_request(mode_name: str, mode: Mode, request: dict) -> None:
         )
 
 
+def check_reasoning(mode_name: str, mode: Mode, with_reasoning: int, checked: int) -> None:
+    """Stop if the first samples show reasoning in an off mode, or none in an on mode."""
+    if mode.reasoning is False and with_reasoning > 0:
+        raise RunError(
+            f"Mode {mode_name} should not reason, but {with_reasoning} of the first {checked} "
+            "samples produced reasoning. Its request settings are not switching reasoning off."
+        )
+    if mode.reasoning is True and with_reasoning == 0:
+        raise RunError(
+            f"Mode {mode_name} should reason, but none of the first {checked} samples produced "
+            "reasoning. Check the model and the mode's request settings."
+        )
+
+
 def _flatten(values: dict, prefix: str = "") -> dict[str, object]:
     flat: dict[str, object] = {}
     for key, value in values.items():
