@@ -1,9 +1,15 @@
+import re
+from pathlib import Path
+
 import pytest
 from inspect_ai.model import GenerateConfig, get_model
 
+import assay
 from assay.errors import ConfigError, RunError
 from assay.profiles import BUILT_IN, Mode, check_reasoning, check_request, load_profile
 
+SOURCE = Path(assay.__file__).parent
+MODEL_TAG = re.compile(r"(?i)\b(qwen|gemma|llama|mistral|phi-?\d|deepseek|claude|gpt-\d)")
 VALID = """
 name = "local-small"
 model = "ollama/small:latest"
@@ -116,3 +122,16 @@ def test_reasoning_output_must_match_the_mode(expected, with_reasoning, stops):
             check_reasoning("mode", mode, with_reasoning, checked=3)
     else:
         check_reasoning("mode", mode, with_reasoning, checked=3)
+
+
+def test_no_model_tag_appears_in_python_source():
+    # Model quirks belong in profiles; a tag in code is a special case waiting to rot.
+    offenders = [
+        f"{path.relative_to(SOURCE)}:{number}"
+        for path in SOURCE.rglob("*.py")
+        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1)
+        if MODEL_TAG.search(line)
+    ]
+
+    assert MODEL_TAG.search("model = 'ollama/qwen3.5:4b'")
+    assert offenders == []
