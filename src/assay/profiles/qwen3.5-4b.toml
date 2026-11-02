@@ -1,0 +1,20 @@
+# Qwen3.5 4B on a local Ollama server, as run in the case study.
+name = "qwen3.5-4b"
+model = "ollama/qwen3.5:4b-q4_K_M"
+# Ollama serves one request at a time unless OLLAMA_NUM_PARALLEL is set.
+max_connections = 1
+min_context = 32768
+
+# Case-study decoding (evaluation plan, "Decoding"): the sampling Ollama serves
+# for Qwen3.5. Its top_k of 20 is left to the server, because Inspect's Ollama
+# provider does not send top_k.
+[modes.off]
+reasoning = false
+# Ollama's OpenAI endpoint only honours this form for Qwen3.5;
+# chat_template_kwargs and a top-level reasoning_effort are dropped.
+request = { extra_body = { reasoning_effort = "none" } }
+sampling = { temperature = 1.0, top_p = 0.95, presence_penalty = 1.5 }
+
+[modes.on]
+reasoning = true
+sampling = { temperature = 1.0, top_p = 0.95, presence_penalty = 1.5 }
