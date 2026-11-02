@@ -50,3 +50,16 @@ def test_built_in_profiles_and_a_profile_path_load(tmp_path):
 def test_an_unknown_profile_lists_the_built_in_ones():
     with pytest.raises(ConfigError, match="qwen3.5-4b"):
         load_profile("no-such-profile")
+
+
+def test_the_api_key_comes_from_the_environment_only(tmp_path, monkeypatch):
+    text = VALID.replace("[modes.off]", 'api_key_env = "SMALL_KEY"\n\n[modes.off]')
+    profile = load_profile(str(write_profile(tmp_path, text)))
+
+    monkeypatch.delenv("SMALL_KEY", raising=False)
+    with pytest.raises(ConfigError, match="SMALL_KEY"):
+        profile.api_key()
+
+    monkeypatch.setenv("SMALL_KEY", "sk-test-value")
+    assert profile.api_key() == "sk-test-value"
+    assert "sk-test-value" not in profile.model_dump_json()
