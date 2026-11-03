@@ -433,7 +433,7 @@ for the dashboard to use.
 
 | Milestone | Target | Contents |
 | --- | --- | --- |
-| M0 October set-up | 30 Oct 2026 | Repository, CI, licence, spec, user stories, evaluation plan agreed, AgentHarm 8-B audit. |
+| M0 October set-up | 5 Nov 2026 (planned 30 Oct) | Repository, CI, licence, spec, user stories, evaluation plan agreed, AgentHarm 8-B audit. |
 | M1 Demo 1 | Week 8 (indicative, early to mid November) | Synthetic fixture and one small saved run, through pairs, grading, judge, outcomes, metrics, report, PDF and dashboard (overview and pair detail). |
 | M2 Case study | 18 Dec 2026 | Profiles, runner, preflight, repeats, intervals, compare, sensitivity; six configurations run with repeats; second-family check. |
 | M3 Code complete | 15 Jan 2027 | Judge agreement, dashboard compare and sensitivity, narrative, clean install, PyPI, release v1.0. |
@@ -442,6 +442,9 @@ for the dashboard to use.
 
 If time slips, I will cut the dashboard extras (FR27, FR28) before any of the
 research work, as the risk table in my proposal says.
+
+M0 moved from 30 October to 5 November because my supervisor was assigned
+later than planned. It closes when the evaluation plan is agreed.
 
 ### Order of work
 
@@ -460,29 +463,30 @@ statistics while they run.
 | 7 | SCRUM-20 Dashboard backend | M1 |
 | 8 | SCRUM-21 Dashboard overview page | M1 |
 | 9 | SCRUM-15 Pair validation | M1 |
-| 10 | SCRUM-17 Scoring pass | M1 |
-| 11 | SCRUM-16 Grading saved logs | M1 |
-| 12 | SCRUM-22 Pair explorer and detail | M1 |
-| 13 | SCRUM-23 PDF report | M1 |
-| 13a | SCRUM-52 CLI colour and layout, SCRUM-53 dashboard polish, SCRUM-54 PDF layout | M1 |
-| 14 | SCRUM-24 Demo 1 rehearsal | M1 |
-| 15 | SCRUM-25 Model profiles | M2 |
+| 10 | SCRUM-25 Model profiles | M1 |
+| 11 | SCRUM-17 Scoring pass | M1 |
+| 12 | SCRUM-16 Grading saved logs | M1 |
+| 13 | SCRUM-22 Pair explorer and detail | M1 |
+| 14 | SCRUM-23 PDF report | M1 |
+| 15 | SCRUM-24 Demo 1 rehearsal | M1 |
 | 16 | SCRUM-27 Ollama preflight | M2 |
-| 17 | SCRUM-26 `assay run` | M2 |
-| 18 | SCRUM-31 Case-study runs (overnight, alongside 19 to 23) | M2 |
-| 19 | SCRUM-28 Repeats and bootstrap intervals | M2 |
-| 20 | SCRUM-29 `assay compare` | M2 |
-| 21 | SCRUM-30 Sensitivity readings | M2 |
-| 22 | SCRUM-38 `assay show` and `assay ls` | M2 |
-| 23 | SCRUM-32 Second-family check | M2 |
-| 24 | SCRUM-33 Judge agreement | M3 |
-| 25 | SCRUM-34 Dashboard compare and sensitivity | M3 |
-| 26 | SCRUM-40 Model-written narrative | M3 |
-| 27 | SCRUM-36 Clean-install check | M3 |
-| 28 | SCRUM-41 Publish to PyPI | M3 |
-| 29 | SCRUM-37 Release v1.0 | M3 |
-| 30 | SCRUM-35 Live run progress (cut first) | M3 |
-| 31 | SCRUM-42 Jacobian lens, SCRUM-43 IEEE paper, SCRUM-44 live code demo | Stretch |
+| 17 | SCRUM-52 CLI colour and layout, SCRUM-54 PDF layout | M2 |
+| 18 | SCRUM-26 `assay run` | M2 |
+| 19 | SCRUM-31 Case-study runs (overnight, alongside 20 to 24) | M2 |
+| 20 | SCRUM-28 Repeats and bootstrap intervals | M2 |
+| 21 | SCRUM-29 `assay compare` | M2 |
+| 22 | SCRUM-30 Sensitivity readings | M2 |
+| 23 | SCRUM-38 `assay show` and `assay ls` | M2 |
+| 24 | SCRUM-32 Second-family check | M2 |
+| 25 | SCRUM-33 Judge agreement | M3 |
+| 26 | SCRUM-34 Dashboard compare and sensitivity | M3 |
+| 27 | SCRUM-53 Dashboard polish | M3 |
+| 28 | SCRUM-40 Model-written narrative | M3 |
+| 29 | SCRUM-36 Clean-install check | M3 |
+| 30 | SCRUM-41 Publish to PyPI | M3 |
+| 31 | SCRUM-37 Release v1.0 | M3 |
+| 32 | SCRUM-35 Live run progress (cut first) | M3 |
+| 33 | SCRUM-42 Jacobian lens, SCRUM-43 IEEE paper, SCRUM-44 live code demo | Stretch |
 
 ## 10. Traceability
 

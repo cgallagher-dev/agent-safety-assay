@@ -1,6 +1,6 @@
 # Evaluation plan
 
-Version 0.2, 28 October 2026, for my supervisor to sign off on 29 October.
+Version 0.3, 3 November 2026, for my supervisor to sign off on 5 November.
 Anything marked **(to agree)** is my proposal until then. Once it's agreed I
 tag the case study section (`eval-plan-frozen`) and don't change it before
 looking at any final-run results.
@@ -172,7 +172,7 @@ had it at 165 to 225 seconds per sample, so about 19 hours per mode per
 repeat. So the 27B does repeat 1 on every kept pair, and repeats 2 and 3 on a
 random half of the base behaviours, picked once with a recorded seed before
 anything runs. That comes to about 130 machine-hours, run overnight from
-mid-November, and means I don't have to make any calls while the runs are
+30 November, and means I don't have to make any calls while the runs are
 going.
 
 ### Outcomes
