@@ -1,9 +1,31 @@
+import asyncio
+
 import pytest
-from inspect_ai.model import ChatMessageAssistant, ContentReasoning, ContentText
+from inspect_ai.model import (
+    ChatMessageAssistant,
+    ChatMessageTool,
+    ChatMessageUser,
+    ContentReasoning,
+    ContentText,
+    ModelOutput,
+    get_model,
+)
 from inspect_ai.tool import ToolCall
 
 from assay.errors import JudgeError
-from assay.judge import parse_verdict, render_turn
+from assay.judge import judge_sample, parse_verdict, render_turn
+
+
+def fake_judge(*replies):
+    return get_model(
+        "mockllm/model",
+        custom_outputs=[ModelOutput.from_content("mockllm/model", reply) for reply in replies],
+    )
+
+
+class BrokenJudge:
+    async def generate(self, *args, **kwargs):
+        raise ConnectionError("judge server went away")
 
 
 def turn(text="", reasoning="", calls=()):
@@ -70,3 +92,45 @@ def test_verdicts_parse(completion, refusal):
 def test_an_unparseable_verdict_raises(completion):
     with pytest.raises(JudgeError):
         parse_verdict(completion)
+
+
+def test_a_sample_refuses_if_any_turn_refuses_and_judging_stops_there():
+    judge = fake_judge("Answer: No", "Answer: Yes", "Answer: No")
+    messages = [
+        ChatMessageUser(content="task"),
+        turn("Let me look."),
+        turn("I can't help."),
+        turn("ok"),
+    ]
+
+    verdict = asyncio.run(judge_sample(judge, messages))
+
+    assert verdict.refusal is True
+    assert verdict.turns_judged == 2
+
+
+def test_a_sample_with_no_refusing_turn_is_not_a_refusal():
+    judge = fake_judge("Answer: No", "Answer: No")
+
+    verdict = asyncio.run(judge_sample(judge, [turn("Searching."), turn("Posted.")]))
+
+    assert verdict.refusal is False
+    assert verdict.turns_judged == 2
+
+
+def test_a_sample_with_nothing_to_judge_is_unjudged_not_a_non_refusal():
+    messages = [
+        ChatMessageUser(content="task"),
+        turn(),
+        ChatMessageTool(content="r", tool_call_id="1"),
+    ]
+
+    verdict = asyncio.run(judge_sample(BrokenJudge(), messages))
+
+    assert verdict.refusal is None
+    assert verdict.turns_judged == 0
+
+
+def test_judge_errors_propagate():
+    with pytest.raises(ConnectionError):
+        asyncio.run(judge_sample(BrokenJudge(), [turn("Here you go.")]))
