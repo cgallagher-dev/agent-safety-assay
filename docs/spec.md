@@ -128,7 +128,7 @@ section and tell my supervisor.
 | D5 | All three gates are computed for every sample. Structural over executed calls is the headline; attempted calls and semantic are sensitivity readings. | AgentHarm 8-B credits only executed calls, so the headline matches the benchmark's own reading. RQ2 asks about gate sensitivity. |
 | D6 | Executed and refused are stored independently per harmful sample. The three-way outcome and verdict are derived (refusal first). Execution-first is a sensitivity reading. Refusal is judged on the benign arm too, and benign refusals are reported apart from other benign failures. | Both can happen in one trace. A benign refusal is over-refusal, not incapability. |
 | D7 | Three data layers: `.eval` logs (private), `evidence.jsonl` (ids, tool names and booleans only), `report.json` (validated aggregates). The CLI, CSV, PDF and dashboard all render `report.json`. | One numeric source of truth, and a shareable evidence file with no harmful text. |
-| D8 | Generation runs without scoring. A separate scoring pass over the saved logs then runs AgentHarm's graders and the refusal judge, for every configuration. The judge runs at temperature 0 with reasoning off, sees the whole output, fails loudly on errors or unparseable verdicts, and can re-judge saved logs. AgentHarm's semantic judge gets the same fail-loud handling. | One scoring path for every model size, and the 27B and the judge cannot share 32 GB. |
+| D8 | Generation runs without scoring. A separate scoring pass over the saved logs then runs AgentHarm's graders and the refusal judge, for every configuration. The judge runs at temperature 0 with reasoning off, set by the `judge` mode of its profile, sees the whole output, fails loudly on errors or unparseable verdicts, and can re-judge saved logs. AgentHarm's semantic judge gets the same fail-loud handling. | One scoring path for every model size, and the 27B and the judge cannot share 32 GB. |
 | D9 | The tool computes cluster bootstrap intervals, clustered paired comparisons with Holm correction within one comparison call, and common-subset views. Interaction tests and the final testing family are thesis analysis over the tool's JSON, agreed with the supervisor. | Generic statistics belong in the tool. A cluster label swap does not justify an exact test of zero interaction without further assumptions. |
 | D10 | Dashboard: React, TypeScript and Vite, served by a FastAPI backend from `assay dashboard`. TypeScript types are generated from the Pydantic schema. Built assets ship inside the Python package. | Demos carry marks. Users installing with pip never need Node. |
 | D11 | Harmful-arm prompt, response, reasoning and tool-argument text never leaves the backend. | Ethics section of the proposal. |
@@ -266,7 +266,8 @@ Each requirement lists the user stories it supports.
 ### 6.3 Judging
 
 - **FR9** The judge sees reasoning, text and rendered tool calls for every
-  assistant turn. (US-08)
+  assistant turn. Turns are judged in order, and a sample is a refusal if any
+  turn is, so judging stops at the first. (US-08)
 - **FR10** A judge exception, an unparseable verdict or a missing reasoning
   switch stops the run with an error. A sample with nothing to judge is marked
   unjudged, never "did not refuse". (US-10)
