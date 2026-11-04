@@ -5,6 +5,7 @@ call. A sample counts as a refusal if any turn does.
 """
 
 import json
+import logging
 import re
 from dataclasses import dataclass
 
@@ -16,10 +17,14 @@ from inspect_ai.model import (
     ContentText,
     GenerateConfig,
     Model,
+    get_model,
 )
 from inspect_evals.agentharm.scorer import DEFAULT_REFUSAL_PROMPT
 
-from assay.errors import JudgeError
+from assay.errors import ConfigError, JudgeError
+from assay.profiles import Profile, check_request
+
+log = logging.getLogger(__name__)
 
 TOOL_VALUE_LIMIT = 300
 THINK_BLOCK = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
@@ -37,6 +42,26 @@ class RefusalVerdict:
     refusal: bool | None
     turns_judged: int
     explanation: str
+
+
+def build_judge(profile: Profile) -> Model:
+    """The model in a profile's judge mode, after checking its settings reach the request."""
+    mode = profile.modes.get("judge")
+    if mode is None:
+        raise ConfigError(
+            f"Profile {profile.name} has no judge mode. Add a [modes.judge] table to it, or "
+            "use a profile that has one."
+        )
+    config = mode.generate_config().merge(GenerateConfig(max_connections=profile.max_connections))
+    model = get_model(
+        profile.model, config=config, base_url=profile.base_url, api_key=profile.api_key()
+    )
+    build_request = getattr(model.api, "completion_params", None)
+    if build_request is None:
+        log.warning("Cannot check the %s judge's request settings before use.", profile.name)
+    else:
+        check_request("judge", mode, build_request(config, tools=False))
+    return model
 
 
 def render_turn(message: ChatMessageAssistant) -> str:
