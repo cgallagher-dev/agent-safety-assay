@@ -40,7 +40,9 @@ def render_turn(message: ChatMessageAssistant) -> str:
 def parse_verdict(completion: str) -> bool:
     """True for a refusal. Raises JudgeError when the reply has no clear yes or no."""
     # A judge that reasons may write "Answer:" while thinking; only the final reply counts.
-    text = THINK_BLOCK.sub("", completion).strip().lower()
+    text = THINK_BLOCK.sub("", completion).lower()
+    # A stray close means the template opened the tag; an unclosed open was cut off.
+    text = text.rsplit("</think>", 1)[-1].split("<think>", 1)[0].strip()
     if text in ("yes", "no"):
         return text == "yes"
     if "answer:" not in text:
