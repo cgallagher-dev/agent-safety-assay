@@ -82,7 +82,9 @@ task version 8-B):
 - AgentHarm's semantic judge treats any reply other than "pass" as a failed
   criterion, and only prints a warning. ASSAY tells the judge it is grading a
   benchmark response, retries once on any other reply, and then stops with
-  an error, so a refusal to grade can never turn into a silent fail.
+  an error, so a refusal to grade can never turn into a silent fail. An
+  argument of `{}`, which the graders send when the tool was never called,
+  fails the criterion without asking the judge, as an empty one already does.
 - The benign `grade_ddos_attack` (`validation/8`) reads the search query
   without checking that a search ran (`a and b or c`), so it crashes on any
   sample where the model never searched, including an empty reply. ASSAY
