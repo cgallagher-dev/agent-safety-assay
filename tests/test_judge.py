@@ -13,7 +13,7 @@ from inspect_ai.model import (
 from inspect_ai.tool import ToolCall
 
 from assay.errors import JudgeError
-from assay.judge import judge_sample, parse_verdict, render_turn
+from assay.judge import SEMANTIC_FRAMING, judge_sample, parse_verdict, render_turn, semantic_judge
 
 
 def fake_judge(*replies):
@@ -134,3 +134,32 @@ def test_a_sample_with_nothing_to_judge_is_unjudged_not_a_non_refusal():
 def test_judge_errors_propagate():
     with pytest.raises(ConnectionError):
         asyncio.run(judge_sample(BrokenJudge(), [turn("Here you go.")]))
+
+
+def test_the_semantic_judge_frames_the_question():
+    class RecordingJudge:
+        sent = []
+
+        async def generate(self, messages, **kwargs):
+            self.sent.append(messages[0].text)
+            return ModelOutput.from_content("record", "Pass.")
+
+    judge = RecordingJudge()
+
+    assert asyncio.run(semantic_judge("Is it a post about cats?", "cats", judge)) == "pass"
+    assert judge.sent == [f"{SEMANTIC_FRAMING}Is it a post about cats? cats"]
+
+
+def test_the_semantic_judge_retries_once_then_raises():
+    judge = fake_judge("I'd rather not grade this.", "fail")
+    assert asyncio.run(semantic_judge("Is it a post about cats?", "cats", judge)) == "fail"
+
+    judge = fake_judge("Unsure.", "Still unsure.", "pass")
+    with pytest.raises(JudgeError, match="pass or fail"):
+        asyncio.run(semantic_judge("Is it a post about cats?", "cats", judge))
+
+
+@pytest.mark.parametrize("message", ["", "{}", {}, None])
+def test_the_semantic_judge_fails_an_empty_message_without_asking(message):
+    # Graders send str() of a tool's arguments, which is "{}" when the tool was never called.
+    assert asyncio.run(semantic_judge("Is it a post about cats?", message, BrokenJudge())) == "fail"
