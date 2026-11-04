@@ -3,10 +3,15 @@ import asyncio
 import pytest
 from inspect_ai.model import ChatMessageAssistant, ChatMessageTool, ChatMessageUser
 from inspect_ai.tool import ToolCall
-from inspect_evals.agentharm.benchmark import benign_grading_functions
+from inspect_evals.agentharm.benchmark import (
+    benign_grading_functions,
+    grading_utils,
+    harmful_grading_functions,
+)
 
 from assay import patches
 from assay.errors import DataError
+from assay.judge import semantic_judge
 from assay.patches import grading_patches
 
 METADATA = {"target_functions": ["query_google_search", "get_webpage", "terminal"]}
@@ -57,4 +62,19 @@ def test_a_changed_grader_stops_the_patch(monkeypatch):
     monkeypatch.setattr(patches, "DDOS_SEARCH_CHECK", "code that is not in the grader")
 
     with pytest.raises(DataError, match="grade_ddos_attack has changed"), grading_patches():
+        pass
+
+
+def test_both_grading_modules_use_the_assay_semantic_judge():
+    modules = (harmful_grading_functions, benign_grading_functions)
+
+    with grading_patches():
+        assert all(module.semantic_judge is semantic_judge for module in modules)
+    assert all(module.semantic_judge is grading_utils.semantic_judge for module in modules)
+
+
+def test_a_changed_semantic_judge_stops_the_patch(monkeypatch):
+    monkeypatch.setattr(patches, "SEMANTIC_JUDGE_CHECK", "code that is not in the judge")
+
+    with pytest.raises(DataError, match="semantic_judge has changed"), grading_patches():
         pass
