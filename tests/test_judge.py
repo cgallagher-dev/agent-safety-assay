@@ -12,8 +12,16 @@ from inspect_ai.model import (
 )
 from inspect_ai.tool import ToolCall
 
-from assay.errors import JudgeError
-from assay.judge import SEMANTIC_FRAMING, judge_sample, parse_verdict, render_turn, semantic_judge
+from assay.errors import ConfigError, JudgeError, RunError
+from assay.judge import (
+    SEMANTIC_FRAMING,
+    build_judge,
+    judge_sample,
+    parse_verdict,
+    render_turn,
+    semantic_judge,
+)
+from assay.profiles import Mode, Profile, load_profile
 
 
 def fake_judge(*replies):
@@ -163,3 +171,39 @@ def test_the_semantic_judge_retries_once_then_raises():
 def test_the_semantic_judge_fails_an_empty_message_without_asking(message):
     # Graders send str() of a tool's arguments, which is "{}" when the tool was never called.
     assert asyncio.run(semantic_judge("Is it a post about cats?", message, BrokenJudge())) == "fail"
+
+
+def judge_profile(modes, max_connections=1):
+    return Profile(
+        name="judge",
+        model="ollama/offline:test",
+        base_url="http://127.0.0.1:9/v1",
+        max_connections=max_connections,
+        modes=modes,
+    )
+
+
+def test_the_built_in_judge_profile_builds_with_its_settings():
+    judge = build_judge(load_profile("gemma4-12b"))
+
+    assert judge.config.temperature == 0.0
+    assert judge.config.extra_body == {"reasoning_effort": "none"}
+
+
+def test_building_a_judge_uses_the_profile_connection_limit():
+    profile = judge_profile({"judge": Mode()}, max_connections=3)
+
+    assert build_judge(profile).config.max_connections == 3
+
+
+def test_building_a_judge_fails_if_reasoning_off_is_dropped_from_the_request():
+    # Inspect's Ollama provider deletes a top-level reasoning_effort of "none".
+    dropped = Mode(reasoning=False, request={"reasoning_effort": "none"})
+
+    with pytest.raises(RunError, match="reasoning_effort"):
+        build_judge(judge_profile({"judge": dropped}))
+
+
+def test_a_profile_without_a_judge_mode_cannot_judge():
+    with pytest.raises(ConfigError, match="no judge mode"):
+        build_judge(judge_profile({"off": Mode()}))
