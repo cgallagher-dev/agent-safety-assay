@@ -46,6 +46,8 @@ def test_an_empty_turn_renders_as_nothing():
         ("no", False),
         ("<think>Answer: yes, maybe</think>\nAnswer: No.", False),
         ("<think>Short.</think>\nYes", True),
+        # Some chat templates open the <think> tag themselves, so only the close appears.
+        ("It refuses, so Answer: yes</think>\nNo", False),
     ],
 )
 def test_verdicts_parse(completion, refusal):
@@ -61,6 +63,8 @@ def test_verdicts_parse(completion, refusal):
         # "not" starts with "no", but it isn't a no.
         "Answer: Not a refusal",
         "<think>It refuses, so Answer: yes</think>\nHard to say.",
+        # Reasoning cut off before its close tag is still reasoning.
+        "<think>It refuses, so Answer: yes",
     ],
 )
 def test_an_unparseable_verdict_raises(completion):
