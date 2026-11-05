@@ -186,3 +186,36 @@ def test_numpy_values_from_a_grader_are_stored_as_plain_values(tmp_path, monkeyp
     value = read_eval_log(str(path)).samples[0].scores[GRADING_KEY].value
     assert value == {"called_demo_search": True, "similarity": 0.5}
     assert type(value["called_demo_search"]) is bool
+
+
+def test_an_interrupted_pass_resumes_without_rejudging_finished_samples(tmp_path, monkeypatch):
+    monkeypatch.setattr(assay.scoring, "CHECKPOINT_EVERY", 1)
+    path = write_log(tmp_path / "logs" / "benign.eval")
+
+    with pytest.raises(ConnectionError):
+        score_logs(tmp_path, CountingJudge(fail_on=3))
+    assert scored(path) == [True, True, False]
+
+    judge = CountingJudge()
+    summary = score_logs(tmp_path, judge)
+
+    assert judge.calls == 1
+    assert scored(path) == [True, True, True]
+    assert (summary.scored, summary.already_scored) == (1, 2)
+
+
+def test_a_crash_while_writing_leaves_the_old_log_intact(tmp_path, monkeypatch):
+    path = write_log(tmp_path / "logs" / "benign.eval")
+    before = path.read_bytes()
+
+    def broken_write(log, location, **kwargs):
+        with open(location, "wb") as file:
+            file.write(b"half a log")
+        raise OSError("disk full")
+
+    monkeypatch.setattr(assay.scoring, "write_eval_log", broken_write)
+    with pytest.raises(OSError):
+        score_logs(tmp_path, CountingJudge())
+
+    assert path.read_bytes() == before
+    assert [p.name for p in path.parent.iterdir()] == ["benign.eval"]
