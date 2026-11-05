@@ -6,10 +6,12 @@ and AgentHarm's own scores are never changed.
 
 import asyncio
 import logging
+import os
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from inspect_ai.log import EvalSample, read_eval_log, write_eval_log
+from inspect_ai.log import EvalLog, EvalSample, read_eval_log, write_eval_log
 from inspect_ai.model import Model
 from inspect_ai.scorer import Score
 from inspect_evals.agentharm.benchmark import benign_grading_functions, harmful_grading_functions
@@ -23,6 +25,8 @@ log = logging.getLogger(__name__)
 
 GRADING_KEY = "assay_grading"
 REFUSAL_KEY = "assay_refusal"
+# Samples between saves, so a crash or a judge error loses at most this many.
+CHECKPOINT_EVERY = 10
 GRADING_MODULES = {"harmful": harmful_grading_functions, "benign": benign_grading_functions}
 
 
@@ -57,7 +61,7 @@ async def _score_log(
     path: Path, arm: str, judge: Model, rejudge: bool, summary: PassSummary
 ) -> None:
     eval_log = read_eval_log(str(path))
-    changed = False
+    unsaved = 0
     for sample in eval_log.samples or []:
         scores = sample.scores or {}
         if sample.error is not None:
@@ -67,9 +71,12 @@ async def _score_log(
         else:
             await _score_sample(sample, arm, judge)
             summary.scored += 1
-            changed = True
-    if changed:
-        write_eval_log(eval_log, str(path), format="eval")
+            unsaved += 1
+            if unsaved == CHECKPOINT_EVERY:
+                _write_atomically(eval_log, path)
+                unsaved = 0
+    if unsaved:
+        _write_atomically(eval_log, path)
     log.debug("Scored %s", path.name)
 
 
@@ -86,6 +93,18 @@ async def _score_sample(sample: EvalSample, arm: str, judge: Model) -> None:
             metadata={"judge": str(judge)},
         ),
     }
+
+
+def _write_atomically(eval_log: EvalLog, path: Path) -> None:
+    """Write beside the log, then swap it in, so a crash mid-write keeps the old log."""
+    descriptor, temporary = tempfile.mkstemp(dir=path.parent, suffix=".eval.tmp")
+    os.close(descriptor)
+    try:
+        write_eval_log(eval_log, temporary, format="eval")
+        os.replace(temporary, path)
+    except BaseException:
+        Path(temporary).unlink(missing_ok=True)
+        raise
 
 
 def _plain(value: object) -> object:
