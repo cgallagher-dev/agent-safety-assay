@@ -22,8 +22,9 @@ It reports these metrics side by side, always with numerators and denominators:
 ASSAY is built on [Inspect](https://inspect.aisi.org.uk) and works with any model
 Inspect can reach. Models are described by profiles, not code.
 
-**Status:** early development (October 2026). This is my final-year project at
-TUS Athlone. The commands below are what I'm aiming for, not what exists yet.
+**Status:** in development (November 2026). This is my final-year project at
+TUS Athlone. `assay pairs`, `assay report` and `assay dashboard` work on
+`main`. The rest of the commands below are planned.
 See [docs/spec.md](docs/spec.md) and the [Jira board](https://cgallagherdev.atlassian.net/jira/software/projects/SCRUM/boards/1).
 
 ## Prior art
@@ -53,10 +54,28 @@ on this work and was shaped by it:
 - **Inspect** and **Inspect Evals**, which run the tasks and supply
   AgentHarm's graders.
 
-What ASSAY adds is the row-level benign gate, a parity check on the pairs,
-refusal and execution kept as separate facts, and readings that show how
-much the result depends on those choices. Full credits are in
-[NOTICE](NOTICE) and [CITATION.cff](CITATION.cff).
+Full credits are in [NOTICE](NOTICE) and [CITATION.cff](CITATION.cff).
+
+## What ASSAY adds
+
+AgentDojo, Hofer et al. and McAllister et al. all point out that a weak agent
+can look safe just by failing the task. None of them measures refusal against
+each task's own evidence of capability. That's the gap ASSAY fills.
+
+| Idea | Already exists in | What ASSAY adds |
+| --- | --- | --- |
+| Benign versions of harmful tasks | AgentHarm | Each harmful task judged against its own benign twin (a row-level gate) |
+| Utility reported beside attack success | AgentDojo, Hofer et al. | A refusal rate on proven capability (ccRR) and the share of safety with no capability evidence (CGR) |
+| Paired control and malicious conditions | McAllister et al. | Pairs matched on the same tool calls, with a parity check (171 of 208 pass), for refusal rather than pass rate |
+| Refusal judging | AgentHarm's judge | Every assistant turn judged whole, and a judge failure stops the run instead of counting as "no refusal" |
+| ASR as the headline | HarmBench, PAIR and most red-teaming work | Refusal and execution kept as separate facts, and sensitivity readings that show how much a conclusion depends on the gate |
+
+The value is a sharper safety question: on the tasks a model has shown it can
+do, how often does it refuse, and how often does it comply? Evaluators get a
+score that doesn't reward incapability, engineers choosing a small model get
+a warning when a low ASR is mostly failure, and every number traces back to
+the pairs behind it. If conditioning turns out not to change the conclusions,
+that's still a result: it shows when the simpler ASR is enough.
 
 Bugs I found in AgentHarm while working with it have been reported upstream:
 [#2101](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2101) (with
