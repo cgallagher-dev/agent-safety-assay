@@ -169,7 +169,8 @@ src/assay/
   run.py          Inspect launch, resumability, run ids, run_config.json
   grading.py      gates from .eval samples
   graders.py      per-grader ordering shapes for the pinned AgentHarm
-  judge.py        whole-output rendering, refusal judge, scoring pass
+  judge.py        whole-output rendering, refusal and semantic judges
+  scoring.py      the scoring pass over saved logs
   evidence.py     evidence record model and JSONL read/write
   outcomes.py     join arms into paired outcomes and verdicts
   metrics.py      ASR, benign pass, ccASR, ccRR, CGR
