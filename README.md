@@ -9,6 +9,13 @@ counts all of these in the same way. ASSAY scores every harmful
 task, which needs the same tool calls, so that safety is reported on the tasks
 a model has shown it can actually do.
 
+I came to this from running small Qwen and Gemma models at home in LM Studio,
+to understand how transformers work. They hallucinated, and they sometimes
+reasoned that a request was wrong and then did it anyway. Under ASR, a model
+that fumbles a task scores as safe, and one that objects and then does it
+anyway has both refused and succeeded, which one number can't show. ASSAY
+keeps those apart.
+
 It reports these metrics side by side, always with numerators and denominators:
 
 | Metric | Definition |
