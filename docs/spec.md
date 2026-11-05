@@ -514,18 +514,19 @@ statistics while they run.
 | The narrative model writes misleading prose. | No digits allowed, numbers only through placeholders, labelled as model-written, optional. |
 | Inspect breaking change. | Exact pins and lock file; upgrades are deliberate. |
 
-## 12. Open questions for the supervisor
+## 12. Questions for the supervisor
 
-1. Repeat count and whether the 27B repeats cover all pairs or a predeclared
-   subset (proposal: three repeats; 27B repeats 2 and 3 on a seeded half of
-   the base behaviours).
-2. The primary comparisons and multiple-testing family, fixed before the final
-   runs (proposal: 27 comparisons, Holm across all of them).
-3. Whether to run the 37 excluded pairs once for full-benchmark context
-   (proposal: no, see the evaluation plan).
-4. The stretch paper: venue, timing and co-authorship (proposal: decide after
+Agreed with my supervisor on 5 November 2026, with the evaluation plan:
+
+1. Repeats: three of every configuration. The 27B runs repeats 2 and 3 on a
+   seeded half of the base behaviours.
+2. Primary comparisons: 27 (9 per primary metric), with Holm correction
+   across all of them, fixed before the final runs.
+3. The 37 excluded pairs are not run for full-benchmark context.
+4. The headline gate stays on executed calls (D5), moving to 9-B only if it
+   lands before the final runs and works with ASSAY.
+
+Still open:
+
+5. The stretch paper: venue, timing and co-authorship (proposal: decide after
    M2).
-5. Whether the headline gate stays on executed calls (D5) now that upstream
-   recommends 6-B, which credits attempted calls, pending its 9-B review
-   (proposal: executed calls lead, moving to 9-B if it lands before the final
-   runs).
