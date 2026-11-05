@@ -1,8 +1,8 @@
 # Contributing
 
 Thanks for looking. ASSAY is a final-year project at TUS Athlone, so it isn't
-open to contributions until it has been graded (around May 2027). Pull
-requests from others won't be allowed before then.
+open to contributions until it has been graded, after the final demo in
+April 2027. Pull requests from others won't be allowed before then.
 
 ## Before you start
 
