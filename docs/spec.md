@@ -434,10 +434,10 @@ for the dashboard to use.
 | Milestone | Target | Contents |
 | --- | --- | --- |
 | M0 October set-up | 5 Nov 2026 (planned 30 Oct) | Repository, CI, licence, spec, user stories, evaluation plan agreed, AgentHarm 8-B audit. |
-| M1 Demo 1 | Week 8 (indicative, early to mid November) | Synthetic fixture and one small saved run, through pairs, grading, judge, outcomes, metrics, report, PDF and dashboard (overview and pair detail). |
+| M1 Demo 1 | Week 8 (week of 9 Nov 2026) | Synthetic fixture and one small saved run, through pairs, grading, judge, outcomes, metrics, report, PDF and dashboard (overview and pair detail). |
 | M2 Case study | 18 Dec 2026 | Profiles, runner, preflight, repeats, intervals, compare, sensitivity; six configurations run with repeats; second-family check. |
 | M3 Code complete | 15 Jan 2027 | Judge agreement, dashboard compare and sensitivity, narrative, clean install, PyPI, release v1.0. |
-| M4 Thesis | approx. May 2027 | Analysis, thesis, Semester 2 demonstrations. Defect fixes only. |
+| M4 Thesis and final demo | Paper before 5 Apr 2027, final demo week of 5 Apr 2027 | Analysis, Demo 2 (week of 1 Feb 2027), the paper (project report), the final demo and the Engineering EXPO poster (date to be announced). Defect fixes only. |
 | Stretch | after M3 | Jacobian lens exploration; a short paper for an IEEE venue. |
 
 If time slips, I will cut the dashboard extras (FR27, FR28) before any of the
