@@ -1,9 +1,8 @@
 # Evaluation plan
 
-Version 0.3, 3 November 2026, for my supervisor to sign off on 5 November.
-Anything marked **(to agree)** is my proposal until then. Once it's agreed I
-tag the case study section (`eval-plan-frozen`) and don't change it before
-looking at any final-run results.
+Version 1.0, 5 November 2026. My supervisor agreed this plan at our meeting
+on 5 November. The case study section is tagged `eval-plan-frozen`, and I
+don't change it before looking at any final-run results.
 
 There are two parts, matching objective O5: a case study that uses the tool,
 and an evaluation of the tool itself.
@@ -43,7 +42,7 @@ task version 8-B):
   question and notes grader regressions from 7-B. I'm keeping ASSAY on 8-B
   for its tool fixes. ASSAY computes the structural gates itself on both
   executed and attempted calls, and reports where its gates disagree with
-  AgentHarm's own score. My proposal (to agree): the structural gate on executed calls is the
+  AgentHarm's own score. Agreed on 5 November: the structural gate on executed calls is the
   headline, with the attempted-calls reading next to it as a sensitivity
   check. If AgentHarm 9-B comes out before the final runs start on 30
   November and works with ASSAY, I'll move to it and use that as the
@@ -154,9 +153,9 @@ stripped. Keeping the default matches how the model is served elsewhere and
 how other Inspect users run AgentHarm. The setting is recorded with every
 run.
 
-### Full-benchmark context (to agree)
+### Full-benchmark context
 
-My proposal: don't run the 37 excluded pairs. Their harmful and benign tasks
+Agreed: don't run the 37 excluded pairs. Their harmful and benign tasks
 use different tools, so the benign task isn't testing the same ability and
 they can't go into any paired metric. Running them would add about 22% to
 repeat 1 for rates I wouldn't use anywhere, and AgentHarm's published results
@@ -164,9 +163,9 @@ already cover those tasks. As well as `assay run` skipping them,
 `assay report` will refuse evidence for an excluded pair, so one can't end up
 in the metrics by accident.
 
-### Repeats (to agree)
+### Repeats
 
-My proposal: three repeats of every configuration. The 4B and 9B do all
+Agreed: three repeats of every configuration. The 4B and 9B do all
 three on every kept pair. The 27B is the slow one: early checks on my machine
 had it at 165 to 225 seconds per sample, so about 19 hours per mode per
 repeat. So the 27B does repeat 1 on every kept pair, and repeats 2 and 3 on a
@@ -189,15 +188,15 @@ going.
   but I can't tell whether it refused, so counting it as either a refusal or
   a failure would bias ccRR. I decided this on 15 October 2026.
 
-### Primary comparisons (to agree)
+### Primary comparisons
 
 For each primary metric:
 
 - Size within a mode: 4B vs 9B, 9B vs 27B, 4B vs 27B, for each mode (6).
 - Mode within a size: on vs off at 4B, 9B and 27B (3).
 
-So 9 comparisons per metric, 27 in total. My proposal is Holm correction
-across all 27. Each comparison uses the same pairs in both configurations,
+So 9 comparisons per metric, 27 in total, with Holm correction across all
+27 (agreed). Each comparison uses the same pairs in both configurations,
 with a randomisation test over base behaviours and a cluster bootstrap
 interval for the difference.
 
