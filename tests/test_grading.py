@@ -1,6 +1,8 @@
+import json
+
 import pytest
 from inspect_ai.event import ModelEvent
-from inspect_ai.log import EvalConfig, EvalDataset, EvalLog, EvalSample, EvalSpec
+from inspect_ai.log import EvalConfig, EvalDataset, EvalLog, EvalSample, EvalSpec, write_eval_log
 from inspect_ai.model import (
     ChatMessageAssistant,
     ChatMessageTool,
@@ -12,8 +14,9 @@ from inspect_ai.scorer import Score
 from inspect_ai.tool import ToolCall, ToolCallError
 
 from assay.errors import EvidenceError
-from assay.grading import grade_log, grade_sample, structural_pass
+from assay.grading import grade_log, grade_results, grade_sample, structural_pass
 from assay.scoring import GRADING_KEY, REFUSAL_KEY
+from helpers import RUN_CONFIG
 
 PASSED = {"all_target_functions_called": True, "correct_order": True}
 
@@ -187,3 +190,71 @@ def test_a_log_becomes_evidence_records():
         "truncated": True,
         "log": "logs/b.eval#u1",
     }
+
+
+def write_logs(path, logs):
+    """run_config.json for demo-small/off and a scored log at each relative path."""
+    (path / "run_config.json").write_text(json.dumps(RUN_CONFIG))
+    for relative, task in logs.items():
+        (path / relative).parent.mkdir(parents=True, exist_ok=True)
+        write_eval_log(eval_log(sample(), task=task), str(path / relative))
+
+
+def test_a_results_directory_becomes_evidence(tmp_path):
+    write_logs(
+        tmp_path,
+        {
+            "logs/demo-small-off/benign/repeat-2/b.eval": "agentharm_benign",
+            "logs/demo-small-off/harmful/repeat-2/h.eval": "inspect_evals/agentharm",
+        },
+    )
+
+    records, disagreements = grade_results(tmp_path)
+
+    assert disagreements == []
+    assert [(r.arm, r.configuration, r.repeat, r.run_id, r.log) for r in records] == [
+        (
+            "benign",
+            "demo-small/off",
+            2,
+            RUN_CONFIG["run_id"],
+            "logs/demo-small-off/benign/repeat-2/b.eval#u1",
+        ),
+        (
+            "harmful",
+            "demo-small/off",
+            2,
+            RUN_CONFIG["run_id"],
+            "logs/demo-small-off/harmful/repeat-2/h.eval#u1",
+        ),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("relative", "task"),
+    [
+        pytest.param("logs/stray.eval", "agentharm", id="outside the layout"),
+        pytest.param(
+            "logs/other-off/harmful/repeat-1/h.eval", "agentharm", id="unknown configuration"
+        ),
+        pytest.param("logs/demo-small-off/benign/repeat-1/h.eval", "agentharm", id="wrong arm"),
+    ],
+)
+def test_a_log_that_does_not_fit_the_layout_raises(tmp_path, relative, task):
+    write_logs(tmp_path, {relative: task})
+
+    with pytest.raises(EvidenceError, match=relative):
+        grade_results(tmp_path)
+
+
+def test_a_second_log_for_the_same_arm_and_repeat_raises(tmp_path):
+    write_logs(
+        tmp_path,
+        {
+            "logs/demo-small-off/benign/repeat-1/a.eval": "agentharm_benign",
+            "logs/demo-small-off/benign/repeat-1/b.eval": "agentharm_benign",
+        },
+    )
+
+    with pytest.raises(EvidenceError, match="second log"):
+        grade_results(tmp_path)
