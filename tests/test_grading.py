@@ -14,7 +14,13 @@ from inspect_ai.scorer import Score
 from inspect_ai.tool import ToolCall, ToolCallError
 
 from assay.errors import EvidenceError
-from assay.grading import grade_log, grade_results, grade_sample, structural_pass
+from assay.grading import (
+    grade_log,
+    grade_results,
+    grade_sample,
+    run_config_from_logs,
+    structural_pass,
+)
 from assay.scoring import GRADING_KEY, REFUSAL_KEY
 from helpers import RUN_CONFIG
 
@@ -64,14 +70,17 @@ def sample(calls="a b", declared="a b", breakdown=PASSED, refusal=False, **field
     )
 
 
-def eval_log(*samples, task="agentharm_benign", split="val"):
+def eval_log(*samples, task="agentharm_benign", split="val", **spec_fields):
     spec = EvalSpec(
-        created="2026-11-12T21:30:00+00:00",
-        task=task,
-        task_args={"split": split},
-        dataset=EvalDataset(),
-        model="demo/model",
-        config=EvalConfig(),
+        **{
+            "created": "2026-11-12T21:30:00+00:00",
+            "task": task,
+            "task_args": {"split": split},
+            "dataset": EvalDataset(),
+            "model": "demo/model",
+            "config": EvalConfig(),
+            **spec_fields,
+        }
     )
     return EvalLog(eval=spec, samples=list(samples))
 
@@ -258,3 +267,67 @@ def test_a_second_log_for_the_same_arm_and_repeat_raises(tmp_path):
 
     with pytest.raises(EvidenceError, match="second log"):
         grade_results(tmp_path)
+
+
+def write_headers(path, headers):
+    """A log with no samples at each relative path, with the given header fields."""
+    for relative, fields in headers.items():
+        (path / relative).parent.mkdir(parents=True, exist_ok=True)
+        write_eval_log(eval_log(**fields), str(path / relative))
+
+
+def header(created="2026-11-12T21:30:00+00:00", message_limit=20, **fields):
+    return {
+        "created": created,
+        "config": EvalConfig(message_limit=message_limit),
+        "model_generate_config": GenerateConfig(temperature=1.0, top_p=0.95),
+        "packages": {"inspect_ai": "0.3.140"},
+        **fields,
+    }
+
+
+def test_a_minimal_run_config_comes_from_the_log_headers(tmp_path):
+    write_headers(
+        tmp_path,
+        {
+            "logs/qwen3.5-4b-on/benign/repeat-1/b.eval": header(task="agentharm_benign"),
+            "logs/qwen3.5-4b-on/harmful/repeat-1/h.eval": header(
+                created="2026-11-12T22:10:00+01:00", task="agentharm", split="test_public"
+            ),
+        },
+    )
+
+    config = run_config_from_logs(tmp_path, "ollama/judge")
+
+    assert config.run_id.startswith("20261112T2110Z-")
+    assert config.model_dump(exclude={"run_id"}) == {
+        "versions": {"inspect_ai": "0.3.140"},
+        "judge": "ollama/judge",
+        "sampling": {"temperature": 1.0, "top_p": 0.95},
+        "message_limit": 20,
+        "splits": ["test_public", "validation"],
+        "exclusions": [],
+        "configurations": {"qwen3.5-4b/on": {"profile": "qwen3.5-4b", "mode": "on"}},
+    }
+
+
+def test_logs_that_disagree_on_the_message_limit_need_a_run_config_by_hand(tmp_path):
+    write_headers(
+        tmp_path,
+        {
+            "logs/qwen3.5-4b-on/benign/repeat-1/b.eval": header(),
+            "logs/qwen3.5-4b-on/harmful/repeat-1/h.eval": header(
+                task="agentharm", message_limit=30
+            ),
+        },
+    )
+
+    with pytest.raises(EvidenceError, match="message_limit"):
+        run_config_from_logs(tmp_path, "ollama/judge")
+
+
+def test_a_log_outside_the_layout_stops_the_minimal_run_config(tmp_path):
+    write_headers(tmp_path, {"logs/stray.eval": header()})
+
+    with pytest.raises(EvidenceError, match="logs/stray.eval"):
+        run_config_from_logs(tmp_path, "ollama/judge")

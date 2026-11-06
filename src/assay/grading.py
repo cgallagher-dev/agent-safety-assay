@@ -5,8 +5,10 @@ leave out calls whose tool result carries an error, as AgentHarm 8-B does.
 The grading breakdown and refusal verdict come from the scoring pass.
 """
 
+import json
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 from inspect_ai.log import EvalLog, EvalSample, read_eval_log
@@ -15,9 +17,10 @@ from inspect_ai.model import ChatMessage, ChatMessageAssistant, ChatMessageTool
 from assay.errors import EvidenceError
 from assay.evidence import EvidenceRecord, Gates, base_behaviour
 from assay.graders import chain_tools, order_rule
+from assay.logs import new_run_id
 from assay.pairs import SPLITS, arm_of
 from assay.report import read_run_config
-from assay.report_schema import RunConfig
+from assay.report_schema import ConfiguredMode, RunConfig
 from assay.scoring import GRADING_KEY, REFUSAL_KEY
 
 INVALID_TOOL_NAME = "invalid_tool_name"
@@ -128,6 +131,67 @@ def find_logs(results: Path, run_config: RunConfig) -> dict[Path, tuple[str, str
             )
         logs[path] = place
     return logs
+
+
+def run_config_from_logs(results: Path, judge: str) -> RunConfig:
+    """A minimal run_config.json for a results directory that has none, from the log headers.
+
+    It lists no exclusions, and the run id is the earliest log's start time.
+    """
+    configurations: dict[str, ConfiguredMode] = {}
+    splits: set[str] = set()
+    found: dict[str, set[str]] = {"versions": set(), "sampling": set(), "message_limit": set()}
+    starts: list[datetime] = []
+    for path in sorted(results.rglob("*.eval")):
+        relative = path.relative_to(results).as_posix()
+        match = LOG_PATH.fullmatch(relative)
+        if match is None:
+            raise EvidenceError(
+                f"{relative} is not laid out as {LOG_LAYOUT}. "
+                "Move it there or out of the results directory."
+            )
+        profile, _, mode = match[1].rpartition("-")
+        configurations[f"{profile}/{mode}"] = ConfiguredMode(profile=profile, mode=mode)
+        spec = read_eval_log(str(path), header_only=True).eval
+        split = LOG_SPLITS.get((spec.task_args or {}).get("split"))
+        if split is None:
+            raise EvidenceError(f"{relative} does not record which AgentHarm split it ran.")
+        splits.add(split)
+        starts.append(datetime.fromisoformat(spec.created))
+        generate = spec.model_generate_config.model_dump(exclude_none=True)
+        found["versions"].add(json.dumps(spec.packages, sort_keys=True))
+        found["sampling"].add(
+            json.dumps(
+                {
+                    name: value
+                    for name, value in generate.items()
+                    if isinstance(value, int | float) and not isinstance(value, bool)
+                },
+                sort_keys=True,
+            )
+        )
+        found["message_limit"].add(json.dumps(spec.config.message_limit))
+    if not starts:
+        raise EvidenceError(f"No .eval logs under {results}. Is it a results directory?")
+    for field, values in found.items():
+        if len(values) > 1:
+            raise EvidenceError(
+                f"The logs under {results} disagree on {field}, so a run_config.json can't "
+                "be made from them. Write one by hand."
+            )
+    fields = {field: json.loads(values.pop()) for field, values in found.items()}
+    if fields["message_limit"] is None:
+        raise EvidenceError(
+            f"The logs under {results} record no message limit. Write a run_config.json by hand."
+        )
+    return RunConfig(
+        run_id=new_run_id(min(starts)),
+        judge=judge,
+        splits=sorted(splits),
+        exclusions=[],
+        configurations=configurations,
+        **fields,
+    )
 
 
 def grade_results(results: Path) -> tuple[list[EvidenceRecord], list[str]]:
