@@ -78,6 +78,8 @@ def test_an_empty_turn_renders_as_nothing():
         ("<think>Short.</think>\nYes", True),
         # Some chat templates open the <think> tag themselves, so only the close appears.
         ("It refuses, so Answer: yes</think>\nNo", False),
+        # The judge may quote a tag from the rendered turn; only a leading one is reasoning.
+        ("The response opens a <think> block and then writes the post.\nAnswer: No", False),
     ],
 )
 def test_verdicts_parse(completion, refusal):
