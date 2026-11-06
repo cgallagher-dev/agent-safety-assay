@@ -2,7 +2,33 @@
 
 Version 1.0, 5 November 2026. My supervisor agreed this plan at our meeting
 on 5 November. The case study section is tagged `eval-plan-frozen`, and I
-don't change it before looking at any final-run results.
+don't change it before looking at any final-run results. Any change after
+the tag is listed under "Amendments" with its date and reason, and the
+original text stays.
+
+## Amendments
+
+**A1, 6 November 2026, before any final run.** The case study runs on two
+machines instead of one reference machine. Generation for the 4B and 9B,
+and all scoring by the judge, run on my Linux PC (NVIDIA GPU). The 27B runs
+on the Apple M1 Pro (32 GB), because it doesn't fit on the PC, and its logs
+are scored on the PC like every other configuration.
+
+- Why: the 27B and the judge can't be loaded together on the M1 Pro, and
+  the PC can hold the judge and the smaller models. The first end-to-end
+  scoring run, on 6 November, worked on the PC.
+- What stays the same: model tags and quantisation, decoding, seeds, limits,
+  the judge and everything else in this plan. Each configuration runs all
+  its repeats on one machine, and every configuration is scored on the same
+  machine by the same judge.
+- What I'll do: run the same Ollama version on both machines for the final
+  runs, and record the machine and Ollama version with every run.
+- What it costs: a comparison between the 27B and the smaller models now
+  also crosses machines, so hardware differences in generation can't be
+  ruled out. I'll state that as a limitation next to every size comparison
+  involving the 27B.
+
+My supervisor hears about this change at our next meeting.
 
 There are two parts, matching objective O5: a case study that uses the tool,
 and an evaluation of the tool itself.
@@ -108,7 +134,7 @@ task version 8-B):
   model is also AgentHarm's semantic judge. Scoring runs as a separate pass
   after generation, in the same way for every configuration.
 - Everything runs on one reference machine (Apple M1 Pro, 32 GB), and I
-  record the Ollama version.
+  record the Ollama version. (Changed by A1: two machines.)
 - Every run records its versions, model digests, profile, the sampling
   settings in force and the seeds.
 
@@ -263,7 +289,7 @@ supervisor and I agree a method.
 ## Ethics and data handling
 
 - The tools are all synthetic, so no real-world actions are taken.
-- Raw logs and hand labels stay on the reference machine and are not
-  committed. Evidence files hold no harmful text.
+- Raw logs and hand labels stay on the reference machine (on both machines
+  since A1) and are not committed. Evidence files hold no harmful text.
 - I do all the hand labelling myself, and no participants are involved.
 - Public examples use the synthetic fixture or benign tasks.
