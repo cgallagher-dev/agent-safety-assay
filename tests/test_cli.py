@@ -1,11 +1,17 @@
+import json
+
 import pytest
 
+import assay.grading
 import assay.judge
 import assay.scoring
 from assay import __version__
 from assay.cli import main
 from assay.errors import EvidenceError
+from assay.evidence import EvidenceRecord, read_evidence
+from assay.report_schema import RunConfig
 from assay.scoring import PassSummary
+from helpers import RUN_CONFIG, record_fields
 
 
 def test_version_flag_prints_package_version(capsys):
@@ -30,6 +36,8 @@ def test_judge_scores_the_results_and_reports_what_it_skipped(tmp_path, monkeypa
 
     monkeypatch.setattr(assay.judge, "build_judge", lambda profile: profile.name)
     monkeypatch.setattr(assay.scoring, "score_logs", fake_score_logs)
+    monkeypatch.setattr(assay.grading, "grade_results", lambda results: ([], []))
+    (tmp_path / "run_config.json").write_text(json.dumps(RUN_CONFIG))
 
     code = main(["judge", str(tmp_path), "--judge", "gemma4-12b", "--rejudge"])
 
@@ -53,3 +61,65 @@ def test_judge_needs_a_judge_profile(tmp_path, capsys):
 
     assert exit_info.value.code == 2
     assert "--judge" in capsys.readouterr().err
+
+
+def fake_pass(monkeypatch, records=(), disagreements=()):
+    """Judge, scoring pass and grading faked; returns the scoring calls made."""
+    calls = []
+
+    def fake_score_logs(results, judge, rejudge=False):
+        calls.append(results)
+        return PassSummary(scored=1)
+
+    monkeypatch.setattr(assay.judge, "build_judge", lambda profile: "ollama/judge")
+    monkeypatch.setattr(assay.scoring, "score_logs", fake_score_logs)
+    monkeypatch.setattr(
+        assay.grading, "grade_results", lambda results: (list(records), list(disagreements))
+    )
+    return calls
+
+
+def test_judge_writes_the_evidence_and_names_disagreements(tmp_path, monkeypatch, capsys):
+    record = EvidenceRecord.model_validate(record_fields())
+    fake_pass(monkeypatch, [record], ["test_public/2-1"])
+    (tmp_path / "run_config.json").write_text(json.dumps(RUN_CONFIG))
+
+    code = main(["judge", str(tmp_path), "--judge", "gemma4-12b"])
+
+    output = capsys.readouterr()
+    assert code == 0
+    assert read_evidence(tmp_path / "evidence.jsonl") == [record]
+    assert "Wrote 1 evidence record" in output.out
+    assert "disagrees on 1 sample: test_public/2-1" in output.err
+
+
+def test_judge_writes_a_minimal_run_config_when_there_is_none(tmp_path, monkeypatch, capsys):
+    fake_pass(monkeypatch)
+    judges = []
+
+    def fake_run_config(results, judge):
+        judges.append(judge)
+        return RunConfig.model_validate(RUN_CONFIG)
+
+    monkeypatch.setattr(assay.grading, "run_config_from_logs", fake_run_config)
+
+    code = main(["judge", str(tmp_path), "--judge", "gemma4-12b"])
+
+    assert code == 0
+    assert judges == ["ollama/judge"]
+    written = json.loads((tmp_path / "run_config.json").read_text())
+    assert written["run_id"] == RUN_CONFIG["run_id"]
+    assert "minimal run_config.json" in capsys.readouterr().err
+
+
+def test_judge_stops_on_a_misplaced_log_before_judging(tmp_path, monkeypatch, capsys):
+    calls = fake_pass(monkeypatch)
+    (tmp_path / "run_config.json").write_text(json.dumps(RUN_CONFIG))
+    (tmp_path / "logs").mkdir()
+    (tmp_path / "logs" / "stray.eval").write_bytes(b"")
+
+    code = main(["judge", str(tmp_path), "--judge", "gemma4-12b"])
+
+    assert code == EvidenceError.exit_code
+    assert calls == []
+    assert "logs/stray.eval" in capsys.readouterr().err
