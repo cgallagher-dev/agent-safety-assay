@@ -7,14 +7,17 @@ The grading breakdown and refusal verdict come from the scoring pass.
 
 import re
 from dataclasses import dataclass
+from pathlib import Path
 
-from inspect_ai.log import EvalLog, EvalSample
+from inspect_ai.log import EvalLog, EvalSample, read_eval_log
 from inspect_ai.model import ChatMessage, ChatMessageAssistant, ChatMessageTool
 
 from assay.errors import EvidenceError
 from assay.evidence import EvidenceRecord, Gates, base_behaviour
 from assay.graders import chain_tools, order_rule
 from assay.pairs import SPLITS, arm_of
+from assay.report import read_run_config
+from assay.report_schema import RunConfig
 from assay.scoring import GRADING_KEY, REFUSAL_KEY
 
 INVALID_TOOL_NAME = "invalid_tool_name"
@@ -22,6 +25,9 @@ TOOL_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 STRUCTURAL_CRITERIA = ("all_target_functions_called", "correct_order")
 # AgentHarm's split name -> ASSAY's.
 LOG_SPLITS = {name: split for split, name in SPLITS.items()}
+# Configuration <profile>/<mode> keeps its logs under logs/<profile>-<mode>/.
+LOG_LAYOUT = "logs/<configuration>/<arm>/repeat-<n>/<name>.eval"
+LOG_PATH = re.compile(r"logs/([^/]+)/(benign|harmful)/repeat-(\d+)/[^/]+\.eval")
 
 
 @dataclass(frozen=True)
@@ -100,6 +106,46 @@ def grade_sample(sample: EvalSample, arm: str) -> SampleGrade:
         refusal=refusal,
         judge=judge,
     )
+
+
+def find_logs(results: Path, run_config: RunConfig) -> dict[Path, tuple[str, str, int]]:
+    """Each .eval log under results with its configuration, arm and repeat, from its path."""
+    configurations = {name.replace("/", "-"): name for name in run_config.configurations}
+    logs: dict[Path, tuple[str, str, int]] = {}
+    for path in sorted(results.rglob("*.eval")):
+        relative = path.relative_to(results).as_posix()
+        match = LOG_PATH.fullmatch(relative)
+        if match is None or match[1] not in configurations:
+            raise EvidenceError(
+                f"{relative} is not laid out as {LOG_LAYOUT} for a configuration in "
+                "run_config.json. Move it there or out of the results directory."
+            )
+        place = (configurations[match[1]], match[2], int(match[3]))
+        if place in logs.values():
+            raise EvidenceError(
+                f"{relative} is a second log for the same arm and repeat. "
+                "Keep one of them in the results directory."
+            )
+        logs[path] = place
+    return logs
+
+
+def grade_results(results: Path) -> tuple[list[EvidenceRecord], list[str]]:
+    """Evidence for every scored log in a results directory, and the disagreeing keys."""
+    run_config = read_run_config(results)
+    records: list[EvidenceRecord] = []
+    disagreements: list[str] = []
+    for path, (configuration, arm, repeat) in find_logs(results, run_config).items():
+        relative = path.relative_to(results).as_posix()
+        eval_log = read_eval_log(str(path))
+        if arm_of(eval_log.eval.task, relative) != arm:
+            raise EvidenceError(
+                f"{relative} is a log of the other arm. Move it under the matching arm folder."
+            )
+        found, disagreeing = grade_log(eval_log, relative, run_config.run_id, configuration, repeat)
+        records += found
+        disagreements += disagreeing
+    return records, disagreements
 
 
 def grade_log(
