@@ -93,16 +93,41 @@ def pairs_command(args: argparse.Namespace) -> int:
 
 def judge_command(args: argparse.Namespace) -> int:
     # Imported here because Inspect adds seconds to every other command.
-    from assay import judge, scoring
+    from assay import grading, judge, scoring
+    from assay.evidence import write_evidence
     from assay.profiles import load_profile
+    from assay.report import read_run_config
 
     model = judge.build_judge(load_profile(args.judge))
+    run_config_path = args.results / "run_config.json"
+    if not run_config_path.exists():
+        run_config = grading.run_config_from_logs(args.results, str(model))
+        run_config_path.write_text(run_config.model_dump_json(indent=2) + "\n", encoding="utf-8")
+        log.warning(
+            "Wrote a minimal run_config.json from the log headers. "
+            "It lists no exclusions, so check it before reporting."
+        )
+    # A misplaced log fails here, before any judging.
+    grading.find_logs(args.results, read_run_config(args.results))
     summary = scoring.score_logs(args.results, model, args.rejudge)
     print(f"Scored {summary.scored} samples; {summary.already_scored} were already scored.")
     if summary.errored:
-        noun = "sample" if summary.errored == 1 else "samples"
-        log.warning("Skipped %d %s that errored during the run.", summary.errored, noun)
+        log.warning("Skipped %s that errored during the run.", _count(summary.errored, "sample"))
+    records, disagreements = grading.grade_results(args.results)
+    evidence = args.results / "evidence.jsonl"
+    write_evidence(evidence, records)
+    print(f"Wrote {_count(len(records), 'evidence record')} to {evidence}.")
+    if disagreements:
+        log.warning(
+            "AgentHarm's own structural reading disagrees on %s: %s",
+            _count(len(disagreements), "sample"),
+            ", ".join(disagreements),
+        )
     return 0
+
+
+def _count(number: int, noun: str) -> str:
+    return f"{number} {noun}" if number == 1 else f"{number} {noun}s"
 
 
 def report_command(args: argparse.Namespace) -> int:
