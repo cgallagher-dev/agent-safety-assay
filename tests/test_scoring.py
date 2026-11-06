@@ -1,5 +1,7 @@
 import types
 
+import httpx
+import openai
 import pytest
 from inspect_ai.log import (
     EvalConfig,
@@ -16,7 +18,7 @@ from inspect_evals.agentharm.benchmark import benign_grading_functions, harmful_
 
 import assay.judge
 import assay.scoring
-from assay.errors import EvidenceError
+from assay.errors import EvidenceError, JudgeError
 from assay.scoring import GRADING_KEY, REFUSAL_KEY, score_logs
 
 
@@ -219,3 +221,20 @@ def test_a_crash_while_writing_leaves_the_old_log_intact(tmp_path, monkeypatch):
 
     assert path.read_bytes() == before
     assert [p.name for p in path.parent.iterdir()] == ["benign.eval"]
+
+
+class MissingModelJudge(CountingJudge):
+    """Fails as Ollama does when the model isn't pulled."""
+
+    async def generate(self, messages, config=None):
+        request = httpx.Request("POST", "http://127.0.0.1:11434/v1/chat/completions")
+        raise openai.NotFoundError(
+            "model 'demo' not found", response=httpx.Response(404, request=request), body=None
+        )
+
+
+def test_a_judge_model_that_cannot_be_used_says_what_to_check(tmp_path):
+    write_log(tmp_path / "logs" / "benign.eval")
+
+    with pytest.raises(JudgeError, match="demo/judge.*pulled"):
+        score_logs(tmp_path, MissingModelJudge())
