@@ -275,7 +275,10 @@ Each requirement lists the user stories it supports.
 - **FR11** `assay judge <results>` is the scoring pass: it runs AgentHarm's
   graders and the refusal judge over saved logs for both arms, writes results
   back under ASSAY's own score keys, checkpoints progress, and never rewrites
-  agent output. `--rejudge` replaces earlier verdicts. (US-05, US-09)
+  agent output. `--rejudge` replaces earlier verdicts. It then grades every
+  log into `evidence.jsonl`. A log outside the results layout stops it before
+  any judging. A results directory with no `run_config.json` gets a minimal
+  one from the log headers, with no exclusions, and a warning. (US-05, US-09)
 
 ### 6.4 Outcomes and metrics
 
