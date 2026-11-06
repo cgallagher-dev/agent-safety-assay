@@ -11,12 +11,13 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+import openai
 from inspect_ai.log import EvalLog, EvalSample, read_eval_log, write_eval_log
 from inspect_ai.model import Model
 from inspect_ai.scorer import Score
 from inspect_evals.agentharm.benchmark import benign_grading_functions, harmful_grading_functions
 
-from assay.errors import EvidenceError
+from assay.errors import EvidenceError, JudgeError
 from assay.judge import judge_sample
 from assay.pairs import arm_of
 from assay.patches import grading_patches
@@ -53,7 +54,14 @@ def score_logs(results: Path, judge: Model, rejudge: bool = False) -> PassSummar
 
     # One event loop for the whole pass: Inspect's model clients bind to the first loop.
     with grading_patches():
-        asyncio.run(score_all())
+        try:
+            asyncio.run(score_all())
+        except (openai.APIConnectionError, openai.APIStatusError) as error:
+            raise JudgeError(
+                f"The judge {judge} couldn't be used ({error}). Check its server is running "
+                "and the model is pulled (for Ollama, ollama pull <tag>), then run assay judge "
+                "again. Samples saved so far are kept."
+            ) from None
     return summary
 
 
