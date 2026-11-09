@@ -1,4 +1,5 @@
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -65,3 +66,25 @@ def test_unjudged_pairs_and_anomalies_are_listed_by_key_and_repeat(results):
 
     assert "Unjudged, left out: test_public/9-1 r2" in appendix
     assert f"{anomalies[0].key} r{anomalies[0].repeat}" in appendix
+
+
+def test_without_the_pdf_extra_assay_pdf_says_how_to_install_it(results, monkeypatch, capsys):
+    monkeypatch.setitem(sys.modules, "weasyprint", None)
+
+    assert main(["pdf", str(results)]) == 3
+    assert "pip install 'agent-safety-assay[pdf]'" in capsys.readouterr().err
+
+
+def test_assay_pdf_without_a_report_says_to_build_one(tmp_path, capsys):
+    assert main(["pdf", str(tmp_path)]) == 5
+    assert "assay report" in capsys.readouterr().err
+
+
+def test_assay_pdf_writes_a_pdf(results):
+    try:
+        import weasyprint  # noqa: F401
+    except (ImportError, OSError):
+        pytest.skip("WeasyPrint or its system libraries are not installed")
+
+    assert main(["pdf", str(results)]) == 0
+    assert (results / "report.pdf").read_bytes().startswith(b"%PDF")
