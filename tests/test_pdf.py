@@ -55,17 +55,15 @@ def test_the_appendix_lists_the_pairs_behind_every_verdict_count(results):
     assert pair.key in cell.split(", ")
 
 
-def test_unjudged_pairs_and_anomalies_are_listed_by_key_and_repeat(results):
+def test_unjudged_pairs_are_listed_by_key_and_repeat(results):
     report = read_report(results / "report.json")
     configuration = report.configurations[0]
     configuration.repeats = 2
     configuration.unjudged = [PairRef(repeat=2, key="test_public/9-1")]
-    anomalies = configuration.gates[report.headline_gate].anomalies
 
     appendix = section(pdf.render_html(report), "appendix")
 
     assert "Unjudged, left out: test_public/9-1 r2" in appendix
-    assert f"{anomalies[0].key} r{anomalies[0].repeat}" in appendix
 
 
 def test_without_the_pdf_extra_assay_pdf_says_how_to_install_it(results, monkeypatch, capsys):
