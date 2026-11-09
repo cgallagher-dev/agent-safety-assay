@@ -320,8 +320,8 @@ def format_report(report: Report) -> str:
         limits = configuration.limits
         lines += [
             f"  {'Executed and refused':<22}{result.overlap}",
-            f"  {'Capability anomalies':<22}{_format_refs(result.anomalies, configuration)}",
-            f"  {'Unjudged, left out':<22}{_format_refs(configuration.unjudged, configuration)}",
+            f"  {'Capability anomalies':<22}{format_refs(result.anomalies, configuration)}",
+            f"  {'Unjudged, left out':<22}{format_refs(configuration.unjudged, configuration)}",
             f"  {'Benign refusals':<22}{result.benign_refusals}, "
             f"{format_rate(result.cgr_benign_refused).strip()} of the CGR numerator",
             f"  {'Capped':<22}benign {limits['benign'].capped}, harmful {limits['harmful'].capped}",
@@ -332,7 +332,7 @@ def format_report(report: Report) -> str:
     return "\n".join(lines)
 
 
-def _format_refs(refs: list[PairRef], configuration: ConfigurationResult) -> str:
+def format_refs(refs: list[PairRef], configuration: ConfigurationResult) -> str:
     if configuration.repeats == 1:
         return ", ".join(ref.key for ref in refs) or "none"
     return ", ".join(f"{ref.key} r{ref.repeat}" for ref in refs) or "none"
