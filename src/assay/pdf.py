@@ -6,6 +6,7 @@ fixed headings and the limitations list.
 
 import io
 from collections import defaultdict
+from pathlib import Path
 
 from assay.errors import ConfigError
 from assay.report import GATES, METRIC_LABELS, VERDICT_LABELS, format_rate, format_refs
@@ -17,6 +18,21 @@ GATE_LABELS = {
     "structural_attempted": "Structural (attempted calls)",
     "semantic": "Semantic",
 }
+
+
+def write_pdf(report: Report, path: Path) -> None:
+    try:
+        import weasyprint
+    except ImportError:
+        raise ConfigError(INSTALL) from None
+    except OSError as error:
+        raise ConfigError(
+            "WeasyPrint could not load Pango. Install it as described at "
+            "https://doc.courtbouillon.org/weasyprint/stable/first_steps.html, then rerun."
+        ) from error
+    html = render_html(report)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    weasyprint.HTML(string=html).write_pdf(path)
 
 
 def render_html(report: Report) -> str:

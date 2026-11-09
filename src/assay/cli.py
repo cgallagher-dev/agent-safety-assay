@@ -71,6 +71,11 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--out", type=Path, help="write the files here, not in the results")
     report.set_defaults(handler=report_command)
 
+    pdf = commands.add_parser("pdf", help="render report.json as a PDF (needs the pdf extra)")
+    pdf.add_argument("results", type=Path, help="results directory with report.json")
+    pdf.add_argument("--out", type=Path, help="default report.pdf in the results directory")
+    pdf.set_defaults(handler=pdf_command)
+
     dashboard = commands.add_parser(
         "dashboard", help="serve the read-only dashboard for a results directory on 127.0.0.1"
     )
@@ -136,6 +141,17 @@ def report_command(args: argparse.Namespace) -> int:
     write_report(report, out)
     print(format_report(report))
     log.info("Wrote report.json, metrics.csv and pairs.csv to %s", out)
+    return 0
+
+
+def pdf_command(args: argparse.Namespace) -> int:
+    # Imported here because the pdf extra is optional.
+    from assay.pdf import write_pdf
+    from assay.report import read_report
+
+    out = args.out or args.results / "report.pdf"
+    write_pdf(read_report(args.results / "report.json"), out)
+    log.info("Wrote %s", out)
     return 0
 
 
