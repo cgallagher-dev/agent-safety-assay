@@ -23,6 +23,13 @@ dependencies = [
     "uvicorn>=0.54",
 ]
 
+[project.optional-dependencies]
+pdf = [
+    "jinja2>=3.1",
+    "matplotlib>=3.10",
+    "weasyprint>=66",
+]
+
 [project.scripts]
 assay = "assay.cli:main"
 
@@ -31,6 +38,8 @@ Repository = "https://github.com/cgallagher-dev/agent-safety-assay"
 
 [dependency-groups]
 dev = [
+    # The PDF tests need the extra; CI installs only the dev group.
+    "agent-safety-assay[pdf]",
     "httpx>=0.28",
     "pytest>=8.4",
     "ruff>=0.13",
