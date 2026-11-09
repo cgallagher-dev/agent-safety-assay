@@ -6,7 +6,9 @@ pair detail, the sample's .eval log. Harmful-arm transcripts are rebuilt from st
 """
 
 import logging
+import os
 import re
+import socket
 from pathlib import Path
 from typing import Literal
 
@@ -20,7 +22,7 @@ from inspect_ai.model import ChatMessage, ChatMessageAssistant, ChatMessageTool,
 from pydantic import BaseModel
 from pydantic.json_schema import GenerateJsonSchema, models_json_schema
 
-from assay.errors import AssayError, EvidenceError
+from assay.errors import AssayError, ConfigError, EvidenceError
 from assay.evidence import EvidenceRecord, read_evidence
 from assay.report import build_report, read_run_config
 from assay.report_schema import PairRow, Report
@@ -120,8 +122,21 @@ def create_app(results: Path) -> FastAPI:
     return app
 
 
-def serve(app: FastAPI, port: int) -> None:
-    uvicorn.run(app, host=HOST, port=port, log_level="warning")
+def bind(port: int) -> socket.socket:
+    """A listening socket on HOST, so a port in use fails before the URL is printed."""
+    try:
+        return socket.create_server((HOST, port))
+    except OSError as error:
+        # create_server puts the address in strerror; the message already names it.
+        raise ConfigError(
+            f"Cannot serve on {HOST}:{port} ({os.strerror(error.errno)}). "
+            "Pick another port with --port."
+        ) from error
+
+
+def serve(app: FastAPI, sock: socket.socket) -> None:
+    with sock:
+        uvicorn.Server(uvicorn.Config(app, log_level="warning")).run(sockets=[sock])
 
 
 def _transcript(results: Path, record: EvidenceRecord) -> list[Turn] | None:
