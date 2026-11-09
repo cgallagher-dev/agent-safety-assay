@@ -30,8 +30,8 @@ ASSAY is built on [Inspect](https://inspect.aisi.org.uk) and works with any mode
 Inspect can reach. Models are described by profiles, not code.
 
 **Status:** in development (November 2026). This is my final-year project at
-TUS Athlone. `assay pairs`, `assay report` and `assay dashboard` work on
-`main`. The rest of the commands below are planned.
+TUS Athlone. `assay pairs`, `assay judge`, `assay report`, `assay pdf` and
+`assay dashboard` work on `main`. The rest of the commands below are planned.
 See [docs/spec.md](docs/spec.md) and the [Jira board](https://cgallagherdev.atlassian.net/jira/software/projects/SCRUM/boards/1).
 
 ## Prior art
@@ -121,6 +121,8 @@ cd frontend && npm ci && npm run build   # build the dashboard page into the pac
 ```
 
 Without that build, `assay dashboard` serves the API only and says so.
+`assay pdf` uses WeasyPrint, which needs the Pango library: most Linux
+desktops have it, and on macOS it's `brew install pango`.
 
 ## Responsible use
 
