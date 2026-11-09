@@ -157,11 +157,12 @@ def pdf_command(args: argparse.Namespace) -> int:
 
 def dashboard_command(args: argparse.Namespace) -> int:
     # Imported here because FastAPI and Inspect add seconds to every other command.
-    from assay.server import HOST, create_app, serve
+    from assay.server import HOST, bind, create_app, serve
 
     app = create_app(args.results)
+    sock = bind(args.port)
     log.info("Dashboard for %s at http://%s:%d (Ctrl+C to stop)", args.results, HOST, args.port)
-    serve(app, args.port)
+    serve(app, sock)
     return 0
 
 

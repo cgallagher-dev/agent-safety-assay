@@ -1,4 +1,5 @@
 import logging
+import socket
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,7 @@ from inspect_ai.tool import ToolCall, ToolCallError
 
 import assay
 from assay import server
+from assay.cli import main
 from assay.server import create_app
 from helpers import record_fields, write_results
 
@@ -200,3 +202,14 @@ def test_demo_pairs_show_structure_without_logs():
 
     assert detail["harmful"]["transcript"] is None
     assert detail["harmful"]["evidence"]["declared_tools"]
+
+
+def test_a_busy_port_is_reported_before_the_url(capsys):
+    with socket.create_server((server.HOST, 0)) as taken:
+        port = taken.getsockname()[1]
+
+        assert main(["dashboard", str(DEMO), "--port", str(port)]) == 3
+
+    err = capsys.readouterr().err
+    assert f"{server.HOST}:{port}" in err and "--port" in err
+    assert "http://" not in err
