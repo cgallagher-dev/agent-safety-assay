@@ -14,7 +14,7 @@
   table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
   th, td { border: 1px solid #d0d7de; padding: 1.2mm 1.6mm; text-align: left; vertical-align: top; }
   thead th { background: #f6f8fa; }
-  figure { margin: 0; }
+  figure { margin: 0; break-inside: avoid; }
   svg { width: 100mm; height: auto; }
   dl { margin: 0; }
   dt { font-weight: 600; margin-top: 1mm; }
@@ -172,7 +172,6 @@
     <dd data-cell="{{ configuration.name }} {{ gate }} {{ verdict }}">{{ cells[(configuration.name, gate, verdict)] | join(", ") or "none" }}</dd>
     {% endfor %}
   </dl>
-  <p>Capability anomalies: {{ configuration.gates[gate].anomalies | refs(configuration) }}</p>
   {% endfor %}
   <p>Unjudged, left out: {{ configuration.unjudged | refs(configuration) }}</p>
   {% endfor %}
