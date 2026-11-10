@@ -8,11 +8,18 @@ import asyncio
 import logging
 import os
 import tempfile
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
 import openai
-from inspect_ai.log import EvalLog, EvalSample, read_eval_log, write_eval_log
+from inspect_ai.log import (
+    EvalLog,
+    EvalSample,
+    read_eval_log,
+    read_eval_log_sample_summaries,
+    write_eval_log,
+)
 from inspect_ai.model import Model
 from inspect_ai.scorer import Score
 from inspect_evals.agentharm.benchmark import benign_grading_functions, harmful_grading_functions
@@ -30,6 +37,8 @@ REFUSAL_KEY = "assay_refusal"
 CHECKPOINT_EVERY = 10
 GRADING_MODULES = {"harmful": harmful_grading_functions, "benign": benign_grading_functions}
 
+Progress = Callable[[int, int], None]
+
 
 @dataclass
 class PassSummary:
@@ -37,9 +46,19 @@ class PassSummary:
     already_scored: int = 0
     errored: int = 0
 
+    @property
+    def done(self) -> int:
+        return self.scored + self.already_scored + self.errored
 
-def score_logs(results: Path, judge: Model, rejudge: bool = False) -> PassSummary:
-    """Grade and judge every unscored sample in the .eval logs under results."""
+
+def score_logs(
+    results: Path, judge: Model, rejudge: bool = False, progress: Progress | None = None
+) -> PassSummary:
+    """Grade and judge every unscored sample in the .eval logs under results.
+
+    progress, if given, is called with (samples done, total samples) before the
+    first sample and after each one, skipped samples included.
+    """
     paths = sorted(results.rglob("*.eval"))
     if not paths:
         raise EvidenceError(f"No .eval logs under {results}. Is it a results directory?")
@@ -47,10 +66,16 @@ def score_logs(results: Path, judge: Model, rejudge: bool = False) -> PassSummar
         path: arm_of(read_eval_log(str(path), header_only=True).eval.task, path) for path in paths
     }
     summary = PassSummary()
+    total = sum(len(read_eval_log_sample_summaries(str(path))) for path in paths)
+    report = progress or (lambda done, total: None)
+    report(0, total)
+
+    def advance() -> None:
+        report(summary.done, total)
 
     async def score_all() -> None:
         for path, arm in arms.items():
-            await _score_log(path, arm, judge, rejudge, summary)
+            await _score_log(path, arm, judge, rejudge, summary, advance)
 
     # One event loop for the whole pass: Inspect's model clients bind to the first loop.
     with grading_patches():
@@ -66,7 +91,12 @@ def score_logs(results: Path, judge: Model, rejudge: bool = False) -> PassSummar
 
 
 async def _score_log(
-    path: Path, arm: str, judge: Model, rejudge: bool, summary: PassSummary
+    path: Path,
+    arm: str,
+    judge: Model,
+    rejudge: bool,
+    summary: PassSummary,
+    advance: Callable[[], None],
 ) -> None:
     eval_log = read_eval_log(str(path))
     unsaved = 0
@@ -83,6 +113,7 @@ async def _score_log(
             if unsaved == CHECKPOINT_EVERY:
                 _write_atomically(eval_log, path)
                 unsaved = 0
+        advance()
     if unsaved:
         _write_atomically(eval_log, path)
     log.debug("Scored %s", path.name)

@@ -129,6 +129,17 @@ def test_rejudging_changes_only_the_assay_score_keys(tmp_path):
         assert new.scores[REFUSAL_KEY].metadata == {"judge": "demo/judge"}
 
 
+def test_progress_counts_every_sample_including_skipped_ones(tmp_path):
+    write_log(tmp_path / "logs" / "benign.eval")
+    score_logs(tmp_path, CountingJudge())
+    write_log(tmp_path / "logs" / "harmful.eval", task="inspect_evals/agentharm", error_on=2)
+    seen = []
+
+    score_logs(tmp_path, CountingJudge(), progress=lambda done, total: seen.append((done, total)))
+
+    assert seen == [(done, 6) for done in range(7)]
+
+
 def test_errored_samples_are_skipped_and_counted(tmp_path):
     path = write_log(tmp_path / "logs" / "benign.eval", error_on=2)
 
