@@ -6,6 +6,7 @@ compare, show, ls, pdf and dashboard. See docs/spec.md.
 
 import argparse
 import logging
+import re
 import sys
 import traceback
 from collections.abc import Callable
@@ -13,15 +14,33 @@ from pathlib import Path
 
 from rich.console import Console
 from rich.progress import BarColumn, MofNCompleteColumn, Progress, TimeRemainingColumn
+from rich.text import Text
 
 from assay import __version__
 from assay.errors import ERROR_TYPES, AssayError
 from assay.logs import configure_console
-from assay.report import format_report, load_report, write_report
+from assay.outcomes import Verdict
+from assay.report import (
+    METRIC_LABELS,
+    VERDICT_LABELS,
+    format_report,
+    load_report,
+    write_report,
+)
 
 log = logging.getLogger(__name__)
 
 Handler = Callable[[argparse.Namespace], int]
+
+# The shared palette in docs/presentation.md; the word is always printed too.
+VERDICT_STYLES = {
+    Verdict.COMPLIED: "green",
+    Verdict.REFUSED_WHEN_CAPABLE: "red",
+    Verdict.REFUSED_UNTESTED: "red",
+    Verdict.FAILED_WHEN_CAPABLE: "yellow",
+    Verdict.CAPABILITY_ANOMALY: "yellow",
+    Verdict.NO_SIGNAL: "bright_black",
+}
 
 
 def exit_codes() -> str:
@@ -161,9 +180,24 @@ def report_command(args: argparse.Namespace) -> int:
     report = load_report(args.results)
     out = args.out or args.results
     write_report(report, out)
-    print(format_report(report))
+    console = styled_console()
+    if console is None:
+        print(format_report(report))
+    else:
+        console.print(styled_report(format_report(report)), soft_wrap=True)
     log.info("Wrote report.json, metrics.csv and pairs.csv to %s", out)
     return 0
+
+
+def styled_report(text: str) -> Text:
+    """The plain report with colour added; the text itself is unchanged."""
+    styled = Text(text)
+    labels = "|".join(re.escape(label) for label in METRIC_LABELS.values())
+    styled.highlight_regex(re.compile(rf"^  (?:{labels})\b", re.MULTILINE), "bold")
+    for verdict, style in VERDICT_STYLES.items():
+        styled.highlight_regex(rf"\b{re.escape(VERDICT_LABELS[verdict])}\b", style)
+    styled.highlight_regex(r"undefined \([^)]*\)", "bright_black")
+    return styled
 
 
 def pdf_command(args: argparse.Namespace) -> int:

@@ -1,5 +1,6 @@
 import csv
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -49,6 +50,35 @@ def test_text_json_and_csv_carry_identical_numbers(tmp_path, capsys):
             gate: result["verdict"] for gate, result in pair["gates"].items()
         }
     assert len(pair_rows) == len(report["pairs"])
+
+
+ANSI = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def report_text(monkeypatch, capsys, out, **env):
+    for name in ("FORCE_COLOR", "NO_COLOR"):
+        monkeypatch.delenv(name, raising=False)
+    for name, value in env.items():
+        monkeypatch.setenv(name, value)
+    assert main(["report", str(DEMO), "--out", str(out)]) == 0
+    return capsys.readouterr().out
+
+
+def test_a_terminal_gets_colour_on_top_of_the_same_words(tmp_path, monkeypatch, capsys):
+    plain = report_text(monkeypatch, capsys, tmp_path / "plain")
+    coloured = report_text(monkeypatch, capsys, tmp_path / "colour", FORCE_COLOR="1")
+
+    assert "\x1b[32mcomplied" in coloured
+    assert "\x1b[31mrefused when capable" in coloured
+    assert ANSI.sub("", coloured) == plain
+
+
+def test_no_color_keeps_the_report_plain(tmp_path, monkeypatch, capsys):
+    plain = report_text(monkeypatch, capsys, tmp_path / "plain")
+    no_color = report_text(monkeypatch, capsys, tmp_path / "nc", FORCE_COLOR="1", NO_COLOR="1")
+
+    assert "\x1b[" not in plain
+    assert no_color == plain
 
 
 def test_each_pair_row_carries_what_the_pair_list_shows(tmp_path):
