@@ -6,10 +6,10 @@ resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
     "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version == '3.13.*' and sys_platform == 'win32'",
-    "python_full_version < '3.13' and sys_platform == 'win32'",
     "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version < '3.13' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version < '3.13' and sys_platform == 'win32'",
+    "python_full_version < '3.13' and sys_platform == 'emscripten'",
     "python_full_version < '3.13' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 
@@ -35,6 +35,7 @@ dependencies = [
     { name = "inspect-evals" },
     { name = "openai" },
     { name = "pydantic" },
+    { name = "rich" },
     { name = "uvicorn" },
 ]
 
@@ -62,6 +63,7 @@ requires-dist = [
     { name = "matplotlib", marker = "extra == 'pdf'", specifier = ">=3.10" },
     { name = "openai", specifier = ">=3.4" },
     { name = "pydantic", specifier = ">=2.10" },
+    { name = "rich", specifier = ">=15" },
     { name = "uvicorn", specifier = ">=0.54" },
     { name = "weasyprint", marker = "extra == 'pdf'", specifier = ">=66" },
 ]

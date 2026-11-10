@@ -30,7 +30,7 @@ def test_no_arguments_prints_help(capsys):
 def test_judge_scores_the_results_and_reports_what_it_skipped(tmp_path, monkeypatch, capsys):
     calls = []
 
-    def fake_score_logs(results, judge, rejudge=False):
+    def fake_score_logs(results, judge, rejudge=False, progress=None):
         calls.append((results, judge, rejudge))
         return PassSummary(scored=4, already_scored=2, errored=1)
 
@@ -67,8 +67,11 @@ def fake_pass(monkeypatch, records=(), disagreements=()):
     """Judge, scoring pass and grading faked; returns the scoring calls made."""
     calls = []
 
-    def fake_score_logs(results, judge, rejudge=False):
+    def fake_score_logs(results, judge, rejudge=False, progress=None):
         calls.append(results)
+        if progress:
+            progress(0, 3)
+            progress(3, 3)
         return PassSummary(scored=1)
 
     monkeypatch.setattr(assay.judge, "build_judge", lambda profile: "ollama/judge")
@@ -91,6 +94,43 @@ def test_judge_writes_the_evidence_and_names_disagreements(tmp_path, monkeypatch
     assert read_evidence(tmp_path / "evidence.jsonl") == [record]
     assert "Wrote 1 evidence record" in output.out
     assert "disagrees on 1 sample: test_public/2-1" in output.err
+
+
+@pytest.fixture
+def terminal(monkeypatch):
+    """Make rich treat the captured output as a colour terminal."""
+    monkeypatch.setenv("FORCE_COLOR", "1")
+    monkeypatch.delenv("NO_COLOR", raising=False)
+
+
+def test_judge_shows_a_progress_bar_on_a_terminal(tmp_path, monkeypatch, capsys, terminal):
+    fake_pass(monkeypatch)
+    (tmp_path / "run_config.json").write_text(json.dumps(RUN_CONFIG))
+
+    assert main(["judge", str(tmp_path), "--judge", "gemma4-12b"]) == 0
+
+    assert "3/3" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(
+    ("flags", "env"),
+    [(["-q"], {}), ([], {"NO_COLOR": "1"}), ([], {"FORCE_COLOR": None})],
+    ids=["quiet", "NO_COLOR", "not a terminal"],
+)
+def test_judge_hides_the_progress_bar(tmp_path, monkeypatch, capsys, terminal, flags, env):
+    fake_pass(monkeypatch)
+    for name, value in env.items():
+        if value is None:
+            monkeypatch.delenv(name)
+        else:
+            monkeypatch.setenv(name, value)
+    (tmp_path / "run_config.json").write_text(json.dumps(RUN_CONFIG))
+
+    assert main([*flags, "judge", str(tmp_path), "--judge", "gemma4-12b"]) == 0
+
+    output = capsys.readouterr()
+    assert "3/3" not in output.err
+    assert "\x1b[" not in output.out + output.err
 
 
 def test_judge_writes_a_minimal_run_config_when_there_is_none(tmp_path, monkeypatch, capsys):

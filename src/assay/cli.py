@@ -11,6 +11,9 @@ import traceback
 from collections.abc import Callable
 from pathlib import Path
 
+from rich.console import Console
+from rich.progress import BarColumn, MofNCompleteColumn, Progress, TimeRemainingColumn
+
 from assay import __version__
 from assay.errors import ERROR_TYPES, AssayError
 from assay.logs import configure_console
@@ -114,7 +117,20 @@ def judge_command(args: argparse.Namespace) -> int:
         )
     # A misplaced log fails here, before any judging.
     grading.find_logs(args.results, read_run_config(args.results))
-    summary = scoring.score_logs(args.results, model, args.rejudge)
+    console = styled_console(stderr=True)
+    if console is None or args.quiet:
+        summary = scoring.score_logs(args.results, model, args.rejudge)
+    else:
+        with Progress(
+            "Judging", BarColumn(), MofNCompleteColumn(), TimeRemainingColumn(), console=console
+        ) as bar:
+            task = bar.add_task("judge")
+            summary = scoring.score_logs(
+                args.results,
+                model,
+                args.rejudge,
+                lambda done, total: bar.update(task, completed=done, total=total),
+            )
     print(f"Scored {summary.scored} samples; {summary.already_scored} were already scored.")
     if summary.errored:
         log.warning("Skipped %s that errored during the run.", _count(summary.errored, "sample"))
@@ -129,6 +145,12 @@ def judge_command(args: argparse.Namespace) -> int:
             ", ".join(disagreements),
         )
     return 0
+
+
+def styled_console(stderr: bool = False) -> Console | None:
+    """A rich console when output is a colour terminal, else None for plain text."""
+    console = Console(stderr=stderr, highlight=False)
+    return console if console.is_terminal and not console.no_color else None
 
 
 def _count(number: int, noun: str) -> str:
