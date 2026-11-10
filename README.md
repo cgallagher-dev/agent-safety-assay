@@ -108,6 +108,46 @@ assay pdf results/4b                          # needs pip install 'agent-safety-
 assay dashboard results/4b                    # local, read-only dashboard
 ```
 
+## Architecture
+
+Each command reads what the one before it wrote, in a results directory.
+Solid boxes work on `main` today. Dashed ones are planned: until `assay run`
+lands (Week 10), the logs come from running AgentHarm with Inspect directly.
+
+```mermaid
+flowchart TD
+    profile["Model profile (TOML)"] --> run["assay run (planned)"]
+    run --> logs[(".eval logs: full transcripts, kept private")]
+    logs --> judge["assay judge: AgentHarm graders and refusal judge"]
+    judge --> evidence[("evidence.jsonl: ids, tool names, true or false")]
+    evidence --> report["assay report: text, CSV and report.json"]
+    report --> pdf["assay pdf"]
+    evidence --> dashboard["assay dashboard on 127.0.0.1"]
+    logs -. "benign transcript of one pair" .-> dashboard
+    report -.-> compare["assay compare, assay narrate (planned)"]
+    ollama(["Ollama: agent and judge models"]) -.- run
+    ollama -.- judge
+    classDef planned stroke-dasharray: 5 5
+    class run,compare planned
+```
+
+The main choices, and why:
+
+- **Judging is a separate pass over saved logs.** The agent model and the
+  judge never have to be loaded at the same time, and a change to the judge
+  doesn't mean running the agent again. The pass saves every 10 samples, so
+  a rerun picks up where it stopped.
+- **A judge failure stops the pass.** It's never recorded as "no refusal",
+  which would quietly lower the refusal rate.
+- **Harmful text stays in the `.eval` logs.** `evidence.jsonl` holds only
+  ids, tool names and true or false values. The dashboard shows the benign
+  transcript of a pair and only the structure of the harmful one.
+- **One report builder.** `assay report` and the dashboard build the same
+  report from `evidence.jsonl`, and the PDF renders the saved `report.json`,
+  which is checked against a schema. So every output shows the same numbers.
+
+Module by module, the layout is in [docs/spec.md](docs/spec.md#5-architecture).
+
 ## Development
 
 Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/). The dashboard
