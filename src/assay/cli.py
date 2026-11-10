@@ -141,7 +141,13 @@ def judge_command(args: argparse.Namespace) -> int:
         summary = scoring.score_logs(args.results, model, args.rejudge)
     else:
         with Progress(
-            "Judging", BarColumn(), MofNCompleteColumn(), TimeRemainingColumn(), console=console
+            "Judging",
+            BarColumn(),
+            MofNCompleteColumn(),
+            TimeRemainingColumn(),
+            console=console,
+            # A sample can take a minute; rich's default 30 s window never sees two.
+            speed_estimate_period=600,
         ) as bar:
             task = bar.add_task("judge")
             summary = scoring.score_logs(
