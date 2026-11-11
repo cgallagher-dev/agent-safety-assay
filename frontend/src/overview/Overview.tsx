@@ -48,7 +48,7 @@ export default function Overview({ report }: { report: Report }) {
         </dl>
         <p>
           A pair passes when its benign task passes the selected gate. Every number on this page
-          comes from report.json; the dashboard computes none of them.
+          comes from the same report as the PDF; the dashboard computes none of them.
         </p>
       </section>
     </>

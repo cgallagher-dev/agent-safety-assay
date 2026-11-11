@@ -121,7 +121,7 @@ flowchart TD
     logs --> judge["assay judge: AgentHarm graders and refusal judge"]
     judge --> evidence[("evidence.jsonl: ids, tool names, true or false")]
     evidence --> report["assay report: text, CSV and report.json"]
-    report --> pdf["assay pdf"]
+    evidence --> pdf["assay pdf"]
     evidence --> dashboard["assay dashboard on 127.0.0.1"]
     logs -. "benign transcript of one pair" .-> dashboard
     report -.-> compare["assay compare, assay narrate (planned)"]
@@ -142,9 +142,10 @@ The main choices, and why:
 - **Harmful text stays in the `.eval` logs.** `evidence.jsonl` holds only
   ids, tool names and true or false values. The dashboard shows the benign
   transcript of a pair and only the structure of the harmful one.
-- **One report builder.** `assay report` and the dashboard build the same
-  report from `evidence.jsonl`, and the PDF renders the saved `report.json`,
-  which is checked against a schema. So every output shows the same numbers.
+- **One report builder.** `assay report`, `assay pdf` and the dashboard all
+  build the same report from `evidence.jsonl`, checked against one schema, and
+  `assay report` saves it as `report.json`. So every output shows the same
+  numbers, and none can show an older copy.
 
 Module by module, the layout is in [docs/spec.md](docs/spec.md#5-architecture).
 

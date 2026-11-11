@@ -6,7 +6,7 @@ import PairDetailPage from "./pairs/PairDetail";
 import PairList from "./pairs/PairList";
 import { useRoute } from "./route";
 
-// Every number shown here comes from report.json built by the Python backend.
+// Every number shown here comes from the report the Python backend builds.
 // The dashboard renders results; it never computes a metric.
 export default function App() {
   const [report, setReport] = useState<Report | null>(null);
