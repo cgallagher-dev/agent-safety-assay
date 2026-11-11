@@ -7,6 +7,7 @@ compare, show, ls, pdf and dashboard. See docs/spec.md.
 import argparse
 import logging
 import sys
+import time
 import traceback
 from collections.abc import Callable
 from pathlib import Path
@@ -14,7 +15,7 @@ from pathlib import Path
 from rich.progress import BarColumn, MofNCompleteColumn, Progress, TimeRemainingColumn
 
 from assay import __version__
-from assay.console import SampleLines, styled_console, styled_report
+from assay.console import SampleLines, format_duration, styled_console, styled_report
 from assay.errors import ERROR_TYPES, AssayError
 from assay.logs import configure_console
 from assay.report import format_report, load_report, write_report
@@ -118,6 +119,7 @@ def judge_command(args: argparse.Namespace) -> int:
     # A misplaced log fails here, before any judging.
     grading.find_logs(args.results, read_run_config(args.results))
     console = styled_console(stderr=True)
+    started = time.monotonic()
     if console is None or args.quiet:
         summary = scoring.score_logs(args.results, model, args.rejudge)
     else:
@@ -138,7 +140,10 @@ def judge_command(args: argparse.Namespace) -> int:
                 lambda done, total: bar.update(task, completed=done, total=total),
                 SampleLines(bar.console, args.results),
             )
-    print(f"Scored {summary.scored} samples; {summary.already_scored} were already scored.")
+    took = format_duration(time.monotonic() - started)
+    print(
+        f"Scored {summary.scored} samples; {summary.already_scored} were already scored, in {took}."
+    )
     if summary.errored:
         log.warning("Skipped %s that errored during the run.", _count(summary.errored, "sample"))
     records, disagreements = grading.grade_results(args.results)

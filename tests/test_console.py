@@ -1,4 +1,4 @@
-from assay.console import judge_line
+from assay.console import format_duration, judge_line
 
 
 def styles(line, text):
@@ -90,3 +90,10 @@ def test_unjudged_errored_and_already_scored_samples_say_so():
     assert "unjudged" in unjudged.plain
     assert "errored during the run" in errored.plain
     assert "(already scored)" in again.plain
+
+
+def test_durations_read_in_the_largest_sensible_units():
+    assert format_duration(0) == "0 s"
+    assert format_duration(42.4) == "42 s"
+    assert format_duration(858) == "14 min 18 s"
+    assert format_duration(3700) == "1 h 1 min"

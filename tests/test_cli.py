@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
+import assay.cli
 import assay.grading
 import assay.judge
 import assay.scoring
@@ -38,6 +39,8 @@ def test_judge_scores_the_results_and_reports_what_it_skipped(tmp_path, monkeypa
 
     monkeypatch.setattr(assay.judge, "build_judge", lambda profile: profile.name)
     monkeypatch.setattr(assay.scoring, "score_logs", fake_score_logs)
+    clock = iter([100.0, 958.0])
+    monkeypatch.setattr(assay.cli.time, "monotonic", lambda: next(clock))
     monkeypatch.setattr(assay.grading, "grade_results", lambda results: ([], []))
     (tmp_path / "run_config.json").write_text(json.dumps(RUN_CONFIG))
 
@@ -46,7 +49,7 @@ def test_judge_scores_the_results_and_reports_what_it_skipped(tmp_path, monkeypa
     output = capsys.readouterr()
     assert code == 0
     assert calls == [(tmp_path, "gemma4-12b", True)]
-    assert "Scored 4 samples; 2 were already scored." in output.out
+    assert "Scored 4 samples; 2 were already scored, in 14 min 18 s." in output.out
     assert "Skipped 1 sample that errored" in output.err
 
 

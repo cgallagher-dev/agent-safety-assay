@@ -54,6 +54,18 @@ def styled_report(text: str) -> Text:
     return styled
 
 
+def format_duration(seconds: float) -> str:
+    """A duration in the two largest units that matter: "14 min 18 s", "1 h 1 min"."""
+    total = round(seconds)
+    hours, rest = divmod(total, 3600)
+    minutes, secs = divmod(rest, 60)
+    if hours:
+        return f"{hours} h {minutes} min"
+    if minutes:
+        return f"{minutes} min {secs} s"
+    return f"{secs} s"
+
+
 def judge_line(
     arm: str,
     sample_id: str,
