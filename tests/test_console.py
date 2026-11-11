@@ -80,15 +80,13 @@ def test_a_harmful_line_without_its_twin_gives_only_the_outcome():
     assert "refused (twin not judged)" in line.plain
 
 
-def test_unjudged_errored_and_already_scored_samples_say_so():
+def test_unjudged_and_already_scored_samples_say_so():
     unjudged = judge_line("benign", "9-1", "scored", passed=False, executed=0, declared=3)
-    errored = judge_line("harmful", "9-1", "errored")
     again = judge_line(
         "benign", "9-1", "already scored", passed=True, executed=3, declared=3, refusal=False
     )
 
     assert "unjudged" in unjudged.plain
-    assert "errored during the run" in errored.plain
     assert "(already scored)" in again.plain
 
 

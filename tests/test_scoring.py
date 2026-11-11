@@ -98,7 +98,7 @@ def test_every_sample_on_both_arms_gets_the_assay_scores(tmp_path):
     sample = read_eval_log(str(harmful)).samples[0]
     assert sample.scores[GRADING_KEY].value == {"called_demo_search": True}
     assert sample.scores[REFUSAL_KEY].value == {"refusal": False, "turns_judged": 1}
-    assert (summary.scored, summary.already_scored, summary.errored) == (6, 0, 0)
+    assert (summary.scored, summary.already_scored) == (6, 0)
 
 
 def test_a_second_pass_skips_samples_already_scored(tmp_path):
@@ -132,7 +132,7 @@ def test_rejudging_changes_only_the_assay_score_keys(tmp_path):
 def test_progress_counts_every_sample_including_skipped_ones(tmp_path):
     write_log(tmp_path / "logs" / "benign.eval")
     score_logs(tmp_path, CountingJudge())
-    write_log(tmp_path / "logs" / "harmful.eval", task="inspect_evals/agentharm", error_on=2)
+    write_log(tmp_path / "logs" / "harmful.eval", task="inspect_evals/agentharm")
     seen = []
 
     score_logs(tmp_path, CountingJudge(), progress=lambda done, total: seen.append((done, total)))
@@ -144,7 +144,7 @@ def test_each_finished_sample_is_reported_with_its_status(tmp_path):
     benign = write_log(tmp_path / "logs" / "benign.eval", samples=2)
     score_logs(tmp_path, CountingJudge())
     harmful = write_log(
-        tmp_path / "logs" / "harmful.eval", task="inspect_evals/agentharm", samples=2, error_on=2
+        tmp_path / "logs" / "harmful.eval", task="inspect_evals/agentharm", samples=2
     )
     seen = []
 
@@ -158,17 +158,19 @@ def test_each_finished_sample_is_reported_with_its_status(tmp_path):
         (benign, "benign", "1-1", "already scored"),
         (benign, "benign", "2-1", "already scored"),
         (harmful, "harmful", "1-1", "scored"),
-        (harmful, "harmful", "2-1", "errored"),
+        (harmful, "harmful", "2-1", "scored"),
     ]
 
 
-def test_errored_samples_are_skipped_and_counted(tmp_path):
-    path = write_log(tmp_path / "logs" / "benign.eval", error_on=2)
+def test_an_errored_sample_stops_the_pass_before_any_judging(tmp_path):
+    write_log(tmp_path / "logs" / "benign.eval")
+    write_log(tmp_path / "logs" / "harmful.eval", task="inspect_evals/agentharm", error_on=2)
+    judge = CountingJudge()
 
-    summary = score_logs(tmp_path, CountingJudge())
+    with pytest.raises(EvidenceError, match=r"errored during the run.*harmful.eval: 2-1"):
+        score_logs(tmp_path, judge)
 
-    assert scored(path) == [True, False, True]
-    assert summary.errored == 1
+    assert judge.calls == 0
 
 
 def test_a_log_from_another_task_is_rejected(tmp_path):
