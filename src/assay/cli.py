@@ -14,7 +14,7 @@ from pathlib import Path
 
 from rich.progress import BarColumn, MofNCompleteColumn, Progress, TimeRemainingColumn
 
-from assay import __version__
+from assay import __version__, console
 from assay.console import SampleLines, format_duration, styled_console, styled_report
 from assay.errors import ERROR_TYPES, AssayError
 from assay.logs import configure_console
@@ -48,6 +48,7 @@ def build_parser() -> argparse.ArgumentParser:
     loudness.add_argument("-v", "--verbose", action="store_true", help="show debug messages")
     loudness.add_argument("-q", "--quiet", action="store_true", help="show only problems")
     parser.add_argument("--debug", action="store_true", help="print tracebacks on errors")
+    parser.add_argument("--no-color", action="store_true", help="plain output, no colour")
 
     commands = parser.add_subparsers(title="commands", metavar="COMMAND")
     pairs = commands.add_parser(
@@ -118,9 +119,9 @@ def judge_command(args: argparse.Namespace) -> int:
         )
     # A misplaced log fails here, before any judging.
     grading.find_logs(args.results, read_run_config(args.results))
-    console = styled_console(stderr=True)
+    terminal = styled_console(stderr=True)
     started = time.monotonic()
-    if console is None or args.quiet:
+    if terminal is None or args.quiet:
         summary = scoring.score_logs(args.results, model, args.rejudge)
     else:
         with Progress(
@@ -128,7 +129,7 @@ def judge_command(args: argparse.Namespace) -> int:
             BarColumn(),
             MofNCompleteColumn(),
             TimeRemainingColumn(),
-            console=console,
+            console=terminal,
             # A sample can take a minute; rich's default 30 s window never sees two.
             speed_estimate_period=600,
         ) as bar:
@@ -167,11 +168,11 @@ def report_command(args: argparse.Namespace) -> int:
     report = load_report(args.results)
     out = args.out or args.results
     write_report(report, out)
-    console = styled_console()
-    if console is None:
+    terminal = styled_console()
+    if terminal is None:
         print(format_report(report))
     else:
-        console.print(styled_report(format_report(report)), soft_wrap=True)
+        terminal.print(styled_report(format_report(report)), soft_wrap=True)
     log.info("Wrote report.json, metrics.csv and pairs.csv to %s", out)
     return 0
 
@@ -222,6 +223,7 @@ def run_command(handler: Handler, args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    console.colour = not args.no_color
     configure_console(verbose=args.verbose, quiet=args.quiet)
     handler = getattr(args, "handler", None)
     if handler is None:
