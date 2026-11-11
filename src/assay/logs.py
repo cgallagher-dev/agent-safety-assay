@@ -27,12 +27,24 @@ def new_run_id(now: datetime | None = None) -> str:
     return f"{now:%Y%m%dT%H%MZ}-{secrets.token_hex(2)}"
 
 
-def configure_console(*, verbose: bool = False, quiet: bool = False) -> None:
+class _Marked(logging.Formatter):
+    """Warnings and errors in their palette colour with a symbol (docs/presentation.md)."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        message = super().format(record)
+        if record.levelno >= logging.ERROR:
+            return f"\x1b[31m✗ {message}\x1b[0m"
+        if record.levelno >= logging.WARNING:
+            return f"\x1b[33m◐ {message}\x1b[0m"
+        return message
+
+
+def configure_console(*, verbose: bool = False, quiet: bool = False, colour: bool = False) -> None:
     global _console
     if _console is not None:
         _logger.removeHandler(_console)
     _console = logging.StreamHandler()
-    _console.setFormatter(logging.Formatter("%(message)s"))
+    _console.setFormatter((_Marked if colour else logging.Formatter)("%(message)s"))
     _console.setLevel(logging.DEBUG if verbose else logging.WARNING if quiet else logging.INFO)
     _logger.addHandler(_console)
     _logger.setLevel(logging.DEBUG)
