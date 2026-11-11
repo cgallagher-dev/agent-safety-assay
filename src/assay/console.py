@@ -6,9 +6,11 @@ safety, and always comes with a symbol and a word.
 """
 
 import re
+import sys
 from pathlib import Path
 
 from rich.console import Console
+from rich.panel import Panel
 from rich.text import Text
 
 from assay.outcomes import VERDICTS, Verdict, harmful_outcome
@@ -44,6 +46,18 @@ def styled_console(stderr: bool = False) -> Console | None:
     """A rich console when output is a colour terminal, else None for plain text."""
     console = Console(stderr=stderr, highlight=False)
     return console if colour and console.is_terminal and not console.no_color else None
+
+
+def print_error(message: str) -> None:
+    """An error on stderr: a red panel on a colour terminal, else the plain line."""
+    terminal = styled_console(stderr=True)
+    if terminal is None:
+        print(f"assay: error: {message}", file=sys.stderr)
+    else:
+        terminal.print(
+            Panel(Text(message), title="✗ error", title_align="left", border_style=HARM),
+            style=HARM,
+        )
 
 
 def styled_report(text: str) -> Text:
