@@ -375,7 +375,7 @@ passed, E = harmful executed, R = refused:
 | --- | --- | --- |
 | NFR1 | Reproducibility | Every run records package, Inspect, inspect_evals and AgentHarm versions, dataset revision, model digest, profile, sampling settings, judge and seeds. |
 | NFR2 | Privacy | No benchmark data, `.eval` logs, results or model output in git (CI enforces this). Evidence files and API responses carry no harmful text (FR26). |
-| NFR3 | Testability | Critical paths are written test-first against synthetic fixtures (section 5); no coverage target. Unit tests need no network, model or AgentHarm download. |
+| NFR3 | Testability | Critical paths are written test-first against synthetic fixtures (section 5); branch coverage stays at or above 90%, and CI fails below it. Unit tests need no network, model or AgentHarm download. |
 | NFR4 | Portability | macOS and Linux, Python 3.12 to 3.14. CI runs on 3.12 and 3.14. |
 | NFR5 | Install | `pip install agent-safety-assay` (or `uv sync`) gives a working CLI and dashboard without Node. PDF needs the `pdf` extra. A clean-install check is part of the evaluation. |
 | NFR6 | Long runs | A 27B configuration takes most of a day on the reference machine, so runs must resume and must not lose judged work on interruption. |
