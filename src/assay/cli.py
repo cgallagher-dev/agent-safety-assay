@@ -228,7 +228,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     console.colour = not args.no_color
-    configure_console(verbose=args.verbose, quiet=args.quiet)
+    configure_console(
+        verbose=args.verbose,
+        quiet=args.quiet,
+        colour=styled_console(stderr=True) is not None,
+    )
     handler = getattr(args, "handler", None)
     if handler is None:
         parser.print_help()

@@ -168,6 +168,16 @@ def test_judge_hides_the_progress_bar(tmp_path, monkeypatch, capsys, terminal, f
     assert "\x1b[" not in output.out + output.err
 
 
+def test_a_warning_on_a_terminal_is_amber_with_its_symbol(tmp_path, monkeypatch, capsys, terminal):
+    record = EvidenceRecord.model_validate(record_fields())
+    fake_pass(monkeypatch, [record], ["test_public/2-1"])
+    (tmp_path / "run_config.json").write_text(json.dumps(RUN_CONFIG))
+
+    assert main(["judge", str(tmp_path), "--judge", "gemma4-12b"]) == 0
+
+    assert "\x1b[33m◐ AgentHarm's own structural reading disagrees" in capsys.readouterr().err
+
+
 def test_judge_writes_a_minimal_run_config_when_there_is_none(tmp_path, monkeypatch, capsys):
     fake_pass(monkeypatch)
     judges = []
