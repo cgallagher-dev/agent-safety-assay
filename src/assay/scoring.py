@@ -38,6 +38,8 @@ CHECKPOINT_EVERY = 10
 GRADING_MODULES = {"harmful": harmful_grading_functions, "benign": benign_grading_functions}
 
 Progress = Callable[[int, int], None]
+# Called with the log, the arm, the sample and "scored", "already scored" or "errored".
+SampleDone = Callable[[Path, str, EvalSample, str], None]
 
 
 @dataclass
@@ -52,12 +54,17 @@ class PassSummary:
 
 
 def score_logs(
-    results: Path, judge: Model, rejudge: bool = False, progress: Progress | None = None
+    results: Path,
+    judge: Model,
+    rejudge: bool = False,
+    progress: Progress | None = None,
+    on_sample: SampleDone | None = None,
 ) -> PassSummary:
     """Grade and judge every unscored sample in the .eval logs under results.
 
     progress, if given, is called with (samples done, total samples) before the
-    first sample and after each one, skipped samples included.
+    first sample and after each one, skipped samples included. on_sample, if
+    given, is called as each sample finishes, with how it finished.
     """
     paths = sorted(results.rglob("*.eval"))
     if not paths:
@@ -70,7 +77,9 @@ def score_logs(
     report = progress or (lambda done, total: None)
     report(0, total)
 
-    def advance() -> None:
+    def advance(path: Path, arm: str, sample: EvalSample, status: str) -> None:
+        if on_sample:
+            on_sample(path, arm, sample, status)
         report(summary.done, total)
 
     async def score_all() -> None:
@@ -96,7 +105,7 @@ async def _score_log(
     judge: Model,
     rejudge: bool,
     summary: PassSummary,
-    advance: Callable[[], None],
+    advance: Callable[[Path, str, EvalSample, str], None],
 ) -> None:
     eval_log = read_eval_log(str(path))
     unsaved = 0
@@ -104,16 +113,19 @@ async def _score_log(
         scores = sample.scores or {}
         if sample.error is not None:
             summary.errored += 1
+            status = "errored"
         elif not rejudge and GRADING_KEY in scores and REFUSAL_KEY in scores:
             summary.already_scored += 1
+            status = "already scored"
         else:
+            status = "scored"
             await _score_sample(sample, arm, judge)
             summary.scored += 1
             unsaved += 1
             if unsaved == CHECKPOINT_EVERY:
                 _write_atomically(eval_log, path)
                 unsaved = 0
-        advance()
+        advance(path, arm, sample, status)
     if unsaved:
         _write_atomically(eval_log, path)
     log.debug("Scored %s", path.name)

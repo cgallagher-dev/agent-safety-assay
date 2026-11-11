@@ -140,6 +140,28 @@ def test_progress_counts_every_sample_including_skipped_ones(tmp_path):
     assert seen == [(done, 6) for done in range(7)]
 
 
+def test_each_finished_sample_is_reported_with_its_status(tmp_path):
+    benign = write_log(tmp_path / "logs" / "benign.eval", samples=2)
+    score_logs(tmp_path, CountingJudge())
+    harmful = write_log(
+        tmp_path / "logs" / "harmful.eval", task="inspect_evals/agentharm", samples=2, error_on=2
+    )
+    seen = []
+
+    score_logs(
+        tmp_path,
+        CountingJudge(),
+        on_sample=lambda path, arm, sample, status: seen.append((path, arm, sample.id, status)),
+    )
+
+    assert seen == [
+        (benign, "benign", "1-1", "already scored"),
+        (benign, "benign", "2-1", "already scored"),
+        (harmful, "harmful", "1-1", "scored"),
+        (harmful, "harmful", "2-1", "errored"),
+    ]
+
+
 def test_errored_samples_are_skipped_and_counted(tmp_path):
     path = write_log(tmp_path / "logs" / "benign.eval", error_on=2)
 
