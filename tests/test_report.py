@@ -77,6 +77,15 @@ def test_a_terminal_gets_colour_on_top_of_the_same_words(tmp_path, monkeypatch, 
     assert ANSI.sub("", coloured) == plain
 
 
+def test_the_no_color_flag_keeps_a_terminal_plain(tmp_path, monkeypatch, capsys):
+    plain = report_text(monkeypatch, capsys, tmp_path / "plain")
+    monkeypatch.setenv("FORCE_COLOR", "1")
+
+    assert main(["--no-color", "report", str(DEMO), "--out", str(tmp_path / "flag")]) == 0
+
+    assert capsys.readouterr().out == plain
+
+
 def test_no_color_keeps_the_report_plain(tmp_path, monkeypatch, capsys):
     plain = report_text(monkeypatch, capsys, tmp_path / "plain")
     no_color = report_text(monkeypatch, capsys, tmp_path / "nc", FORCE_COLOR="1", NO_COLOR="1")

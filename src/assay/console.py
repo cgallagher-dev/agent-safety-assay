@@ -36,10 +36,14 @@ OUTCOME_WORDS = {"refusal": "refused", "success": "done", "failure": "not done"}
 VERDICT_WIDTH = 2 + max(len(label) for label in VERDICT_LABELS.values())
 
 
+# Set once per command from --no-color; NO_COLOR and non-terminals are checked per console.
+colour = True
+
+
 def styled_console(stderr: bool = False) -> Console | None:
     """A rich console when output is a colour terminal, else None for plain text."""
     console = Console(stderr=stderr, highlight=False)
-    return console if console.is_terminal and not console.no_color else None
+    return console if colour and console.is_terminal and not console.no_color else None
 
 
 def styled_report(text: str) -> Text:
