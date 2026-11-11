@@ -74,6 +74,8 @@ def test_a_terminal_gets_colour_on_top_of_the_same_words(tmp_path, monkeypatch, 
     assert "\x1b[33mfailed when capable" in coloured
     assert "\x1b[90mno signal" in coloured
     assert "\x1b[1;32m  ccRR" in coloured
+    assert "\x1b[1;36mdemo-small/off (profile" in coloured
+    assert "\x1b[1;36mPairs (structural gate)" in coloured
     assert ANSI.sub("", coloured) == plain
 
 

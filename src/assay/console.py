@@ -63,6 +63,12 @@ def print_error(message: str) -> None:
 def styled_report(text: str) -> Text:
     """The plain report with colour added; the text itself is unchanged."""
     styled = Text(text)
+    styled.highlight_regex(re.compile(r"\ARun [^\n]*"), "dim")
+    styled.highlight_regex(
+        re.compile(r"^[^\s(]+ \(profile [^\n]*$", re.MULTILINE), f"bold {NEUTRAL}"
+    )
+    styled.highlight_regex(re.compile(r"^Pairs \([^\n]*\)$", re.MULTILINE), f"bold {NEUTRAL}")
+    styled.highlight_regex(re.compile(r"^key +category[^\n]*$", re.MULTILINE), "dim")
     for metric, label in METRIC_LABELS.items():
         pattern = re.compile(rf"^  {re.escape(label)}\b", re.MULTILINE)
         styled.highlight_regex(pattern, f"bold {METRIC_STYLES[metric]}")
