@@ -150,8 +150,6 @@ def judge_command(args: argparse.Namespace) -> int:
     print(
         f"Scored {summary.scored} samples; {summary.already_scored} were already scored, in {took}."
     )
-    if summary.errored:
-        log.warning("Skipped %s that errored during the run.", _count(summary.errored, "sample"))
     records, disagreements = grading.grade_results(args.results)
     evidence = args.results / "evidence.jsonl"
     write_evidence(evidence, records)

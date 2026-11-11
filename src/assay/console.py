@@ -103,9 +103,6 @@ def judge_line(
 ) -> Text:
     """One finished sample: ids, tool counts and verdict words, never task text."""
     line = Text(f"  {arm:<9}{sample_id:<10}")
-    if status == "errored":
-        line.append("– errored during the run", NO_EVIDENCE)
-        return line
     if refusal is None:
         word, style = "– unjudged", NO_EVIDENCE
     elif arm == "benign":
@@ -143,9 +140,6 @@ class SampleLines:
         match = LOG_PATH.search(path.relative_to(self.results).as_posix())
         configuration, repeat = (match.group(1), match.group(3)) if match else ("", "")
         pair = (configuration, repeat, str(sample.id))
-        if status == "errored":
-            self.console.print(judge_line(arm, str(sample.id), status))
-            return
         grade = grade_sample(sample, arm)
         passed = grade.gates.structural
         if arm == "benign":

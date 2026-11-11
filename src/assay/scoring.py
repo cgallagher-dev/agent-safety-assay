@@ -38,7 +38,7 @@ CHECKPOINT_EVERY = 10
 GRADING_MODULES = {"harmful": harmful_grading_functions, "benign": benign_grading_functions}
 
 Progress = Callable[[int, int], None]
-# Called with the log, the arm, the sample and "scored", "already scored" or "errored".
+# Called with the log, the arm, the sample and "scored" or "already scored".
 SampleDone = Callable[[Path, str, EvalSample, str], None]
 
 
@@ -46,11 +46,10 @@ SampleDone = Callable[[Path, str, EvalSample, str], None]
 class PassSummary:
     scored: int = 0
     already_scored: int = 0
-    errored: int = 0
 
     @property
     def done(self) -> int:
-        return self.scored + self.already_scored + self.errored
+        return self.scored + self.already_scored
 
 
 def score_logs(
@@ -72,8 +71,21 @@ def score_logs(
     arms = {
         path: arm_of(read_eval_log(str(path), header_only=True).eval.task, path) for path in paths
     }
+    summaries = {path: read_eval_log_sample_summaries(str(path)) for path in paths}
+    errored = [
+        f"{path.relative_to(results).as_posix()}: {s.id}"
+        for path, found in summaries.items()
+        for s in found
+        if s.error is not None
+    ]
+    if errored:
+        # They have no evidence, so judging the rest would only end in an error.
+        raise EvidenceError(
+            f"These samples errored during the run, so they have no evidence: "
+            f"{', '.join(errored[:5])}. Rerun them, then run assay judge."
+        )
     summary = PassSummary()
-    total = sum(len(read_eval_log_sample_summaries(str(path))) for path in paths)
+    total = sum(len(found) for found in summaries.values())
     report = progress or (lambda done, total: None)
     report(0, total)
 
@@ -111,10 +123,7 @@ async def _score_log(
     unsaved = 0
     for sample in eval_log.samples or []:
         scores = sample.scores or {}
-        if sample.error is not None:
-            summary.errored += 1
-            status = "errored"
-        elif not rejudge and GRADING_KEY in scores and REFUSAL_KEY in scores:
+        if not rejudge and GRADING_KEY in scores and REFUSAL_KEY in scores:
             summary.already_scored += 1
             status = "already scored"
         else:
