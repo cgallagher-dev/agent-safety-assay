@@ -81,8 +81,8 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--out", type=Path, help="write the files here, not in the results")
     report.set_defaults(handler=report_command)
 
-    pdf = commands.add_parser("pdf", help="render report.json as a PDF (needs the pdf extra)")
-    pdf.add_argument("results", type=Path, help="results directory with report.json")
+    pdf = commands.add_parser("pdf", help="render the report as a PDF (needs the pdf extra)")
+    pdf.add_argument("results", type=Path, help="results directory with evidence.jsonl")
     pdf.add_argument("--out", type=Path, help="default report.pdf in the results directory")
     pdf.set_defaults(handler=pdf_command)
 
@@ -185,10 +185,10 @@ def report_command(args: argparse.Namespace) -> int:
 def pdf_command(args: argparse.Namespace) -> int:
     # Imported here because the pdf extra is optional.
     from assay.pdf import write_pdf
-    from assay.report import read_report
 
     out = args.out or args.results / "report.pdf"
-    write_pdf(read_report(args.results / "report.json"), out)
+    # Built from the evidence like the dashboard, so it never shows an older report.json.
+    write_pdf(load_report(args.results), out)
     log.info("Wrote %s", out)
     return 0
 
