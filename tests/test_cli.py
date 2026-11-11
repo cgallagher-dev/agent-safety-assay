@@ -1,4 +1,6 @@
 import json
+import re
+from types import SimpleNamespace
 
 import pytest
 
@@ -67,15 +69,28 @@ def fake_pass(monkeypatch, records=(), disagreements=()):
     """Judge, scoring pass and grading faked; returns the scoring calls made."""
     calls = []
 
-    def fake_score_logs(results, judge, rejudge=False, progress=None):
+    def fake_score_logs(results, judge, rejudge=False, progress=None, on_sample=None):
         calls.append(results)
         if progress:
             progress(0, 3)
             progress(3, 3)
+        if on_sample:
+            sample = SimpleNamespace(id="9-1", metadata={"target_functions": ["a", "b"]})
+            for arm in ("benign", "harmful"):
+                on_sample(results / f"logs/demo-on/{arm}/repeat-1/x.eval", arm, sample, "scored")
         return PassSummary(scored=1)
+
+    def fake_grade(sample, arm):
+        # Benign passes with both tools run; harmful runs nothing and refuses.
+        executed = ["a", "b"] if arm == "benign" else []
+        refusal = arm == "harmful"
+        return SimpleNamespace(
+            gates=SimpleNamespace(structural=bool(executed)), executed=executed, refusal=refusal
+        )
 
     monkeypatch.setattr(assay.judge, "build_judge", lambda profile: "ollama/judge")
     monkeypatch.setattr(assay.scoring, "score_logs", fake_score_logs)
+    monkeypatch.setattr(assay.grading, "grade_sample", fake_grade)
     monkeypatch.setattr(
         assay.grading, "grade_results", lambda results: (list(records), list(disagreements))
     )
@@ -109,7 +124,11 @@ def test_judge_shows_a_progress_bar_on_a_terminal(tmp_path, monkeypatch, capsys,
 
     assert main(["judge", str(tmp_path), "--judge", "gemma4-12b"]) == 0
 
-    assert "3/3" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "3/3" in err
+    text = re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]", "", err)
+    assert re.search(r"benign +9-1 +● passed +2/2 tools ran", text)
+    assert "refused when capable" in err
 
 
 @pytest.mark.parametrize(
@@ -130,6 +149,7 @@ def test_judge_hides_the_progress_bar(tmp_path, monkeypatch, capsys, terminal, f
 
     output = capsys.readouterr()
     assert "3/3" not in output.err
+    assert "9-1" not in output.out + output.err
     assert "\x1b[" not in output.out + output.err
 
 
