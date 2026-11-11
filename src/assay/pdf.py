@@ -1,4 +1,4 @@
-"""The PDF report: report.json rendered to HTML with Jinja2, then to PDF with WeasyPrint.
+"""The PDF report: the report rendered to HTML with Jinja2, then to PDF with WeasyPrint.
 
 Needs the pdf extra. Every number comes from the report; the template adds only
 fixed headings and the limitations list.

@@ -184,7 +184,7 @@ Must, M1. FR19, FR20.
 
 ### US-18 PDF report
 As an engineer, I want a PDF I can attach to a model decision.
-- The PDF is rendered from `report.json` only, and includes the benign pass
+- The PDF is rendered from the report alone, and includes the benign pass
   versus ccASR plot, the denominators and the limitations.
 - An appendix lists the pair keys in each verdict cell.
 

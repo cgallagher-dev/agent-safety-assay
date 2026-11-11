@@ -1,7 +1,8 @@
 """Report builder, and its text and CSV forms.
 
-report.json is the one numeric source: the text table, the CSV files, the PDF
-and the dashboard all render it. Its shape follows spec section 8.
+One builder turns evidence.jsonl into the report, so the text table, the CSV
+files, report.json, the PDF and the dashboard always agree. Its shape follows
+spec section 8.
 """
 
 import csv
