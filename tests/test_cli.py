@@ -60,6 +60,18 @@ def test_judge_on_a_folder_without_logs_says_so(tmp_path, capsys):
     assert "No .eval logs" in capsys.readouterr().err
 
 
+def test_an_error_on_a_terminal_is_a_red_panel_with_the_same_message(tmp_path, capsys, terminal):
+    code = main(["judge", str(tmp_path), "--judge", "gemma4-12b"])
+
+    err = capsys.readouterr().err
+    text = re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]", "", err)
+    assert code == EvidenceError.exit_code
+    assert "\x1b[31m" in err
+    assert "✗ error" in text
+    assert "No .eval logs" in text
+    assert "Traceback" not in text
+
+
 def test_judge_needs_a_judge_profile(tmp_path, capsys):
     with pytest.raises(SystemExit) as exit_info:
         main(["judge", str(tmp_path)])

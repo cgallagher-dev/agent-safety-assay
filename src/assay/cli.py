@@ -6,7 +6,6 @@ compare, show, ls, pdf and dashboard. See docs/spec.md.
 
 import argparse
 import logging
-import sys
 import time
 import traceback
 from collections.abc import Callable
@@ -15,7 +14,13 @@ from pathlib import Path
 from rich.progress import BarColumn, MofNCompleteColumn, Progress, TimeRemainingColumn
 
 from assay import __version__, console
-from assay.console import SampleLines, format_duration, styled_console, styled_report
+from assay.console import (
+    SampleLines,
+    format_duration,
+    print_error,
+    styled_console,
+    styled_report,
+)
 from assay.errors import ERROR_TYPES, AssayError
 from assay.logs import configure_console
 from assay.report import format_report, load_report, write_report
@@ -206,16 +211,15 @@ def run_command(handler: Handler, args: argparse.Namespace) -> int:
     except AssayError as error:
         if args.debug:
             traceback.print_exc()
-        print(f"assay: error: {error}", file=sys.stderr)
+        print_error(str(error))
         return error.exit_code
     except Exception:
         log.debug("Unexpected error", exc_info=True)
         if args.debug:
             traceback.print_exc()
-        print(
-            "assay: unexpected error. This is a bug, please report it with the "
-            "output of the same command run with --debug.",
-            file=sys.stderr,
+        print_error(
+            "Unexpected error. This is a bug, please report it with the "
+            "output of the same command run with --debug."
         )
         return 1
 
