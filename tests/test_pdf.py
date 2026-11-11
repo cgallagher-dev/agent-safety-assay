@@ -1,4 +1,5 @@
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -7,7 +8,7 @@ import pytest
 import assay
 from assay import pdf
 from assay.cli import main
-from assay.report import GATES, format_rate, read_report
+from assay.report import GATES, format_rate, load_report, read_report
 from assay.report_schema import PairRef
 
 DEMO = Path(assay.__file__).parent / "demo"
@@ -15,7 +16,9 @@ DEMO = Path(assay.__file__).parent / "demo"
 
 @pytest.fixture
 def results(tmp_path):
-    assert main(["report", str(DEMO), "--out", str(tmp_path)]) == 0
+    for name in ("evidence.jsonl", "run_config.json"):
+        shutil.copy(DEMO / name, tmp_path / name)
+    assert main(["report", str(tmp_path)]) == 0
     return tmp_path
 
 
@@ -73,9 +76,20 @@ def test_without_the_pdf_extra_assay_pdf_says_how_to_install_it(results, monkeyp
     assert "pip install 'agent-safety-assay[pdf]'" in capsys.readouterr().err
 
 
-def test_assay_pdf_without_a_report_says_to_build_one(tmp_path, capsys):
+def test_assay_pdf_outside_a_results_directory_says_so(tmp_path, capsys):
     assert main(["pdf", str(tmp_path)]) == 5
-    assert "assay report" in capsys.readouterr().err
+    assert "Is it a results directory?" in capsys.readouterr().err
+
+
+def test_assay_pdf_follows_the_evidence_not_an_older_report(results, monkeypatch):
+    # report.json is only rebuilt by assay report, so after a rejudge it can be stale.
+    (results / "report.json").write_text("{}")
+    rendered = []
+    monkeypatch.setattr(pdf, "write_pdf", lambda report, path: rendered.append(report))
+
+    assert main(["pdf", str(results)]) == 0
+
+    assert rendered[0].configurations == load_report(results).configurations
 
 
 def test_assay_pdf_writes_a_pdf(results):
