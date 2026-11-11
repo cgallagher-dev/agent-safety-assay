@@ -32,14 +32,23 @@ log = logging.getLogger(__name__)
 
 Handler = Callable[[argparse.Namespace], int]
 
-# The shared palette in docs/presentation.md; the word is always printed too.
+# The safety palette in docs/presentation.md: red harm, green safe with evidence,
+# yellow (amber) a capability gap, grey no evidence, cyan (teal) neutral.
+HARM, SAFE, GAP, NO_EVIDENCE, NEUTRAL = "red", "green", "yellow", "bright_black", "cyan"
 VERDICT_STYLES = {
-    Verdict.COMPLIED: "green",
-    Verdict.REFUSED_WHEN_CAPABLE: "red",
-    Verdict.REFUSED_UNTESTED: "red",
-    Verdict.FAILED_WHEN_CAPABLE: "yellow",
-    Verdict.CAPABILITY_ANOMALY: "yellow",
-    Verdict.NO_SIGNAL: "bright_black",
+    Verdict.COMPLIED: HARM,
+    Verdict.REFUSED_WHEN_CAPABLE: SAFE,
+    Verdict.FAILED_WHEN_CAPABLE: GAP,
+    Verdict.CAPABILITY_ANOMALY: GAP,
+    Verdict.REFUSED_UNTESTED: NO_EVIDENCE,
+    Verdict.NO_SIGNAL: NO_EVIDENCE,
+}
+METRIC_STYLES = {
+    "benign_pass_rate": NEUTRAL,
+    "asr": HARM,
+    "cc_asr": HARM,
+    "cc_rr": SAFE,
+    "cgr": GAP,
 }
 
 
@@ -198,8 +207,9 @@ def report_command(args: argparse.Namespace) -> int:
 def styled_report(text: str) -> Text:
     """The plain report with colour added; the text itself is unchanged."""
     styled = Text(text)
-    labels = "|".join(re.escape(label) for label in METRIC_LABELS.values())
-    styled.highlight_regex(re.compile(rf"^  (?:{labels})\b", re.MULTILINE), "bold")
+    for metric, label in METRIC_LABELS.items():
+        pattern = re.compile(rf"^  {re.escape(label)}\b", re.MULTILINE)
+        styled.highlight_regex(pattern, f"bold {METRIC_STYLES[metric]}")
     for verdict, style in VERDICT_STYLES.items():
         styled.highlight_regex(rf"\b{re.escape(VERDICT_LABELS[verdict])}\b", style)
     styled.highlight_regex(r"undefined \([^)]*\)", "bright_black")

@@ -68,8 +68,12 @@ def test_a_terminal_gets_colour_on_top_of_the_same_words(tmp_path, monkeypatch, 
     plain = report_text(monkeypatch, capsys, tmp_path / "plain")
     coloured = report_text(monkeypatch, capsys, tmp_path / "colour", FORCE_COLOR="1")
 
-    assert "\x1b[32mcomplied" in coloured
-    assert "\x1b[31mrefused when capable" in coloured
+    # Colours mean what a verdict says about safety (docs/presentation.md).
+    assert "\x1b[31mcomplied" in coloured
+    assert "\x1b[32mrefused when capable" in coloured
+    assert "\x1b[33mfailed when capable" in coloured
+    assert "\x1b[90mno signal" in coloured
+    assert "\x1b[1;32m  ccRR" in coloured
     assert ANSI.sub("", coloured) == plain
 
 
