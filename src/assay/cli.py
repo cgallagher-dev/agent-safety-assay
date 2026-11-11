@@ -6,50 +6,22 @@ compare, show, ls, pdf and dashboard. See docs/spec.md.
 
 import argparse
 import logging
-import re
 import sys
 import traceback
 from collections.abc import Callable
 from pathlib import Path
 
-from rich.console import Console
 from rich.progress import BarColumn, MofNCompleteColumn, Progress, TimeRemainingColumn
-from rich.text import Text
 
 from assay import __version__
+from assay.console import SampleLines, styled_console, styled_report
 from assay.errors import ERROR_TYPES, AssayError
 from assay.logs import configure_console
-from assay.outcomes import Verdict
-from assay.report import (
-    METRIC_LABELS,
-    VERDICT_LABELS,
-    format_report,
-    load_report,
-    write_report,
-)
+from assay.report import format_report, load_report, write_report
 
 log = logging.getLogger(__name__)
 
 Handler = Callable[[argparse.Namespace], int]
-
-# The safety palette in docs/presentation.md: red harm, green safe with evidence,
-# yellow (amber) a capability gap, grey no evidence, cyan (teal) neutral.
-HARM, SAFE, GAP, NO_EVIDENCE, NEUTRAL = "red", "green", "yellow", "bright_black", "cyan"
-VERDICT_STYLES = {
-    Verdict.COMPLIED: HARM,
-    Verdict.REFUSED_WHEN_CAPABLE: SAFE,
-    Verdict.FAILED_WHEN_CAPABLE: GAP,
-    Verdict.CAPABILITY_ANOMALY: GAP,
-    Verdict.REFUSED_UNTESTED: NO_EVIDENCE,
-    Verdict.NO_SIGNAL: NO_EVIDENCE,
-}
-METRIC_STYLES = {
-    "benign_pass_rate": NEUTRAL,
-    "asr": HARM,
-    "cc_asr": HARM,
-    "cc_rr": SAFE,
-    "cgr": GAP,
-}
 
 
 def exit_codes() -> str:
@@ -164,6 +136,7 @@ def judge_command(args: argparse.Namespace) -> int:
                 model,
                 args.rejudge,
                 lambda done, total: bar.update(task, completed=done, total=total),
+                SampleLines(bar.console, args.results),
             )
     print(f"Scored {summary.scored} samples; {summary.already_scored} were already scored.")
     if summary.errored:
@@ -181,12 +154,6 @@ def judge_command(args: argparse.Namespace) -> int:
     return 0
 
 
-def styled_console(stderr: bool = False) -> Console | None:
-    """A rich console when output is a colour terminal, else None for plain text."""
-    console = Console(stderr=stderr, highlight=False)
-    return console if console.is_terminal and not console.no_color else None
-
-
 def _count(number: int, noun: str) -> str:
     return f"{number} {noun}" if number == 1 else f"{number} {noun}s"
 
@@ -202,18 +169,6 @@ def report_command(args: argparse.Namespace) -> int:
         console.print(styled_report(format_report(report)), soft_wrap=True)
     log.info("Wrote report.json, metrics.csv and pairs.csv to %s", out)
     return 0
-
-
-def styled_report(text: str) -> Text:
-    """The plain report with colour added; the text itself is unchanged."""
-    styled = Text(text)
-    for metric, label in METRIC_LABELS.items():
-        pattern = re.compile(rf"^  {re.escape(label)}\b", re.MULTILINE)
-        styled.highlight_regex(pattern, f"bold {METRIC_STYLES[metric]}")
-    for verdict, style in VERDICT_STYLES.items():
-        styled.highlight_regex(rf"\b{re.escape(VERDICT_LABELS[verdict])}\b", style)
-    styled.highlight_regex(r"undefined \([^)]*\)", "bright_black")
-    return styled
 
 
 def pdf_command(args: argparse.Namespace) -> int:
