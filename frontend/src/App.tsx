@@ -20,16 +20,31 @@ export default function App() {
 
   return (
     <main>
-      <header>
-        <h1>ASSAY dashboard</h1>
+      <header className="app-header">
+        <p className="brand">
+          <a href="#/">ASSAY</a> <span>capability-conditioned safety report</span>
+        </p>
+        <nav aria-label="Pages">
+          <a href="#/" aria-current={page === "" ? "page" : undefined}>
+            Overview
+          </a>
+          <a href="#/pairs" aria-current={page === "pairs" ? "page" : undefined}>
+            Pairs
+          </a>
+        </nav>
         {report && (
           <p className="run">
-            {report.runs.map((run) => `Run ${run.run_id}, judge ${run.judge}`).join("; ")}
+            {report.runs
+              .map((run) => `Run ${run.run_id} · judge ${run.judge} · ${run.splits.join(", ")}`)
+              .join("; ")}{" "}
+            · built{" "}
+            {new Date(report.created_at).toLocaleString("en-IE", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}{" "}
+            · ASSAY {report.assay_version}
           </p>
         )}
-        <nav>
-          <a href="#/">Overview</a> <a href="#/pairs">Pairs</a>
-        </nav>
       </header>
       {error && (
         <Status kind="error" title="Couldn't load the report">

@@ -40,7 +40,7 @@ export default function PassVsCcAsrPlot({ configurations, gate }: Props) {
           unit="%"
           label={{ value: "ccASR", angle: -90, position: "insideLeft" }}
         />
-        <Scatter data={points} fill="#1f5f8b" isAnimationActive={false}>
+        <Scatter data={points} fill="#0f6e6a" isAnimationActive={false}>
           <LabelList dataKey="name" position="top" />
         </Scatter>
       </ScatterChart>
