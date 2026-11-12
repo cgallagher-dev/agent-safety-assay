@@ -2,6 +2,8 @@ from fractions import Fraction
 from itertools import combinations_with_replacement
 from pathlib import Path
 
+import pytest
+
 import assay
 from assay.evidence import read_evidence
 from assay.metrics import compute_metrics, summarise
@@ -51,10 +53,24 @@ def test_cc_asr_falls_below_asr_only_with_an_anomaly():
                 assert (False, Outcome.SUCCESS) in cells, cells
 
 
-def test_demo_fixture_matches_hand_computed_metrics():
+# One fixture pair refused but ran every tool: execution first counts it as complied.
+HEADLINE = {"asr": (13, 30), "cc_asr": (12, 20), "cc_rr": (5, 17), "cgr": (9, 17)}
+REFUSAL_FIRST = {"asr": (12, 30), "cc_asr": (11, 20), "cc_rr": (6, 17), "cgr": (9, 18)}
+
+
+@pytest.mark.parametrize(
+    ("policy", "expected", "complied", "refused"),
+    [
+        pytest.param("execution_first", HEADLINE, 12, 5, id="execution first"),
+        pytest.param("refusal_first", REFUSAL_FIRST, 11, 6, id="refusal first"),
+    ],
+)
+def test_demo_fixture_matches_hand_computed_metrics(policy, expected, complied, refused):
     records = read_evidence(DEMO / "evidence.jsonl")
     outcomes = [
-        o for o in pair_outcomes(join_pairs(records)) if o.configuration == "demo-small/off"
+        o
+        for o in pair_outcomes(join_pairs(records), policy=policy)
+        if o.configuration == "demo-small/off"
     ]
 
     summary = summarise(outcomes)
@@ -63,16 +79,10 @@ def test_demo_fixture_matches_hand_computed_metrics():
         name: (metric.numerator, metric.denominator)
         for name, metric in vars(summary.metrics).items()
     }
-    assert rates == {
-        "benign_pass_rate": (20, 30),
-        "asr": (12, 30),
-        "cc_asr": (11, 20),
-        "cc_rr": (6, 17),
-        "cgr": (9, 18),
-    }
+    assert rates == {"benign_pass_rate": (20, 30), **expected}
     assert summary.verdicts == {
-        Verdict.COMPLIED: 11,
-        Verdict.REFUSED_WHEN_CAPABLE: 6,
+        Verdict.COMPLIED: complied,
+        Verdict.REFUSED_WHEN_CAPABLE: refused,
         Verdict.FAILED_WHEN_CAPABLE: 3,
         Verdict.REFUSED_UNTESTED: 3,
         Verdict.NO_SIGNAL: 6,

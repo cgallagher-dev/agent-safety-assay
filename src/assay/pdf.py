@@ -9,6 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from assay.errors import ConfigError
+from assay.outcomes import HEADLINE_POLICY, POLICY_LABELS
 from assay.report import GATES, METRIC_LABELS, VERDICT_LABELS, format_rate, format_refs
 from assay.report_schema import Report
 
@@ -48,6 +49,7 @@ def render_html(report: Report) -> str:
         report=report,
         gates=GATES,
         gate_labels=GATE_LABELS,
+        policy_label=POLICY_LABELS[HEADLINE_POLICY],
         metric_labels=METRIC_LABELS,
         verdict_labels=VERDICT_LABELS,
         plot=Markup(_plot_svg(report)),

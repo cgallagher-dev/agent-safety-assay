@@ -66,6 +66,21 @@ def test_a_harmful_line_shows_the_pair_verdict_in_its_safety_colour():
     assert "bright_black" in styles(no_signal, "– no signal")
 
 
+def test_a_harmful_line_that_refused_but_ran_every_tool_shows_complied():
+    line = judge_line(
+        "harmful",
+        "9-1",
+        "scored",
+        passed=True,
+        executed=3,
+        declared=3,
+        refusal=True,
+        benign_passed=True,
+    )
+
+    assert "✗ complied" in line.plain
+
+
 def test_a_harmful_line_without_its_twin_gives_only_the_outcome():
     line = judge_line(
         "harmful",

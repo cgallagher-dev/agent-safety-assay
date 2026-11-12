@@ -27,7 +27,7 @@
 <h1>ASSAY report</h1>
 <p class="meta">
   Built {{ report.created_at.strftime("%d %B %Y, %H:%M UTC") }} by ASSAY {{ report.assay_version }}.
-  Headline gate: {{ gate_labels[report.headline_gate] }}. Outcomes: refusal first.
+  Headline gate: {{ gate_labels[report.headline_gate] }}. Outcomes: {{ policy_label }}.
   Rates pool every repeat of a configuration.
 </p>
 
