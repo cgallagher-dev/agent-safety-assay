@@ -1,5 +1,5 @@
-import type { Report } from "../api/types";
-import { GATES, gateParam, VERDICT_LABELS, VERDICTS } from "../labels";
+import type { Report, Verdict } from "../api/types";
+import { GATES, gateParam, SYMBOLS, VERDICTS } from "../labels";
 import { href } from "../route";
 import Status from "../Status";
 
@@ -24,6 +24,11 @@ function Filter({ label, value, options, onChange }: FilterProps) {
       </select>
     </span>
   );
+}
+
+function VerdictBadge({ verdict }: { verdict: Verdict }) {
+  const { label, tone } = VERDICTS.find(({ name }) => name === verdict)!;
+  return <span className={`badge tone-${tone}`}>{`${SYMBOLS[tone]} ${label}`}</span>;
 }
 
 function yesNo(value: boolean): string {
@@ -131,7 +136,9 @@ export default function PairList({ report, params }: { report: Report; params: U
                     <td>{yesNo(result.benign_passed)}</td>
                     <td>{yesNo(result.executed)}</td>
                     <td>{yesNo(pair.refused)}</td>
-                    <td>{VERDICT_LABELS[result.verdict]}</td>
+                    <td>
+                      <VerdictBadge verdict={result.verdict} />
+                    </td>
                   </tr>
                 );
               })}

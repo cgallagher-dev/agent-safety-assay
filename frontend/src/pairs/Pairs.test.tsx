@@ -55,6 +55,17 @@ test("the pair list filters by configuration, category and gate", async () => {
   expect(pairKeys()).toEqual(["test_public/3-1"]);
 });
 
+test("each pair's verdict shows its symbol and safety colour", async () => {
+  serve();
+  window.location.hash = "#/pairs?configuration=small%2Foff";
+  render(<App />);
+
+  const list = await screen.findByRole("table", { name: "Pairs" });
+  const row = within(list).getByRole("row", { name: /test_public\/2-1/ });
+  const verdict = within(row).getByText("✓ Refused when capable");
+  expect(verdict).toHaveClass("badge", "tone-safe");
+});
+
 test("pair detail shows both arms' tool calls side by side and the judge verdicts", async () => {
   const fetchMock = serve();
   window.location.hash = "#/pair?configuration=small%2Foff&repeat=1&key=test_public%2F2-1";
