@@ -1,39 +1,412 @@
+/* The safety palette from docs/presentation.md: a colour says what a result means for safety. */
 :root {
-  font-family: system-ui, sans-serif;
-  color: #1f2328;
-  background: #ffffff;
+  --harm: #b42318;
+  --safe: #1a7f37;
+  --gap: #b54708;
+  --none: #667085;
+  --neutral: #0f6e6a;
+  --ink: #1d2433;
+  --ink-2: #475467;
+  --line: #d0d5dd;
+  --surface: #ffffff;
+  --page: #f7f8fa;
+  --focus: #0f6e6a;
+
+  color-scheme: light;
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--page);
+}
+
+body {
+  margin: 0;
 }
 
 main {
-  max-width: 72rem;
+  max-width: 76rem;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.5rem 2rem 4rem;
 }
 
-header .run {
-  color: #57606a;
-  margin-top: -0.5rem;
+a {
+  color: var(--neutral);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem;
+}
+
+h3 {
+  font-size: 1.1rem;
+  margin: 1.75rem 0 0.75rem;
 }
 
 section {
-  margin-top: 2rem;
+  margin-top: 2.5rem;
 }
+
+/* Header */
+
+.app-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 0.25rem 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.brand a {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--neutral);
+  text-decoration: none;
+  margin-right: 0.5rem;
+}
+
+.brand span {
+  color: var(--ink-2);
+}
+
+.app-header nav a {
+  margin-left: 1.25rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding-bottom: 0.2rem;
+}
+
+.app-header nav a[aria-current="page"] {
+  border-bottom: 3px solid var(--neutral);
+}
+
+.app-header .run {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+/* Gate switch and outcome rule */
+
+.controls {
+  margin-top: 1.5rem;
+}
+
+.gate-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.control-label {
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.gate-switch button {
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.gate-switch button[aria-pressed="true"] {
+  background: var(--neutral);
+  border-color: var(--neutral);
+  color: #ffffff;
+}
+
+.tag {
+  margin-left: 0.4rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+
+.policy,
+.sensitivity-note {
+  margin: 0.75rem 0 0;
+  color: var(--ink-2);
+}
+
+.sensitivity-note {
+  color: var(--gap);
+  font-weight: 600;
+}
+
+/* One configuration */
+
+.configuration {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem 1.75rem;
+}
+
+.configuration .meta {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
+.summary {
+  font-size: 1.2rem;
+  max-width: 50rem;
+  margin: 0.75rem 0 1.25rem;
+}
+
+/* Metric tiles: text stays in ink; the meter and symbol carry the colour. */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem;
+}
+
+.tile {
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--tone);
+  border-radius: 8px;
+  padding: 0.75rem 1rem 1rem;
+  background: var(--surface);
+}
+
+.tile h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.tile .symbol {
+  color: var(--tone);
+}
+
+.tile .question {
+  margin: 0.2rem 0 0.6rem;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+  min-height: 2.7em;
+}
+
+.tile .value {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile .value .fraction {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.tile .value .undefined {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.meter {
+  height: 6px;
+  margin-top: 0.5rem;
+  border-radius: 3px;
+  background: #eaecf0;
+  overflow: hidden;
+}
+
+.meter div {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--tone);
+}
+
+.headline-value {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+
+.tone-harm {
+  --tone: var(--harm);
+}
+.tone-safe {
+  --tone: var(--safe);
+}
+.tone-gap {
+  --tone: var(--gap);
+}
+.tone-none {
+  --tone: var(--none);
+}
+.tone-neutral {
+  --tone: var(--neutral);
+}
+
+/* Verdict bar: harm left, safe right, 2px gaps between segments. */
+
+.bar {
+  display: flex;
+  gap: 2px;
+  height: 2.5rem;
+}
+
+.segment {
+  flex-basis: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tone);
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.segment:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.segment:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.6rem 0 0;
+}
+
+.legend a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.legend a:hover {
+  text-decoration: underline;
+}
+
+.legend .zero {
+  opacity: 0.55;
+}
+
+.swatch {
+  display: inline-grid;
+  place-items: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 3px;
+  background: var(--tone);
+  color: #ffffff;
+  font-size: 0.75rem;
+}
+
+/* Pair grid: the 2x3 verdicts, one square per pair. */
+
+table.pair-grid {
+  margin-top: 1.25rem;
+  border-collapse: separate;
+  border-spacing: 6px;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.pair-grid th,
+.pair-grid td {
+  border: none;
+  background: none;
+  font-weight: 600;
+  vertical-align: top;
+}
+
+.pair-grid thead th {
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+.pair-grid tbody th {
+  width: 9rem;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+  white-space: normal;
+}
+
+.pair-grid td.cell {
+  border-left: 4px solid var(--tone);
+  background: color-mix(in srgb, var(--tone) 7%, white);
+  border-radius: 4px;
+  padding: 0.6rem 0.75rem;
+  height: 5.5rem;
+}
+
+.cell-label {
+  display: block;
+  font-weight: 600;
+}
+
+.cell-label span {
+  color: var(--tone);
+}
+
+.squares {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 0.5rem;
+}
+
+.square {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 3px;
+  background: var(--tone);
+}
+
+.square:hover {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+/* Tables */
 
 table {
   border-collapse: collapse;
   width: 100%;
   font-variant-numeric: tabular-nums;
+  background: var(--surface);
+  margin-bottom: 1.25rem;
 }
 
 th,
 td {
-  border: 1px solid #d0d7de;
-  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line);
+  padding: 0.45rem 0.65rem;
   text-align: left;
 }
 
 thead th {
-  background: #f6f8fa;
+  background: #f2f4f7;
 }
 
 tbody th {
@@ -41,11 +414,11 @@ tbody th {
 }
 
 .fraction {
-  color: #57606a;
+  color: var(--ink-2);
 }
 
 .undefined {
-  color: #9a6700;
+  color: var(--none);
   font-style: italic;
 }
 
@@ -54,8 +427,14 @@ figure {
 }
 
 figcaption {
-  color: #57606a;
-  max-width: 40rem;
+  color: var(--ink-2);
+  max-width: 44rem;
+}
+
+.how-to-read summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.1rem;
 }
 
 dt {
@@ -67,9 +446,36 @@ dd {
   margin-left: 0;
 }
 
-nav a {
-  margin-right: 1rem;
+/* Loading, empty and error states */
+
+.status {
+  margin-top: 2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--none);
+  border-radius: 8px;
+  background: var(--surface);
+  max-width: 44rem;
 }
+
+.status-error {
+  border-left-color: var(--harm);
+}
+
+.status-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.status-error .status-title span {
+  color: var(--harm);
+}
+
+.status p:not(.status-title) {
+  margin: 0.4rem 0 0;
+}
+
+/* Pair list and detail */
 
 .filters .filter {
   margin-right: 1.5rem;
@@ -77,7 +483,7 @@ nav a {
 
 tr.selected th,
 tr.selected td {
-  background: #ddf4ff;
+  background: color-mix(in srgb, var(--neutral) 10%, white);
 }
 
 .arms {
@@ -98,5 +504,5 @@ tr.selected td {
 }
 
 .withheld {
-  color: #9a6700;
+  color: var(--gap);
 }
