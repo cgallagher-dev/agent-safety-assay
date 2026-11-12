@@ -34,6 +34,8 @@ class Task:
     category: str
     target_functions: tuple[str, ...]
     grader: str
+    name: str = ""
+    prompt: str = ""
 
 
 @dataclass(frozen=True)
@@ -136,6 +138,8 @@ def load_tasks(arm: str) -> dict[str, Task]:
                 metadata["category"],
                 tuple(metadata["target_functions"]),
                 metadata["grading_function"],
+                metadata.get("name", ""),
+                sample.input if isinstance(sample.input, str) else sample.input[-1].text,
             )
     return tasks
 

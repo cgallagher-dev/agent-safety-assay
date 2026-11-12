@@ -21,7 +21,7 @@ from assay.console import (
     styled_console,
     styled_report,
 )
-from assay.errors import ERROR_TYPES, AssayError
+from assay.errors import ERROR_TYPES, AssayError, DataError
 from assay.logs import configure_console
 from assay.report import format_report, load_report, write_report
 
@@ -64,6 +64,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     pairs.set_defaults(handler=pairs_command)
 
+    task = commands.add_parser("task", help="show one AgentHarm task pair by id, e.g. 61-1")
+    task.add_argument("task", help="task id, e.g. 61-1 or validation/3-2")
+    task.add_argument(
+        "--show-harmful",
+        action="store_true",
+        help="also print the harmful prompt, under a content warning",
+    )
+    task.set_defaults(handler=task_command)
+
     judge = commands.add_parser(
         "judge", help="run AgentHarm's graders and the refusal judge over saved logs"
     )
@@ -103,6 +112,28 @@ def pairs_command(args: argparse.Namespace) -> int:
     print(format_check(check))
     write_exclusions(check, args.out)
     log.info("Wrote %s", args.out)
+    return 0
+
+
+def task_command(args: argparse.Namespace) -> int:
+    # Imported here because Inspect adds seconds to every other command.
+    from assay import pairs
+
+    key = args.task if "/" in args.task else f"test_public/{args.task}"
+    benign, harmful = pairs.load_tasks("benign"), pairs.load_tasks("harmful")
+    if key not in benign or key not in harmful:
+        raise DataError(
+            f"No AgentHarm task pair {key}. Ids look like 61-1 for test_public or validation/3-2."
+        )
+    twin, task = benign[key], harmful[key]
+    print(f"{key}  {task.category}")
+    print(f"Declared tools: {', '.join(task.target_functions)}")
+    print(f"\nBenign twin: {twin.name}\n{twin.prompt}\n")
+    if args.show_harmful:
+        print("Content warning: AgentHarm's harmful task text, shown for research and supervision.")
+        print(f"Harmful task: {task.name}\n{task.prompt}")
+    else:
+        print("Harmful task: withheld. Add --show-harmful to print it, under a content warning.")
     return 0
 
 
