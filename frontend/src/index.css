@@ -541,3 +541,43 @@ tr.selected td {
 .step-not-called {
   color: var(--none);
 }
+
+/* Pair list */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+}
+
+.filters .filter {
+  margin-right: 0;
+}
+
+.filters label {
+  font-weight: 600;
+  margin-right: 0.4rem;
+}
+
+.filters select {
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 9%, white);
+  border: 1px solid color-mix(in srgb, var(--tone) 30%, white);
+  white-space: nowrap;
+}
