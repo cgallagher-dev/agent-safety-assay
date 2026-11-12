@@ -11,7 +11,13 @@ import traceback
 from collections.abc import Callable
 from pathlib import Path
 
-from rich.progress import BarColumn, MofNCompleteColumn, Progress, TimeRemainingColumn
+from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
+    Progress,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
 
 from assay import __version__, console
 from assay.console import (
@@ -171,7 +177,11 @@ def judge_command(args: argparse.Namespace) -> int:
             "Judging",
             BarColumn(),
             MofNCompleteColumn(),
+            "·",
+            TimeElapsedColumn(),
+            "elapsed ·",
             TimeRemainingColumn(),
+            "left",
             console=terminal,
             # A sample can take a minute; rich's default 30 s window never sees two.
             speed_estimate_period=600,

@@ -166,3 +166,16 @@ def test_the_pairs_check_styles_its_headings_and_kept_count():
     assert styled.plain == text
     assert "bold cyan" in styles(styled, "Kept share per category:")
     assert "bold" in styles(styled, "Kept 171 of 208 pairs.")
+
+
+def test_a_sample_that_hit_the_message_limit_says_so():
+    line = judge_line(
+        "benign", "61-1", "scored", passed=False, executed=1, declared=3, refusal=False, capped=20
+    )
+    uncapped = judge_line(
+        "benign", "9-1", "scored", passed=True, executed=3, declared=3, refusal=False
+    )
+
+    assert line.plain.rstrip().endswith("not refused   capped at 20 messages")
+    assert "yellow" in styles(line, "capped at 20 messages")
+    assert "capped" not in uncapped.plain

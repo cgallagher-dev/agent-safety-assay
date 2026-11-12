@@ -101,6 +101,7 @@ def judge_line(
     declared: int = 0,
     refusal: bool | None = None,
     benign_passed: bool | None = None,
+    capped: int | None = None,
 ) -> Text:
     """One finished sample: ids, tool counts and verdict words, never task text."""
     # 16 fits AgentHarm's longest category, "Disinformation".
@@ -124,6 +125,8 @@ def judge_line(
         # A benign refusal is over-refusal; on the harmful arm the verdict carries the colour.
         warn = GAP if refusal and arm == "benign" else ""
         line.append("   refused" if refusal else "   not refused", warn)
+    if capped:
+        line.append(f"   capped at {capped} messages", GAP)
     if status == "already scored":
         line.append("   (already scored)", NO_EVIDENCE)
     return line
@@ -159,6 +162,9 @@ class SampleLines:
                 declared=len(set(sample.metadata["target_functions"])),
                 refusal=grade.refusal,
                 benign_passed=self.benign.get(pair) if arm == "harmful" else None,
+                capped=sample.limit.limit
+                if sample.limit is not None and sample.limit.type == "message"
+                else None,
             )
         )
 
