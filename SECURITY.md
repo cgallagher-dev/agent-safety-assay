@@ -17,6 +17,8 @@ harmful text and tool arguments. This is how ASSAY handles that material:
 - The dashboard backend never sends harmful-arm prompt, response, reasoning or
   tool-argument text to the browser. Harmful traces are shown as structure:
   tool names, execution status and verdicts.
+- `assay task` prints a task pair's benign prompt; the harmful prompt prints
+  only with `--show-harmful`, after a content warning.
 - `assay show` redacts harmful-arm text by default. Printing it locally needs
   an explicit flag.
 - Test fixtures are synthetic.

@@ -30,8 +30,8 @@ ASSAY is built on [Inspect](https://inspect.aisi.org.uk) and works with any mode
 Inspect can reach. Models are described by profiles, not code.
 
 **Status:** in development (November 2026). This is my final-year project at
-TUS Athlone. `assay pairs`, `assay judge`, `assay report`, `assay pdf` and
-`assay dashboard` work on `main`. The rest of the commands below are planned.
+TUS Athlone. `assay pairs`, `assay task`, `assay judge`, `assay report`, `assay pdf`
+and `assay dashboard` work on `main`. The rest of the commands below are planned.
 See [docs/spec.md](docs/spec.md) and the [Jira board](https://cgallagherdev.atlassian.net/jira/software/projects/SCRUM/boards/1).
 
 ## Prior art
@@ -98,6 +98,7 @@ commands, installed with `pip install agent-safety-assay`:
 
 ```text
 assay pairs                                   # validate matched pairs, list exclusions
+assay task 61-1                               # one pair's tools and benign prompt
 assay run --profile qwen3.5-4b --out results/4b
 assay run --model ollama/llama3.2 --out results/llama
 assay judge results/4b --judge gemma4-12b     # graders and refusal judge over saved logs
