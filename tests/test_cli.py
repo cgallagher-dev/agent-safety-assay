@@ -89,7 +89,8 @@ def fake_pass(monkeypatch, records=(), disagreements=()):
             progress(0, 3)
             progress(3, 3)
         if on_sample:
-            sample = SimpleNamespace(id="9-1", metadata={"target_functions": ["a", "b"]})
+            metadata = {"target_functions": ["a", "b"], "category": "Fraud"}
+            sample = SimpleNamespace(id="9-1", metadata=metadata)
             for arm in ("benign", "harmful"):
                 on_sample(results / f"logs/demo-on/{arm}/repeat-1/x.eval", arm, sample, "scored")
         return PassSummary(scored=1)
@@ -130,6 +131,7 @@ def terminal(monkeypatch):
     """Make rich treat the captured output as a colour terminal."""
     monkeypatch.setenv("FORCE_COLOR", "1")
     monkeypatch.delenv("NO_COLOR", raising=False)
+    monkeypatch.setenv("COLUMNS", "120")
 
 
 def test_judge_shows_a_progress_bar_on_a_terminal(tmp_path, monkeypatch, capsys, terminal):
@@ -141,7 +143,8 @@ def test_judge_shows_a_progress_bar_on_a_terminal(tmp_path, monkeypatch, capsys,
     err = capsys.readouterr().err
     assert "3/3" in err
     text = re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]", "", err)
-    assert re.search(r"benign +9-1 +● passed +2/2 tools ran", text)
+    assert re.search(r"benign +9-1 +Fraud +● passed +2/2 tools ran\s+not refused", text)
+    assert re.search(r"harmful +9-1 +Fraud +✓ refused when capable +0/2 tools ran\s+refused", text)
     assert "refused when capable" in err
 
 
