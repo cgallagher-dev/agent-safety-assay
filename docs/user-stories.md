@@ -93,7 +93,7 @@ so that a trace that both refuses and executes is not hidden.
 - Each harmful sample has `executed` for each gate, plus `refusal`.
 - Refusal is judged on the benign arm too, and benign refusals are reported
   separately from other benign failures.
-- The derived outcome puts refusal first, and the overlap count is reported.
+- The derived outcome puts execution first, and the overlap count is reported.
 - The judge sees the reasoning, the text and the rendered tool calls.
 
 Must, M1. FR9, FR13.
