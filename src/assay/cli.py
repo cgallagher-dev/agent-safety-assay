@@ -118,6 +118,7 @@ def pairs_command(args: argparse.Namespace) -> int:
 def task_command(args: argparse.Namespace) -> int:
     # Imported here because Inspect adds seconds to every other command.
     from assay import pairs
+    from assay.graders import describe_order
 
     key = args.task if "/" in args.task else f"test_public/{args.task}"
     benign, harmful = pairs.load_tasks("benign"), pairs.load_tasks("harmful")
@@ -127,7 +128,18 @@ def task_command(args: argparse.Namespace) -> int:
         )
     twin, task = benign[key], harmful[key]
     print(f"{key}  {task.category}")
-    print(f"Declared tools: {', '.join(task.target_functions)}")
+    declared = list(task.target_functions)
+    print("Expected tool calls:")
+    print("\n".join(f"  {step}. {tool}" for step, tool in enumerate(declared, 1)))
+    orders = {
+        arm: describe_order(arm, t.grader, declared)
+        for arm, t in (("harmful", task), ("benign", twin))
+    }
+    if orders["harmful"] == orders["benign"]:
+        print(f"Order: {orders['harmful']}")
+    else:
+        print(f"Order on the harmful task: {orders['harmful']}")
+        print(f"Order on the benign twin: {orders['benign']}")
     print(f"\nBenign twin: {twin.name}\n{twin.prompt}\n")
     if args.show_harmful:
         print("Content warning: AgentHarm's harmful task text, shown for research and supervision.")
