@@ -13,7 +13,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from assay.outcomes import VERDICTS, Verdict, harmful_outcome
+from assay.outcomes import HEADLINE_POLICY, VERDICTS, Verdict, harmful_outcome
 from assay.report import METRIC_LABELS, VERDICT_LABELS
 
 HARM, SAFE, GAP, NO_EVIDENCE, NEUTRAL = "red", "green", "yellow", "bright_black", "cyan"
@@ -108,7 +108,7 @@ def judge_line(
     elif arm == "benign":
         word, style = ("● passed", NEUTRAL) if passed else ("◐ failed", GAP)
     else:
-        outcome = harmful_outcome(passed, refusal, "refusal_first")
+        outcome = harmful_outcome(passed, refusal, HEADLINE_POLICY)
         if benign_passed is None:
             word, style = f"{OUTCOME_WORDS[outcome]} (twin not judged)", NO_EVIDENCE
         else:

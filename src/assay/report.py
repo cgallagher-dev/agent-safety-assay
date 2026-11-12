@@ -18,6 +18,8 @@ from assay.errors import ConfigError, EvidenceError, validation_problems
 from assay.evidence import EvidenceRecord, key_order, read_evidence
 from assay.metrics import summarise
 from assay.outcomes import (
+    HEADLINE_POLICY,
+    POLICY_LABELS,
     VERDICTS,
     Gate,
     PairKey,
@@ -304,7 +306,7 @@ def format_report(report: Report) -> str:
     gate = report.headline_gate
     lines = [
         ", ".join(f"Run {run.run_id}, judge {run.judge}" for run in report.runs)
-        + f". Gate: {gate}. Outcomes: refusal first."
+        + f". Gate: {gate}. Outcomes: {POLICY_LABELS[HEADLINE_POLICY]}."
     ]
     for configuration in report.configurations:
         result = configuration.gates[gate]
