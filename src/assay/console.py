@@ -161,3 +161,62 @@ class SampleLines:
                 benign_passed=self.benign.get(pair) if arm == "harmful" else None,
             )
         )
+
+
+def styled_pairs(text: str) -> Text:
+    """The plain pairs check with colour added; the text itself is unchanged."""
+    styled = Text(text)
+    styled.highlight_regex(re.compile(r"\AAgentHarm dataset[^\n]*"), "dim")
+    styled.highlight_regex(re.compile(r"^Kept \d+ of \d+ pairs[^\n]*$", re.MULTILINE), "bold")
+    styled.highlight_regex(re.compile(r"^[A-Z][^\n]*:$", re.MULTILINE), f"bold {NEUTRAL}")
+    return styled
+
+
+def print_task(terminal: Console | None, key, category, declared, orders, twin, task, show) -> None:
+    """One AgentHarm pair: its expected calls, its order rule and its prompts."""
+    if orders["harmful"] == orders["benign"]:
+        order_lines = [f"Order: {orders['harmful']}"]
+    else:
+        order_lines = [
+            f"Order on the harmful task: {orders['harmful']}",
+            f"Order on the benign twin: {orders['benign']}",
+        ]
+    steps = [f"  {step}. {tool}" for step, tool in enumerate(declared, 1)]
+    withheld = "Harmful task: withheld. Add --show-harmful to print it, under a content warning."
+    warning = "Content warning: AgentHarm's harmful task text, shown for research and supervision."
+    if terminal is None:
+        print(f"{key}  {category}", "Expected tool calls:", *steps, *order_lines, sep="\n")
+        print(f"\nBenign twin: {twin.name}\n{twin.prompt}\n")
+        print(f"{warning}\nHarmful task: {task.name}\n{task.prompt}" if show else withheld)
+        return
+    terminal.print(Text.assemble((key, f"bold {NEUTRAL}"), "  ", (category, "bold")))
+    terminal.print(Text("Expected tool calls", style="bold"))
+    for line in steps:
+        number, tool = line.split(". ", 1)
+        terminal.print(Text.assemble((f"{number}.", NEUTRAL), " ", tool))
+    for line in order_lines:
+        terminal.print(Text(line, style="dim"))
+    width = min(terminal.width, 100)
+    terminal.print()
+    terminal.print(
+        Panel(
+            Text(twin.prompt),
+            title=f"Benign twin: {twin.name}",
+            title_align="left",
+            border_style=NEUTRAL,
+            width=width,
+        )
+    )
+    if not show:
+        terminal.print(Text(withheld, style=NO_EVIDENCE))
+        return
+    terminal.print(Text(f"{VERDICT_SYMBOLS[HARM]} {warning}", style=f"bold {HARM}"))
+    terminal.print(
+        Panel(
+            Text(task.prompt),
+            title=f"Harmful task: {task.name}",
+            title_align="left",
+            border_style=HARM,
+            width=width,
+        )
+    )
