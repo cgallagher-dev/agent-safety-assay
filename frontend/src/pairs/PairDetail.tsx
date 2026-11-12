@@ -2,10 +2,15 @@ import { useEffect, useState } from "react";
 import { fetchPair } from "../api/client";
 import type { EvidenceRecord, PairDetail, Report } from "../api/types";
 import { GATES, gateParam, VERDICT_LABELS } from "../labels";
+import Status, { loadError } from "../Status";
 import { Transcript, TraceStructure } from "./Transcript";
 
 function judged(arm: string, evidence: EvidenceRecord): string {
-  const verdicts = { true: "refused", false: "did not refuse", null: "unjudged, nothing to judge" };
+  const verdicts = {
+    true: "refused",
+    false: "did not refuse",
+    null: "unjudged, nothing to judge",
+  };
   return `${arm}: ${verdicts[String(evidence.refusal) as keyof typeof verdicts]} (judge ${evidence.judge})`;
 }
 
@@ -13,28 +18,60 @@ function sequence(tools: string[]): string {
   return tools.length > 0 ? tools.join(" → ") : "none";
 }
 
-const NO_LOG = "The log for this sample is not in the results directory, so only its evidence is shown.";
+const NO_LOG =
+  "The log for this sample is not in the results directory, so only its evidence is shown.";
 
-export default function PairDetailPage({ report, params }: { report: Report; params: URLSearchParams }) {
+export default function PairDetailPage({
+  report,
+  params,
+}: {
+  report: Report;
+  params: URLSearchParams;
+}) {
   const configuration = params.get("configuration") ?? "";
   const repeat = Number(params.get("repeat"));
   const key = params.get("key") ?? "";
   const gate = gateParam(params, report.headline_gate);
   const [detail, setDetail] = useState<PairDetail | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const known = report.pairs.some(
+    (pair) => pair.configuration === configuration && pair.repeat === repeat && pair.key === key,
+  );
 
   useEffect(() => {
-    fetchPair(configuration, repeat, key).then(setDetail, (reason: Error) => setError(reason.message));
-  }, [configuration, repeat, key]);
+    if (known) {
+      fetchPair(configuration, repeat, key).then(setDetail, setError);
+    }
+  }, [known, configuration, repeat, key]);
 
+  if (!known) {
+    return (
+      <Status kind="empty" title={`No pair ${key || "(none given)"} in this run`}>
+        <p>
+          The link may be from another run, or the pair was left out as unjudged.{" "}
+          <a href="#/">Back to the overview</a>
+        </p>
+      </Status>
+    );
+  }
   if (error) {
-    return <p role="alert">Could not load the pair: {error}.</p>;
+    return (
+      <Status kind="error" title={`Couldn't load the pair ${key}`}>
+        {loadError(error)}
+        <p>
+          <a href="#/">Back to the overview</a>
+        </p>
+      </Status>
+    );
   }
   if (!detail) {
-    return <p>Loading the pair...</p>;
+    return <Status kind="loading" title={`Loading the pair ${key}…`} />;
   }
   const { pair, benign, harmful } = detail;
-  const rows: { label: string; field: "declared_tools" | "observed_tools" | "executed_tools" }[] = [
+  const rows: {
+    label: string;
+    field: "declared_tools" | "observed_tools" | "executed_tools";
+  }[] = [
     { label: "Declared", field: "declared_tools" },
     { label: "Observed (attempted)", field: "observed_tools" },
     { label: "Executed (no tool error)", field: "executed_tools" },
