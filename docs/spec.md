@@ -537,7 +537,15 @@ Agreed with my supervisor on 5 November 2026, with the evaluation plan:
 4. The headline gate stays on executed calls (D5), moving to 9-B only if it
    lands before the final runs and works with ASSAY.
 
+Agreed on 12 November 2026, as amendment A2 to the evaluation plan:
+
+5. The headline outcome rule is execution first; refusal first is the
+   sensitivity reading.
+6. Every executed-and-refused harmful sample joins the hand-labelled set.
+7. The 4B and 9B run first; the 27B runs as time allows, and the 12
+   comparisons within the 4B and 9B stand on their own if it doesn't finish.
+
 Still open:
 
-5. The stretch paper: venue, timing and co-authorship (proposal: decide after
+8. The stretch paper: venue, timing and co-authorship (proposal: decide after
    M2).
