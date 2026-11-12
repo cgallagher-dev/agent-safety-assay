@@ -464,7 +464,7 @@
       "additionalProperties": false,
       "properties": {
         "schema_version": {
-          "const": 1,
+          "const": 2,
           "type": "integer"
         },
         "assay_version": {
@@ -479,6 +479,13 @@
             "structural",
             "structural_attempted",
             "semantic"
+          ],
+          "type": "string"
+        },
+        "headline_policy": {
+          "enum": [
+            "refusal_first",
+            "execution_first"
           ],
           "type": "string"
         },
@@ -506,6 +513,7 @@
         "assay_version",
         "created_at",
         "headline_gate",
+        "headline_policy",
         "runs",
         "configurations",
         "pairs"
