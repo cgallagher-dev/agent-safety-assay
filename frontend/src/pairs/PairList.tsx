@@ -1,6 +1,7 @@
 import type { Report } from "../api/types";
 import { GATES, gateParam, VERDICT_LABELS, VERDICTS } from "../labels";
 import { href } from "../route";
+import Status from "../Status";
 
 interface FilterProps {
   label: string;
@@ -55,7 +56,13 @@ export default function PairList({ report, params }: { report: Report; params: U
         <Filter
           label="Configuration"
           value={filters.configuration}
-          options={[all, ...report.configurations.map(({ name }) => ({ value: name, label: name }))]}
+          options={[
+            all,
+            ...report.configurations.map(({ name }) => ({
+              value: name,
+              label: name,
+            })),
+          ]}
           onChange={choose("configuration")}
         />
         <Filter
@@ -77,51 +84,61 @@ export default function PairList({ report, params }: { report: Report; params: U
           onChange={choose("gate")}
         />
       </p>
-      <p>
-        {pairs.length} {pairs.length === 1 ? "pair" : "pairs"}
-      </p>
-      <table aria-label="Pairs">
-        <thead>
-          <tr>
-            <th scope="col">Configuration</th>
-            <th scope="col">Repeat</th>
-            <th scope="col">Key</th>
-            <th scope="col">Category</th>
-            <th scope="col">Benign task passed</th>
-            <th scope="col">Harmful task executed</th>
-            <th scope="col">Refused</th>
-            <th scope="col">Verdict</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pairs.map((pair) => {
-            const result = pair.gates[filters.gate];
-            return (
-              <tr key={`${pair.configuration} ${pair.repeat} ${pair.key}`}>
-                <td>{pair.configuration}</td>
-                <td>{pair.repeat}</td>
-                <td>
-                  <a
-                    href={href("pair", {
-                      configuration: pair.configuration,
-                      repeat: pair.repeat,
-                      key: pair.key,
-                      gate: filters.gate,
-                    })}
-                  >
-                    {pair.key}
-                  </a>
-                </td>
-                <td>{pair.category}</td>
-                <td>{yesNo(result.benign_passed)}</td>
-                <td>{yesNo(result.executed)}</td>
-                <td>{yesNo(pair.refused)}</td>
-                <td>{VERDICT_LABELS[result.verdict]}</td>
+      {pairs.length === 0 ? (
+        <Status kind="empty" title="No pairs match these filters">
+          <p>
+            <a href={href("pairs", { gate: filters.gate })}>Clear filters</a>
+          </p>
+        </Status>
+      ) : (
+        <>
+          <p>
+            {pairs.length} {pairs.length === 1 ? "pair" : "pairs"}
+          </p>
+          <table aria-label="Pairs">
+            <thead>
+              <tr>
+                <th scope="col">Configuration</th>
+                <th scope="col">Repeat</th>
+                <th scope="col">Key</th>
+                <th scope="col">Category</th>
+                <th scope="col">Benign task passed</th>
+                <th scope="col">Harmful task executed</th>
+                <th scope="col">Refused</th>
+                <th scope="col">Verdict</th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {pairs.map((pair) => {
+                const result = pair.gates[filters.gate];
+                return (
+                  <tr key={`${pair.configuration} ${pair.repeat} ${pair.key}`}>
+                    <td>{pair.configuration}</td>
+                    <td>{pair.repeat}</td>
+                    <td>
+                      <a
+                        href={href("pair", {
+                          configuration: pair.configuration,
+                          repeat: pair.repeat,
+                          key: pair.key,
+                          gate: filters.gate,
+                        })}
+                      >
+                        {pair.key}
+                      </a>
+                    </td>
+                    <td>{pair.category}</td>
+                    <td>{yesNo(result.benign_passed)}</td>
+                    <td>{yesNo(result.executed)}</td>
+                    <td>{yesNo(pair.refused)}</td>
+                    <td>{VERDICT_LABELS[result.verdict]}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </>
+      )}
     </section>
   );
 }
