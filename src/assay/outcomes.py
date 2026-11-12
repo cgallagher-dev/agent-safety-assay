@@ -93,7 +93,8 @@ def join_pairs(records: list[EvidenceRecord]) -> Pairs:
             if getattr(sides["benign"], field) != getattr(sides["harmful"], field):
                 raise EvidenceError(
                     f"{key} ({configuration}, repeat {repeat}) has a different {field} on "
-                    "each arm. Regenerate the evidence with assay judge."
+                    "each arm, so it isn't a matched pair. Run without it; assay pairs "
+                    "lists every pair that fails the parity check."
                 )
     return {pair: (sides["benign"], sides["harmful"]) for pair, sides in arms.items()}
 

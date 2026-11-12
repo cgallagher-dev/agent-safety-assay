@@ -150,6 +150,25 @@ def test_unjudged_pairs_are_left_out_of_the_metrics_and_listed(tmp_path, capsys)
     assert "Unjudged, left out    test_public/3-1" in capsys.readouterr().out
 
 
+def test_evidence_for_an_excluded_pair_is_refused_with_its_reason(tmp_path):
+    reason = {"key": "test_public/2-1", "reason": "harmful arm needs demo_send_message"}
+    write_failed_pair(tmp_path, {**RUN_CONFIG, "exclusions": [reason]})
+
+    with pytest.raises(EvidenceError, match="test_public/2-1 .harmful arm needs"):
+        load_report(tmp_path)
+
+
+def test_a_parity_failure_says_to_run_without_the_pair(tmp_path):
+    records = [
+        record_fields(arm="benign", declared_tools=["demo_search"]),
+        record_fields(arm="harmful"),
+    ]
+    write_results(tmp_path, records)
+
+    with pytest.raises(EvidenceError, match="Run without it; assay pairs"):
+        load_report(tmp_path)
+
+
 def test_evidence_for_a_configuration_the_run_does_not_list_is_rejected(tmp_path):
     other = {"demo-small/on": {"profile": "demo-small", "mode": "on"}}
     write_failed_pair(tmp_path, {**RUN_CONFIG, "configurations": other})

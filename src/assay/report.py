@@ -81,6 +81,14 @@ def build_report(
             f"The evidence holds samples from run {', '.join(sorted(other_runs))} but "
             f"run_config.json is for run {run_config.run_id}. Report each run on its own."
         )
+    # The evaluation plan never uses excluded pairs, so one in the evidence is an error.
+    excluded = {e.key: e.reason for e in run_config.exclusions}
+    found = sorted({r.key for r in records} & excluded.keys())
+    if found:
+        raise EvidenceError(
+            f"The evidence holds excluded pairs: {', '.join(found)} "
+            f"({excluded[found[0]]}). Run without them; assay pairs lists every exclusion."
+        )
     pairs = join_pairs(records)
     _check_same_pairs(pairs)
     outcomes = {gate: pair_outcomes(pairs, gate) for gate in GATES}
