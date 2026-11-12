@@ -423,6 +423,7 @@ explanation.
 ### Report (`report.json`)
 
 Top level: `schema_version`, `assay_version`, `created_at`, `headline_gate`,
+`headline_policy`,
 `runs` (run id, versions, judge, sampling settings, message
 limit, splits, exclusions),
 `configurations` (per configuration: profile, mode, repeats, pair count,

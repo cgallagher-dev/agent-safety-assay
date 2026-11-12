@@ -198,10 +198,11 @@ export interface PairGate {
  * via the `definition` "Report".
  */
 export interface Report {
-  schema_version: 1;
+  schema_version: 2;
   assay_version: string;
   created_at: string;
   headline_gate: "structural" | "structural_attempted" | "semantic";
+  headline_policy: "refusal_first" | "execution_first";
   runs: RunInfo[];
   configurations: ConfigurationResult[];
   pairs: PairRow[];

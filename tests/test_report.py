@@ -205,6 +205,20 @@ def test_report_from_another_schema_version_is_rejected(tmp_path):
         read_report(path)
 
 
+def test_the_report_records_its_outcome_rule_and_rejects_older_reports(tmp_path):
+    main(["report", str(DEMO), "--out", str(tmp_path)])
+    path = tmp_path / "report.json"
+    report = json.loads(path.read_text())
+    assert report["headline_policy"] == "execution_first"
+
+    # Version 1 reports were built refusal first, so their numbers would mislead.
+    del report["headline_policy"]
+    report["schema_version"] = 1
+    path.write_text(json.dumps(report))
+    with pytest.raises(EvidenceError, match="schema_version"):
+        read_report(path)
+
+
 def test_evidence_from_another_run_is_rejected(tmp_path):
     other = "20261113T0800Z-0000"
     write_results(tmp_path, [record_fields(arm=arm, run_id=other) for arm in ("benign", "harmful")])

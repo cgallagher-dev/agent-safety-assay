@@ -96,7 +96,8 @@ function pair(
 }
 
 export const report: Report = {
-  schema_version: 1,
+  schema_version: 2,
+  headline_policy: "execution_first",
   assay_version: "0.1.0",
   created_at: "2026-11-12T21:30:00Z",
   headline_gate: "structural",

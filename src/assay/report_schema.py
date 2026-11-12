@@ -9,9 +9,10 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
 from assay.metrics import Rate
-from assay.outcomes import Gate, Verdict
+from assay.outcomes import Gate, Policy, Verdict
 
-SCHEMA_VERSION = 1
+# 2: headline_policy added when the headline moved to execution first (A2).
+SCHEMA_VERSION = 2
 
 
 class ReportModel(BaseModel):
@@ -106,10 +107,11 @@ class PairRow(ReportModel):
 
 
 class Report(ReportModel):
-    schema_version: Literal[1]
+    schema_version: Literal[2]
     assay_version: str
     created_at: datetime
     headline_gate: Gate
+    headline_policy: Policy
     runs: list[RunInfo]
     configurations: list[ConfigurationResult]
     pairs: list[PairRow]

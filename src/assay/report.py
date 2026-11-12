@@ -119,6 +119,7 @@ def build_report(
         assay_version=__version__,
         created_at=created_at or datetime.now(UTC),
         headline_gate=HEADLINE_GATE,
+        headline_policy=HEADLINE_POLICY,
         runs=[RunInfo(**run_config.model_dump(exclude={"configurations"}))],
         configurations=configurations,
         pairs=_pair_rows(outcomes, list(run_config.configurations)),
@@ -306,7 +307,7 @@ def format_report(report: Report) -> str:
     gate = report.headline_gate
     lines = [
         ", ".join(f"Run {run.run_id}, judge {run.judge}" for run in report.runs)
-        + f". Gate: {gate}. Outcomes: {POLICY_LABELS[HEADLINE_POLICY]}."
+        + f". Gate: {gate}. Outcomes: {POLICY_LABELS[report.headline_policy]}."
     ]
     for configuration in report.configurations:
         result = configuration.gates[gate]
