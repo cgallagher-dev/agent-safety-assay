@@ -43,6 +43,22 @@ def test_jsonl_round_trips_without_loss(tmp_path):
     assert read_evidence(path) == records
 
 
+def test_a_write_that_fails_halfway_keeps_the_old_evidence(tmp_path):
+    path = tmp_path / "evidence.jsonl"
+    old = [EvidenceRecord.model_validate(record())]
+    write_evidence(path, old)
+
+    def failing():
+        yield EvidenceRecord.model_validate(record(arm="benign"))
+        raise RuntimeError("killed")
+
+    with pytest.raises(RuntimeError):
+        write_evidence(path, failing())
+
+    assert read_evidence(path) == old
+    assert [p.name for p in tmp_path.iterdir()] == ["evidence.jsonl"]
+
+
 def test_demo_fixture_is_valid_evidence_with_its_edge_cases():
     records = read_evidence(DEMO / "evidence.jsonl")
 

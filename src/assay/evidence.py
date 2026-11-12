@@ -70,9 +70,16 @@ class EvidenceRecord(BaseModel):
 
 
 def write_evidence(path: Path, records: Iterable[EvidenceRecord]) -> None:
-    with path.open("w", encoding="utf-8") as file:
-        for record in records:
-            file.write(record.model_dump_json() + "\n")
+    """Write beside the file, then swap it in, so a crash mid-write keeps the old evidence."""
+    temporary = path.with_name(path.name + ".tmp")
+    try:
+        with temporary.open("w", encoding="utf-8") as file:
+            for record in records:
+                file.write(record.model_dump_json() + "\n")
+        temporary.replace(path)
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
 
 
 def read_evidence(path: Path) -> list[EvidenceRecord]:
