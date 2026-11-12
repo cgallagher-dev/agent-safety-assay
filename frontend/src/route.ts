@@ -9,7 +9,11 @@ export interface Route {
 export function useRoute(): Route {
   const [hash, setHash] = useState(window.location.hash);
   useEffect(() => {
-    const update = () => setHash(window.location.hash);
+    const update = () => {
+      setHash(window.location.hash);
+      // A new page starts at its top, not wherever the last page was scrolled to.
+      window.scrollTo(0, 0);
+    };
     window.addEventListener("hashchange", update);
     return () => window.removeEventListener("hashchange", update);
   }, []);
