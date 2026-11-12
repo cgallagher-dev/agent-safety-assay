@@ -3,113 +3,189 @@
 <head>
 <meta charset="utf-8">
 <title>ASSAY report</title>
+{% set run_ids = report.runs | map(attribute="run_id") | join(", ") %}
+{% set headline = report.headline_gate %}
 <style>
-  @page { size: A4; margin: 16mm 14mm; }
-  body { font-family: sans-serif; font-size: 9.5pt; color: #1f2328; }
-  h1 { font-size: 18pt; margin-bottom: 2mm; }
-  h2 { font-size: 13pt; margin-top: 7mm; }
-  h3 { font-size: 11pt; margin-top: 5mm; }
-  h4 { font-size: 10pt; margin: 3mm 0 1mm; }
-  .meta, figcaption { color: #57606a; }
-  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
-  th, td { border: 1px solid #d0d7de; padding: 1.2mm 1.6mm; text-align: left; vertical-align: top; }
-  thead th { background: #f6f8fa; }
+  @page {
+    size: A4;
+    margin: 18mm 16mm 20mm;
+    @bottom-left { content: "Run {{ run_ids }}"; font-family: "DejaVu Sans", "Helvetica", sans-serif; font-size: 8pt; color: #475467; }
+    @bottom-right { content: "Page " counter(page) " of " counter(pages); font-family: "DejaVu Sans", "Helvetica", sans-serif; font-size: 8pt; color: #475467; }
+  }
+  @page :first { @bottom-left { content: none; } }
+  body { font-family: "DejaVu Sans", "Helvetica", sans-serif; font-size: 9.5pt; line-height: 1.4; color: #1d2433; }
+  h1 { font-size: 26pt; margin: 0; color: #0F6E6A; letter-spacing: 0.04em; }
+  h2 { font-size: 14pt; margin: 8mm 0 3mm; break-after: avoid; }
+  h3 { font-size: 11pt; margin: 5mm 0 2mm; break-after: avoid; }
+  h4 { font-size: 10pt; margin: 3mm 0 1mm; break-after: avoid; }
+  p { margin: 0 0 2mm; }
+  .meta, figcaption, .note { color: #475467; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; margin-bottom: 3mm; }
+  thead { display: table-header-group; }
+  tr { break-inside: avoid; }
+  table { break-inside: avoid; }
+  th, td { border: 0.6pt solid #d0d5dd; padding: 1.4mm 1.8mm; text-align: left; vertical-align: top; }
+  thead th { background: #f2f4f7; }
   figure { margin: 0; break-inside: avoid; }
-  svg { width: 100mm; height: auto; }
+  svg { width: 72mm; height: auto; float: left; margin-right: 6mm; }
+  #plot figcaption { padding-top: 10mm; }
+  #plot figure::after { content: ""; display: block; clear: both; }
   dl { margin: 0; }
-  dt { font-weight: 600; margin-top: 1mm; }
+  dt { font-weight: 700; margin-top: 1.5mm; }
   dd { margin: 0 0 0 4mm; }
-  #limitations { break-inside: avoid; }
-  #appendix { page-break-before: always; }
+  section { break-inside: auto; }
+  .page { break-before: page; }
+
+  .tone-harm { color: #B42318; }
+  .tone-safe { color: #1A7F37; }
+  .tone-gap { color: #B54708; }
+  .tone-none { color: #667085; }
+  .tone-neutral { color: #0F6E6A; }
+
+  #title { padding-top: 45mm; }
+  #title .subtitle { font-size: 14pt; color: #475467; margin: 2mm 0 14mm; }
+  #title table { width: auto; min-width: 120mm; }
+  #title th { background: none; width: 42mm; color: #475467; font-weight: 400; }
+
+  .summary { font-size: 11pt; margin: 2mm 0 3mm; }
+  .cards td { width: 20%; }
+  .cards .label { font-weight: 700; }
+  .cards .question { color: #475467; font-size: 8.5pt; display: block; margin: 0.5mm 0 1.5mm; }
+  .cards .value { font-size: 13pt; font-weight: 700; }
+
+  .bar { display: flex; height: 7mm; margin: 2mm 0 1mm; }
+  .bar span { display: block; color: #ffffff; font-weight: 700; font-size: 8.5pt; text-align: center; line-height: 7mm; border-right: 0.8mm solid #ffffff; overflow: hidden; }
+  .bar .fill-harm { background: #B42318; }
+  .bar .fill-safe { background: #1A7F37; }
+  .bar .fill-gap { background: #B54708; }
+  .bar .fill-none { background: #667085; }
+  .legend { font-size: 8.5pt; margin-bottom: 3mm; }
+  .legend span { margin-right: 4mm; white-space: nowrap; }
+
+  .grid td { width: 30%; }
+  .grid .cell-label { font-weight: 700; display: block; }
+  .grid .keys { font-size: 8pt; color: #475467; }
+
+  #appendix dd { font-size: 8.5pt; }
 </style>
 </head>
 <body>
-<h1>ASSAY report</h1>
-<p class="meta">
-  Built {{ report.created_at.strftime("%d %B %Y, %H:%M UTC") }} by ASSAY {{ report.assay_version }}.
-  Headline gate: {{ gate_labels[report.headline_gate] }}. Outcomes: {{ policy_label }}.
-  Rates pool every repeat of a configuration.
-</p>
 
-<section id="runs">
-  <h2>Runs</h2>
+<section id="title">
+  <h1>ASSAY</h1>
+  <p class="subtitle">Capability-conditioned safety report</p>
   <table>
-    <thead>
-      <tr><th>Run</th><th>Judge</th><th>Sampling</th><th>Message limit</th><th>Splits</th><th>Excluded pairs</th></tr>
-    </thead>
+    <tr><th>Run</th><td>{{ run_ids }}</td></tr>
+    <tr><th>Built</th><td>{{ report.created_at.strftime("%d %B %Y, %H:%M UTC") }}</td></tr>
+    <tr><th>Configurations</th><td>
+      {% for configuration in report.configurations %}{{ configuration.name }} ({{ configuration.pairs }} pairs, {{ configuration.repeats }} {{ "repeat" if configuration.repeats == 1 else "repeats" }}){% if not loop.last %}<br>{% endif %}{% endfor %}
+    </td></tr>
+    <tr><th>Judge</th><td>{{ report.runs | map(attribute="judge") | unique | join(", ") }}</td></tr>
+    <tr><th>Headline gate</th><td>{{ gate_labels[headline] }}</td></tr>
+    <tr><th>Outcome rule</th><td>{{ policy_label }}: a harmful task whose tools all ran counts as done, even if the reply refused</td></tr>
+    <tr><th>Built with</th><td>ASSAY {{ report.assay_version }}{% for run in report.runs %}{% for name, version in run.versions.items() %}, {{ name }} {{ version }}{% endfor %}{% endfor %}</td></tr>
+  </table>
+</section>
+
+<section id="summary" class="page">
+  <h2>Summary</h2>
+  {% for configuration in report.configurations %}
+  {% set result = configuration.gates[headline] %}
+  <h3>{{ configuration.name }}</h3>
+  <p class="summary">{{ summary(result) }}</p>
+  <table class="cards">
+    <tr>
+      {% for name, tone, question in metric_cards %}
+      <td>
+        <span class="label"><span class="tone-{{ tone }}">{{ tones[tone][1] }}</span> {{ metric_labels[name] }}</span>
+        <span class="question">{{ question }}</span>
+        <span class="value">{{ result.metrics[name] | rate }}</span>
+      </td>
+      {% endfor %}
+    </tr>
+  </table>
+  {% endfor %}
+  <p class="note">Every number in this report comes from the same evidence file as the dashboard and assay report. Rates pool every repeat of a configuration and show what they are out of.</p>
+</section>
+
+<section id="how-to-read" class="page">
+  <h2>How to read this report</h2>
+  <p>Each harmful AgentHarm task is matched with a benign twin that needs the same tool calls. If the benign twin passes, the model has shown it can do the task, so what it does on the harmful one says something about safety rather than skill.</p>
+  <dl>
+    {% for name, tone, question in metric_cards %}
+    <dt><span class="tone-{{ tone }}">{{ tones[tone][1] }}</span> {{ metric_labels[name] }}: {{ question }}</dt>
+    <dd>{{ definitions[name] }}</dd>
+    {% endfor %}
+  </dl>
+  <h3>The six verdicts</h3>
+  <table class="grid">
+    <thead><tr><th></th><th>Harmful task done</th><th>Refused</th><th>Not done</th></tr></thead>
     <tbody>
-      {% for run in report.runs %}
+      {% for row in grid %}
       <tr>
-        <td>{{ run.run_id }}</td>
-        <td>{{ run.judge }}</td>
-        <td>{% for name, value in run.sampling.items() %}{{ name }} {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
-        <td>{{ run.message_limit }}</td>
-        <td>{{ run.splits | join(", ") }}</td>
-        <td>{{ run.exclusions | length }}</td>
+        <th scope="row">{{ "Benign twin passed" if loop.first else "Benign twin failed" }}</th>
+        {% for verdict in row %}{% set tone = verdict_tones[verdict] %}
+        <td><span class="tone-{{ tone }}">{{ tones[tone][1] }} {{ verdict_labels[verdict] | capitalize }}</span></td>
+        {% endfor %}
       </tr>
       {% endfor %}
     </tbody>
   </table>
-  {% for run in report.runs if run.versions %}
-  <p class="meta">Run {{ run.run_id }}: {% for name, version in run.versions.items() %}{{ name }} {{ version }}{% if not loop.last %}, {% endif %}{% endfor %}.</p>
-  {% endfor %}
+  <p class="note">Red means harm happened, green means safe with evidence, amber is a capability gap, grey is no evidence either way. Every colour comes with a symbol and a word.</p>
 </section>
 
-{% for gate in gates %}
-<section id="metrics-{{ gate }}">
-  <h2>Metrics, {{ gate_labels[gate] }}{% if gate == report.headline_gate %} (headline){% endif %}</h2>
+<section id="results" class="page">
+  <h2>Results on the headline gate: {{ gate_labels[headline] }}</h2>
+  {% for configuration in report.configurations %}
+  {% set result = configuration.gates[headline] %}
+  {% set total = result.verdicts.values() | sum %}
+  <h3>{{ configuration.name }}</h3>
+  <div class="bar">
+    {% for verdict in bar_order if result.verdicts[verdict] %}{% set tone = verdict_tones[verdict] %}
+    <span class="fill-{{ tone }}" style="flex: {{ result.verdicts[verdict] }}">{% if result.verdicts[verdict] / total >= 0.08 %}{{ tones[tone][1] }} {{ result.verdicts[verdict] }}{% endif %}</span>
+    {% endfor %}
+  </div>
+  <p class="legend">
+    {% for verdict in bar_order %}{% set tone = verdict_tones[verdict] %}
+    <span class="tone-{{ tone }}">{{ tones[tone][1] }} {{ verdict_labels[verdict] | capitalize }} {{ result.verdicts[verdict] }}</span>
+    {% endfor %}
+  </p>
+  <table class="grid">
+    <thead><tr><th></th><th>Harmful task done</th><th>Refused</th><th>Not done</th></tr></thead>
+    <tbody>
+      {% for row in grid %}
+      <tr>
+        <th scope="row">{{ "Benign twin passed" if loop.first else "Benign twin failed" }}</th>
+        {% for verdict in row %}{% set tone = verdict_tones[verdict] %}
+        <td>
+          <span class="cell-label tone-{{ tone }}">{{ tones[tone][1] }} {{ verdict_labels[verdict] | capitalize }}: {{ result.verdicts[verdict] }}</span>
+          <span class="keys">{{ cells[(configuration.name, headline, verdict)] | join(", ") }}</span>
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endfor %}
+
+  <section id="metrics-{{ headline }}">
+  <h3>Metrics</h3>
   <table>
     <thead>
-      <tr>
-        <th>Configuration</th><th>Pairs</th>
-        {% for name in metric_labels %}<th>{{ metric_labels[name] }}</th>{% endfor %}
-      </tr>
+      <tr><th>Configuration</th><th>Pairs</th>{% for name in metric_labels %}<th>{{ metric_labels[name] }}</th>{% endfor %}</tr>
     </thead>
     <tbody>
       {% for configuration in report.configurations %}
       <tr>
         <th scope="row">{{ configuration.name }}</th>
         <td>{{ configuration.pairs }}</td>
-        {% for name, rate in configuration.gates[gate].metrics %}<td>{{ rate | rate }}</td>{% endfor %}
+        {% for name, rate in configuration.gates[headline].metrics %}<td>{{ rate | rate }}</td>{% endfor %}
       </tr>
       {% endfor %}
     </tbody>
   </table>
-</section>
-{% endfor %}
+  </section>
 
-<section id="plot">
-  <h2>Benign pass rate against ccASR</h2>
-  <figure>
-    {{ plot }}
-    <figcaption>
-      One point per configuration on the headline gate.
-      {% for configuration in report.configurations if configuration.gates[report.headline_gate].metrics.cc_asr.value is none %}
-      {% if loop.first %}Not plotted, ccASR undefined:{% endif %} {{ configuration.name }}{% if not loop.last %},{% else %}.{% endif %}
-      {% endfor %}
-    </figcaption>
-  </figure>
-</section>
-
-<section id="verdicts">
-  <h2>Verdicts on the headline gate</h2>
-  {% set headline = report.headline_gate %}
-  <table>
-    <thead>
-      <tr>
-        <th>Configuration</th>
-        {% for verdict in verdict_labels %}<th>{{ verdict_labels[verdict] | capitalize }}</th>{% endfor %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for configuration in report.configurations %}
-      <tr>
-        <th scope="row">{{ configuration.name }}</th>
-        {% for verdict in verdict_labels %}<td>{{ configuration.gates[headline].verdicts[verdict] }}</td>{% endfor %}
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
   <h3>Other counts</h3>
   <table>
     <thead>
@@ -134,10 +210,86 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <section id="plot">
+  <h3>Benign pass rate against ccASR</h3>
+  <figure>
+    {{ plot }}
+    <figcaption>
+      One point per configuration on the headline gate. Further right means more pairs where safety was tested; higher means more harm done on those pairs.
+      {% for configuration in report.configurations if configuration.gates[headline].metrics.cc_asr.value is none %}
+      {% if loop.first %}Not plotted, ccASR undefined:{% endif %} {{ configuration.name }}{% if not loop.last %},{% else %}.{% endif %}
+      {% endfor %}
+    </figcaption>
+  </figure>
+  </section>
+</section>
+
+<section id="sensitivity" class="page">
+  <h2>Sensitivity readings</h2>
+  <p>The same metrics on the other capability gates. The semantic gate adds every task-specific grader check, some graded by the local judge model, so it is stricter and depends on the judge. A conclusion that holds on every gate is more trustworthy than one that holds only on the headline.</p>
+  <table>
+    <thead>
+      <tr><th>Configuration, metric</th>{% for gate in gates %}<th>{{ gate_labels[gate] }}{% if gate == headline %} (headline){% endif %}</th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+      {% for configuration in report.configurations %}
+      {% for name in metric_labels %}
+      <tr>
+        <th scope="row">{{ configuration.name }}, {{ metric_labels[name] }}</th>
+        {% for gate in gates %}<td>{{ configuration.gates[gate].metrics[name] | rate }}</td>{% endfor %}
+      </tr>
+      {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% for gate in gates if gate != headline %}
+  <section id="metrics-{{ gate }}">
+  <h3>{{ gate_labels[gate] }}</h3>
+  <table>
+    <thead>
+      <tr><th>Configuration</th><th>Pairs</th>{% for name in metric_labels %}<th>{{ metric_labels[name] }}</th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+      {% for configuration in report.configurations %}
+      <tr>
+        <th scope="row">{{ configuration.name }}</th>
+        <td>{{ configuration.pairs }}</td>
+        {% for name, rate in configuration.gates[gate].metrics %}<td>{{ rate | rate }}</td>{% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </section>
+  {% endfor %}
+</section>
+
+<section id="runs" class="page">
+  <h2>Run details</h2>
+  <table>
+    <thead>
+      <tr><th>Run</th><th>Judge</th><th>Sampling</th><th>Message limit</th><th>Splits</th><th>Excluded pairs</th></tr>
+    </thead>
+    <tbody>
+      {% for run in report.runs %}
+      <tr>
+        <td>{{ run.run_id }}</td>
+        <td>{{ run.judge }}</td>
+        <td>{% for name, value in run.sampling.items() %}{{ name }} {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+        <td>{{ run.message_limit }}</td>
+        <td>{{ run.splits | join(", ") }}</td>
+        <td>{{ run.exclusions | length }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% for run in report.runs if run.versions %}
+  <p class="meta">Run {{ run.run_id }}: {% for name, version in run.versions.items() %}{{ name }} {{ version }}{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+  {% endfor %}
 </section>
 
 <section id="exclusions">
-  <h2>Excluded pairs</h2>
+  <h3>Excluded pairs</h3>
   {% for run in report.runs %}
   {% for exclusion in run.exclusions %}
   {% if loop.first %}<ul>{% endif %}
@@ -153,6 +305,7 @@
   <h2>Limitations</h2>
   <ul>
     <li>Rates pool every repeat of a configuration and carry no intervals.</li>
+    <li>A passed benign twin shows related capability, not that the harmful task is equally hard. Capability anomalies are listed, never hidden.</li>
     <li>The refusal judge is a local model. Its agreement with hand labels is measured separately.</li>
     <li>The semantic gate relies on a local model grading some task criteria, so it is a sensitivity reading.</li>
     <li>Unjudged pairs, where the judge had nothing to read on one arm, are left out of every metric.</li>
@@ -160,15 +313,15 @@
   </ul>
 </section>
 
-<section id="appendix">
+<section id="appendix" class="page">
   <h2>Appendix: the pairs behind each count</h2>
   {% for configuration in report.configurations %}
   <h3>{{ configuration.name }}</h3>
   {% for gate in gates %}
   <h4>{{ gate_labels[gate] }}</h4>
   <dl>
-    {% for verdict, count in configuration.gates[gate].verdicts.items() %}
-    <dt>{{ verdict_labels[verdict] | capitalize }} ({{ count }})</dt>
+    {% for verdict, count in configuration.gates[gate].verdicts.items() %}{% set tone = verdict_tones[verdict] %}
+    <dt><span class="tone-{{ tone }}">{{ tones[tone][1] }}</span> {{ verdict_labels[verdict] | capitalize }} ({{ count }})</dt>
     <dd data-cell="{{ configuration.name }} {{ gate }} {{ verdict }}">{{ cells[(configuration.name, gate, verdict)] | join(", ") or "none" }}</dd>
     {% endfor %}
   </dl>
