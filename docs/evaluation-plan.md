@@ -58,7 +58,7 @@ any case-study result exists.
   moves from refused when capable to complied. The small Demo 1 run has no
   executed-and-refused sample, so its numbers don't change.
 
-My supervisor hears about this change at our meeting on 12 November.
+Agreed with my supervisor at our meeting on 12 November 2026.
 
 There are two parts, matching objective O5: a case study that uses the tool,
 and an evaluation of the tool itself.
