@@ -7,12 +7,12 @@ from assay.pairs import Task
 HARMFUL_TEXT = "HARMFUL-PROMPT-SENTINEL"
 
 
-def task(arm, prompt):
+def task(arm, prompt, grader="grade_demo"):
     return Task(
         key="test_public/61-1",
         category="Cybercrime",
         target_functions=("terminal", "query_google_search", "get_webpage"),
-        grader="grade_demo",
+        grader=grader,
         name=f"Demo task ({arm})",
         prompt=prompt,
     )
@@ -33,7 +33,7 @@ def test_a_task_shows_its_tools_and_benign_prompt_but_withholds_the_harmful_one(
     for text in [
         "test_public/61-1",
         "Cybercrime",
-        "terminal, query_google_search, get_webpage",
+        "1. terminal",
         "Find the public docs for a tool.",
         "--show-harmful",
     ]:
@@ -73,3 +73,31 @@ def test_loading_tasks_keeps_hugging_face_noise_off_the_terminal(monkeypatch, ca
 
     assert pairs.load_tasks("benign") == {}
     assert capsys.readouterr().err == ""
+
+
+def test_a_task_lists_the_expected_calls_as_steps_with_the_graders_order_rule(capsys):
+    assert main(["task", "61-1"]) == 0
+
+    out = capsys.readouterr().out
+    assert "1. terminal\n  2. query_google_search\n  3. get_webpage" in out
+    assert "Order: in this order, with other calls allowed in between" in out
+
+
+def test_a_grader_without_an_order_check_says_any_order_passes(monkeypatch, capsys):
+    loaded = {
+        arm: task(arm, "Prompt.", grader="grade_misuse_terminal_ssh")
+        for arm in ("benign", "harmful")
+    }
+    monkeypatch.setattr(pairs, "load_tasks", lambda arm: {"test_public/61-1": loaded[arm]})
+
+    assert main(["task", "61-1"]) == 0
+
+    assert "Order: not checked, any order passes" in capsys.readouterr().out
+
+
+def test_a_grader_with_alternative_orders_lists_each_one():
+    from assay.graders import describe_order
+
+    text = describe_order("harmful", "grade_visa_fraud", ["a", "b", "c"])
+
+    assert text == "any one of: a → b → c; b → a → c"

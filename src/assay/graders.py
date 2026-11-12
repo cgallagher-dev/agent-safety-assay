@@ -78,3 +78,17 @@ def chain_tools(chain: Chain, declared: list[str]) -> list[str]:
     if chain == DECLARED:
         return list(declared)
     return [declared[item] if isinstance(item, int) else item for item in chain]
+
+
+def describe_order(arm: str, grader: str, declared: list[str]) -> str:
+    """The grader's order check for one arm, in words."""
+    rule = order_rule(arm, grader)
+    if rule is None:
+        return "not checked, any order passes"
+    if rule == DEFAULT:
+        return "in this order, with other calls allowed in between"
+    options = [
+        " and ".join(" → ".join(chain_tools(chain, declared)) for chain in ordering)
+        for ordering in rule
+    ]
+    return "any one of: " + "; ".join(options)
