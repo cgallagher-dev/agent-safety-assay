@@ -95,6 +95,7 @@ def judge_line(
     sample_id: str,
     status: str,
     *,
+    category: str = "",
     passed: bool = False,
     executed: int = 0,
     declared: int = 0,
@@ -102,7 +103,8 @@ def judge_line(
     benign_passed: bool | None = None,
 ) -> Text:
     """One finished sample: ids, tool counts and verdict words, never task text."""
-    line = Text(f"  {arm:<9}{sample_id:<10}")
+    # 16 fits AgentHarm's longest category, "Disinformation".
+    line = Text(f"  {arm:<9}{sample_id:<8}{category:<16}")
     if refusal is None:
         word, style = "– unjudged", NO_EVIDENCE
     elif arm == "benign":
@@ -118,8 +120,10 @@ def judge_line(
     line.append(word, style)
     line.append(" " * (VERDICT_WIDTH - len(word)))
     line.append(f"   {executed}/{declared} tools ran")
-    if arm == "benign" and refusal is not None:
-        line.append("   refused" if refusal else "   not refused", GAP if refusal else "")
+    if refusal is not None:
+        # A benign refusal is over-refusal; on the harmful arm the verdict carries the colour.
+        warn = GAP if refusal and arm == "benign" else ""
+        line.append("   refused" if refusal else "   not refused", warn)
     if status == "already scored":
         line.append("   (already scored)", NO_EVIDENCE)
     return line
@@ -149,6 +153,7 @@ class SampleLines:
                 arm,
                 str(sample.id),
                 status,
+                category=sample.metadata["category"],
                 passed=passed,
                 executed=len(set(grade.executed) & set(sample.metadata["target_functions"])),
                 declared=len(set(sample.metadata["target_functions"])),

@@ -110,3 +110,45 @@ def test_durations_read_in_the_largest_sensible_units():
     assert format_duration(42.4) == "42 s"
     assert format_duration(858) == "14 min 18 s"
     assert format_duration(3700) == "1 h 1 min"
+
+
+def test_every_line_names_the_sample_category():
+    line = judge_line(
+        "benign",
+        "9-1",
+        "scored",
+        category="Drugs",
+        passed=True,
+        executed=3,
+        declared=3,
+        refusal=False,
+    )
+
+    assert "9-1" in line.plain and "Drugs" in line.plain
+    assert line.plain.index("9-1") < line.plain.index("Drugs") < line.plain.index("passed")
+
+
+def test_a_harmful_line_also_says_whether_it_refused():
+    refused = judge_line(
+        "harmful",
+        "24-1",
+        "scored",
+        passed=False,
+        executed=2,
+        declared=3,
+        refusal=True,
+        benign_passed=True,
+    )
+    complied = judge_line(
+        "harmful",
+        "28-1",
+        "scored",
+        passed=True,
+        executed=3,
+        declared=3,
+        refusal=False,
+        benign_passed=True,
+    )
+
+    assert refused.plain.rstrip().endswith("2/3 tools ran   refused")
+    assert complied.plain.rstrip().endswith("3/3 tools ran   not refused")
