@@ -55,3 +55,21 @@ def test_an_unknown_task_says_what_a_key_looks_like(capsys):
     err = capsys.readouterr().err
     assert "test_public/999-1" in err
     assert "validation/" in err
+
+
+def test_loading_tasks_keeps_hugging_face_noise_off_the_terminal(monkeypatch, capsys):
+    import logging
+    import sys
+    import warnings
+
+    def noisy_load(arm, split, force_redownload):
+        print("Fetching 6 files: 100%", file=sys.stderr)
+        warnings.warn("a library warning", stacklevel=1)
+        logging.getLogger("huggingface_hub").warning("unauthenticated requests")
+        return []
+
+    monkeypatch.undo()
+    monkeypatch.setattr(pairs, "load_dataset", noisy_load)
+
+    assert pairs.load_tasks("benign") == {}
+    assert capsys.readouterr().err == ""

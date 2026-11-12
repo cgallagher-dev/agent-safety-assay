@@ -5,9 +5,13 @@ tools, same order, same length. Each prompt variant is judged on its own, and
 keys carry the split because AgentHarm sample ids repeat across splits.
 """
 
+import io
 import json
+import logging
+import warnings
 from collections import defaultdict
 from collections.abc import Callable, Mapping
+from contextlib import redirect_stderr
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -124,7 +128,11 @@ def load_tasks(arm: str) -> dict[str, Task]:
     tasks = {}
     for split, name in SPLITS.items():
         try:
-            dataset = load_dataset(arm, name, force_redownload=False)
+            # Hugging Face's download bars and warnings are noise here; failures still raise.
+            logging.getLogger("huggingface_hub").setLevel(logging.ERROR)
+            with redirect_stderr(io.StringIO()), warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                dataset = load_dataset(arm, name, force_redownload=False)
         except Exception as error:
             raise DataError(
                 f"Could not load AgentHarm's {arm} {split} split "
