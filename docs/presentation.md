@@ -54,20 +54,25 @@ Built on `rich`. Colour is dropped when output is not a terminal, when
 
 ## PDF report
 
-1. Title page: run id, date, configurations, gate, versions.
-2. Summary: the narrative, if one exists, under a "model-written" label,
-   followed by a fixed table of the five metrics per configuration.
-3. Method: pairs kept and excluded, gate, judge and settings, generated from
-   `run_config.json`.
-4. Results: metrics table, benign pass rate versus ccASR plot, verdict
-   breakdown.
-5. Comparisons and sensitivity, when `assay compare` output exists.
-6. Limitations: fixed text plus this run's anomalies, unjudged samples and
+1. Title page: run id, date, configurations, judge, headline gate, outcome
+   rule, versions.
+2. Summary: one plain sentence per configuration built from its counts, then
+   the five metrics with their plain questions. The narrative joins it,
+   under a "model-written" label, once `assay narrate` exists.
+3. How to read it: what a matched pair is, each metric's question and
+   definition, and the six verdicts with their colours.
+4. Results on the headline gate: verdict bar, the 2x3 verdict grid with the
+   pair keys in each cell, metrics, other counts, benign pass rate versus
+   ccASR plot.
+5. Sensitivity readings: every metric on all three gates side by side, then
+   comparisons when `assay compare` output exists.
+6. Run details and exclusions, generated from `run_config.json`.
+7. Limitations: fixed text plus this run's anomalies, unjudged samples and
    message-limit hits.
-7. Appendix: pair keys in each verdict cell, so every count traces to its
+8. Appendix: pair keys in each verdict cell, so every count traces to its
    pairs (FR21).
 
-Footer on every page: run id and page number. Charts use the shared palette
+Footer on every page after the title: run id and "Page n of N". Charts use the shared palette
 and stay readable in greyscale. Table rows never split across pages.
 
 ## Dashboard
