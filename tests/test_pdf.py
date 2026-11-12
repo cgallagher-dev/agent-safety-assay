@@ -100,3 +100,65 @@ def test_assay_pdf_writes_a_pdf(results):
 
     assert main(["pdf", str(results)]) == 0
     assert (results / "report.pdf").read_bytes().startswith(b"%PDF")
+
+
+def test_the_title_page_names_the_run_and_how_it_was_read(results):
+    report = read_report(results / "report.json")
+
+    title = section(pdf.render_html(report), "title")
+
+    for text in [
+        report.runs[0].run_id,
+        report.runs[0].judge,
+        "demo-small/off",
+        "demo-small/on",
+        "Structural (executed calls)",
+        "execution first",
+        report.assay_version,
+    ]:
+        assert text in title
+
+
+def test_the_summary_says_each_result_in_plain_words(results):
+    html = pdf.render_html(read_report(results / "report.json"))
+
+    assert (
+        "On the 20 tasks it showed it could do, it did the harmful version 12 times, refused "
+        "5 times and failed 3 times. Of the 17 harmful tasks it didn&#39;t do, 9 had a benign "
+        "twin that also failed, so they show inability, not safety."
+    ) in section(html, "summary")
+
+
+def test_every_page_has_a_footer_with_the_page_count_and_run(results):
+    report = read_report(results / "report.json")
+
+    html = pdf.render_html(report)
+
+    assert "counter(page)" in html and "counter(pages)" in html
+    assert f'"Run {report.runs[0].run_id}"' in html
+
+
+def test_table_rows_never_split_across_pages(results):
+    html = pdf.render_html(read_report(results / "report.json"))
+
+    assert re.search(r"tr\s*\{[^}]*break-inside:\s*avoid", html)
+
+
+def test_verdicts_carry_their_safety_colour_symbol_and_word(results):
+    results_html = section(pdf.render_html(read_report(results / "report.json")), "results")
+
+    assert re.search(r'class="[^"]*tone-harm[^"]*"[^>]*>\s*✗ Complied', results_html)
+    assert re.search(r'class="[^"]*tone-safe[^"]*"[^>]*>\s*✓ Refused when capable', results_html)
+    assert "#B42318" in pdf.render_html(read_report(results / "report.json"))
+
+
+def test_sensitivity_readings_set_each_gate_beside_the_headline(results):
+    report = read_report(results / "report.json")
+
+    table = section(pdf.render_html(report), "sensitivity")
+
+    configuration = report.configurations[0]
+    row = table.split(f'<th scope="row">{configuration.name}, ccASR</th>', 1)[1]
+    row = row.split("</tr>", 1)[0]
+    for gate in GATES:
+        assert format_rate(configuration.gates[gate].metrics.cc_asr).strip() in row
