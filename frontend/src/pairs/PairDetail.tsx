@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchPair } from "../api/client";
 import type { EvidenceRecord, PairDetail, Report } from "../api/types";
-import { GATES, gateParam, VERDICT_LABELS } from "../labels";
+import { GATES, gateParam, SYMBOLS, VERDICT_LABELS, VERDICTS } from "../labels";
 import Status, { loadError } from "../Status";
 import { Transcript, TraceStructure } from "./Transcript";
 
@@ -16,6 +16,22 @@ function judged(arm: string, evidence: EvidenceRecord): string {
 
 function sequence(tools: string[]): string {
   return tools.length > 0 ? tools.join(" → ") : "none";
+}
+
+function ran(evidence: EvidenceRecord): string {
+  const declared = new Set(evidence.declared_tools);
+  const done = new Set(evidence.executed_tools.filter((tool) => declared.has(tool)));
+  return `${done.size} of ${declared.size} declared tools ran`;
+}
+
+function step(evidence: EvidenceRecord, tool: string): { text: string; tone: string } {
+  if (evidence.executed_tools.includes(tool)) {
+    return { text: `${SYMBOLS.safe} ran`, tone: "ran" };
+  }
+  if (evidence.observed_tools.includes(tool)) {
+    return { text: `${SYMBOLS.gap} called, failed`, tone: "failed" };
+  }
+  return { text: `${SYMBOLS.none} not called`, tone: "not-called" };
 }
 
 const NO_LOG =
@@ -68,6 +84,16 @@ export default function PairDetailPage({
     return <Status kind="loading" title={`Loading the pair ${key}…`} />;
   }
   const { pair, benign, harmful } = detail;
+  const reading = pair.gates[gate];
+  const verdict = VERDICTS.find(({ name }) => name === reading.verdict)!;
+  // Declared tools in task order, then anything else either arm called.
+  const tools = [
+    ...new Set([
+      ...benign.evidence.declared_tools,
+      ...benign.evidence.observed_tools,
+      ...harmful.evidence.observed_tools,
+    ]),
+  ];
   const rows: {
     label: string;
     field: "declared_tools" | "observed_tools" | "executed_tools";
@@ -83,6 +109,55 @@ export default function PairDetailPage({
       <p>
         {pair.category}, {pair.configuration}, repeat {pair.repeat}
       </p>
+
+      <section aria-label="Verdict" className={`verdict-banner tone-${verdict.tone}`}>
+        <p>
+          Benign twin: {reading.benign_passed ? "passed" : "failed"}, {ran(benign.evidence)}.
+        </p>
+        <p>
+          Harmful task: {harmful.evidence.refusal ? "refused" : "did not refuse"},{" "}
+          {ran(harmful.evidence)}.
+        </p>
+        <p className="verdict-line">
+          Verdict on {GATES.find(({ name }) => name === gate)!.label}:{" "}
+          <strong>
+            {SYMBOLS[verdict.tone]} {verdict.label}
+          </strong>
+        </p>
+      </section>
+
+      <section>
+        <h3>Tool steps</h3>
+        <table aria-label="Tool steps" className="steps">
+          <thead>
+            <tr>
+              <th scope="col">Tool</th>
+              <th scope="col">Benign twin</th>
+              <th scope="col">Harmful task</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tools.map((tool) => (
+              <tr key={tool}>
+                <th scope="row">
+                  {tool}
+                  {!benign.evidence.declared_tools.includes(tool) && (
+                    <span className="undeclared"> (not one of the task's tools)</span>
+                  )}
+                </th>
+                {[benign.evidence, harmful.evidence].map((evidence) => {
+                  const { text, tone } = step(evidence, tool);
+                  return (
+                    <td key={evidence.arm} className={`step-${tone}`}>
+                      {text}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
 
       <section>
         <h3>Verdicts</h3>
@@ -113,7 +188,7 @@ export default function PairDetailPage({
       </section>
 
       <section>
-        <h3>Tool calls</h3>
+        <h3>Call order</h3>
         <table aria-label="Tool calls">
           <thead>
             <tr>

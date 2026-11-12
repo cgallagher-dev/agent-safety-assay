@@ -506,3 +506,39 @@ tr.selected td {
 .withheld {
   color: var(--gap);
 }
+
+.verdict-banner {
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  border-left: 6px solid var(--tone);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tone) 8%, white);
+  font-size: 1.1rem;
+}
+
+.verdict-banner p {
+  margin: 0.15rem 0;
+}
+
+.verdict-line strong {
+  color: var(--tone);
+}
+
+.steps .undeclared {
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
+.step-ran {
+  color: var(--safe);
+  font-weight: 600;
+}
+
+.step-failed {
+  color: var(--gap);
+  font-weight: 600;
+}
+
+.step-not-called {
+  color: var(--none);
+}
