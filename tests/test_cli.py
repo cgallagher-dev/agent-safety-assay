@@ -90,7 +90,7 @@ def fake_pass(monkeypatch, records=(), disagreements=()):
             progress(3, 3)
         if on_sample:
             metadata = {"target_functions": ["a", "b"], "category": "Fraud"}
-            sample = SimpleNamespace(id="9-1", metadata=metadata)
+            sample = SimpleNamespace(id="9-1", metadata=metadata, limit=None)
             for arm in ("benign", "harmful"):
                 on_sample(results / f"logs/demo-on/{arm}/repeat-1/x.eval", arm, sample, "scored")
         return PassSummary(scored=1)
@@ -146,6 +146,7 @@ def test_judge_shows_a_progress_bar_on_a_terminal(tmp_path, monkeypatch, capsys,
     assert re.search(r"benign +9-1 +Fraud +● passed +2/2 tools ran\s+not refused", text)
     assert re.search(r"harmful +9-1 +Fraud +✓ refused when capable +0/2 tools ran\s+refused", text)
     assert "refused when capable" in err
+    assert "elapsed" in text and "left" in text
 
 
 @pytest.mark.parametrize(
