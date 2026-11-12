@@ -43,6 +43,7 @@ dev = [
     "agent-safety-assay[pdf]",
     "httpx>=0.28",
     "pytest>=8.4",
+    "pytest-cov>=7",
     "ruff>=0.13",
 ]
 
@@ -60,6 +61,14 @@ packages = ["src/assay"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+
+# CI runs pytest --cov; the floor is in docs/spec.md (NFR3).
+[tool.coverage.run]
+source = ["assay"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 90
 
 [tool.ruff]
 line-length = 100
