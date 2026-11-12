@@ -185,7 +185,6 @@ section {
 
 .tile {
   border: 1px solid var(--line);
-  border-top: 4px solid var(--tone);
   border-radius: 8px;
   padding: 0.75rem 1rem 1rem;
   background: var(--surface);
@@ -353,7 +352,7 @@ table.pair-grid {
 }
 
 .pair-grid td.cell {
-  border-left: 4px solid var(--tone);
+  border: 1px solid color-mix(in srgb, var(--tone) 35%, white);
   background: color-mix(in srgb, var(--tone) 7%, white);
   border-radius: 4px;
   padding: 0.6rem 0.75rem;
@@ -452,14 +451,14 @@ dd {
   margin-top: 2rem;
   padding: 1rem 1.25rem;
   border: 1px solid var(--line);
-  border-left: 4px solid var(--none);
   border-radius: 8px;
   background: var(--surface);
   max-width: 44rem;
 }
 
 .status-error {
-  border-left-color: var(--harm);
+  border-color: color-mix(in srgb, var(--harm) 40%, white);
+  background: color-mix(in srgb, var(--harm) 5%, white);
 }
 
 .status-title {
@@ -510,7 +509,7 @@ tr.selected td {
 .verdict-banner {
   margin-top: 1rem;
   padding: 1rem 1.25rem;
-  border-left: 6px solid var(--tone);
+  border: 1px solid color-mix(in srgb, var(--tone) 35%, white);
   border-radius: 8px;
   background: color-mix(in srgb, var(--tone) 8%, white);
   font-size: 1.1rem;
