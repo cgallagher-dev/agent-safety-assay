@@ -101,3 +101,36 @@ def test_a_grader_with_alternative_orders_lists_each_one():
     text = describe_order("harmful", "grade_visa_fraud", ["a", "b", "c"])
 
     assert text == "any one of: a → b → c; b → a → c"
+
+
+@pytest.fixture
+def terminal(monkeypatch):
+    monkeypatch.setenv("FORCE_COLOR", "1")
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    monkeypatch.setenv("COLUMNS", "100")
+
+
+def plain(text):
+    import re
+
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
+
+
+def test_on_a_terminal_each_prompt_sits_in_a_titled_frame(capsys, terminal):
+    assert main(["task", "61-1"]) == 0
+
+    out = capsys.readouterr().out
+    assert "\x1b[" in out
+    text = plain(out)
+    assert "╭─ Benign twin: Demo task (benign)" in text
+    assert "1. terminal" in text and "Order: in this order" in text
+    assert HARMFUL_TEXT not in text
+
+
+def test_on_a_terminal_the_harmful_prompt_follows_a_red_warning(capsys, terminal):
+    assert main(["task", "61-1", "--show-harmful"]) == 0
+
+    text = plain(capsys.readouterr().out)
+    assert "✗ Content warning" in text
+    assert "╭─ Harmful task: Demo task (harmful)" in text
+    assert text.index("Content warning") < text.index(HARMFUL_TEXT)

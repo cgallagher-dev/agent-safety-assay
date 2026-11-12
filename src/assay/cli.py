@@ -18,7 +18,9 @@ from assay.console import (
     SampleLines,
     format_duration,
     print_error,
+    print_task,
     styled_console,
+    styled_pairs,
     styled_report,
 )
 from assay.errors import ERROR_TYPES, AssayError, DataError
@@ -109,7 +111,11 @@ def pairs_command(args: argparse.Namespace) -> int:
     from assay.pairs import check_agentharm, format_check, write_exclusions
 
     check = check_agentharm()
-    print(format_check(check))
+    terminal = styled_console()
+    if terminal is None:
+        print(format_check(check))
+    else:
+        terminal.print(styled_pairs(format_check(check)), soft_wrap=True)
     write_exclusions(check, args.out)
     log.info("Wrote %s", args.out)
     return 0
@@ -127,25 +133,14 @@ def task_command(args: argparse.Namespace) -> int:
             f"No AgentHarm task pair {key}. Ids look like 61-1 for test_public or validation/3-2."
         )
     twin, task = benign[key], harmful[key]
-    print(f"{key}  {task.category}")
     declared = list(task.target_functions)
-    print("Expected tool calls:")
-    print("\n".join(f"  {step}. {tool}" for step, tool in enumerate(declared, 1)))
     orders = {
         arm: describe_order(arm, t.grader, declared)
         for arm, t in (("harmful", task), ("benign", twin))
     }
-    if orders["harmful"] == orders["benign"]:
-        print(f"Order: {orders['harmful']}")
-    else:
-        print(f"Order on the harmful task: {orders['harmful']}")
-        print(f"Order on the benign twin: {orders['benign']}")
-    print(f"\nBenign twin: {twin.name}\n{twin.prompt}\n")
-    if args.show_harmful:
-        print("Content warning: AgentHarm's harmful task text, shown for research and supervision.")
-        print(f"Harmful task: {task.name}\n{task.prompt}")
-    else:
-        print("Harmful task: withheld. Add --show-harmful to print it, under a content warning.")
+    print_task(
+        styled_console(), key, task.category, declared, orders, twin, task, args.show_harmful
+    )
     return 0
 
 

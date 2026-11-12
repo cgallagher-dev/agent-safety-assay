@@ -152,3 +152,17 @@ def test_a_harmful_line_also_says_whether_it_refused():
 
     assert refused.plain.rstrip().endswith("2/3 tools ran   refused")
     assert complied.plain.rstrip().endswith("3/3 tools ran   not refused")
+
+
+def test_the_pairs_check_styles_its_headings_and_kept_count():
+    from assay.console import styled_pairs
+
+    text = (
+        "AgentHarm dataset revision e23b3fe\nKept 171 of 208 pairs.\n\n"
+        "Kept share per category:\n  Fraud  20/24"
+    )
+    styled = styled_pairs(text)
+
+    assert styled.plain == text
+    assert "bold cyan" in styles(styled, "Kept share per category:")
+    assert "bold" in styles(styled, "Kept 171 of 208 pairs.")
