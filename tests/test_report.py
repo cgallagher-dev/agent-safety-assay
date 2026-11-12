@@ -8,7 +8,7 @@ import pytest
 import assay
 from assay.cli import main
 from assay.errors import ConfigError, EvidenceError
-from assay.report import load_report, read_report
+from assay.report import format_report, load_report, read_report
 from helpers import RUN_CONFIG, record_fields, write_results
 
 DEMO = Path(assay.__file__).parent / "demo"
@@ -277,3 +277,10 @@ def test_report_never_writes_into_the_package(capsys):
 
     assert "--out" in capsys.readouterr().err
     assert not (DEMO / "report.json").exists()
+
+
+def test_each_configuration_names_its_reasoning_setting():
+    text = format_report(load_report(DEMO))
+
+    assert "(profile demo-small, reasoning off," in text
+    assert "mode off" not in text

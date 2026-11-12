@@ -314,7 +314,8 @@ def format_report(report: Report) -> str:
         repeats = "repeat" if configuration.repeats == 1 else "repeats"
         lines += [
             "",
-            f"{configuration.name} (profile {configuration.profile}, mode {configuration.mode}, "
+            f"{configuration.name} (profile {configuration.profile}, "
+            f"reasoning {configuration.mode}, "
             f"{configuration.pairs} pairs, {configuration.repeats} {repeats})",
         ]
         lines += [

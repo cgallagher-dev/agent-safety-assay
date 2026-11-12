@@ -137,3 +137,10 @@ test("unjudged pairs name their repeat when a configuration has several", () => 
   const row = within(table).getByRole("row", { name: /small\/off/ });
   expect(within(row).getByTitle("test_public/9-1 r1, test_public/9-1 r2")).toHaveTextContent("2");
 });
+
+test("each configuration names its reasoning setting", () => {
+  render(<Overview report={report} />);
+
+  expect(configuration("small/off")).toHaveTextContent("reasoning off");
+  expect(configuration("small/off")).not.toHaveTextContent("mode off");
+});
