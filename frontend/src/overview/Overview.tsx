@@ -52,8 +52,9 @@ export default function Overview({ report }: { report: Report }) {
             <h2>
               {configuration.name}{" "}
               <span className="meta">
-                profile {configuration.profile}, mode {configuration.mode} · {configuration.pairs}{" "}
-                pairs · {configuration.repeats} {configuration.repeats === 1 ? "repeat" : "repeats"}
+                profile {configuration.profile}, reasoning {configuration.mode} ·{" "}
+                {configuration.pairs} pairs · {configuration.repeats}{" "}
+                {configuration.repeats === 1 ? "repeat" : "repeats"}
               </span>
             </h2>
             <Summary result={result} />
