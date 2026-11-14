@@ -6,7 +6,7 @@ labels: ["type:bug"]
 ---
 
 Do not paste harmful prompts, model outputs or tool arguments here. Refer to
-samples by id (for example `test_public/2-1`, harmful arm, thinking off).
+samples by id (for example `test_public/2-1`, harmful arm, reasoning off).
 
 ## What happened
 
