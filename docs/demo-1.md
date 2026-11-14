@@ -25,12 +25,12 @@ no AgentHarm text.
 
 ```text
 assay report src/assay/demo --out results/fixture
-assay pdf results/fixture
+assay pdf src/assay/demo --out results/fixture/report.pdf
 assay dashboard src/assay/demo
 ```
 
-Open http://127.0.0.1:8000. `assay report` refuses to write into the
-installed package, which is why it takes `--out`.
+Open http://127.0.0.1:8000. The fixture lives inside the installed package,
+so `assay report` and `assay pdf` both write elsewhere with `--out`.
 
 ## Path 2: a small real run
 
