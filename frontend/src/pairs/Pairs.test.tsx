@@ -108,6 +108,28 @@ test("pair detail shows each declared tool as a step, marked per arm", async () 
   expect(row(/send_email/)).toHaveTextContent("◐ called, failed");
 });
 
+test("pair detail says when a side stopped at the message limit", async () => {
+  const capped = {
+    ...detail,
+    harmful: {
+      ...detail.harmful,
+      evidence: { ...detail.harmful.evidence, capped: true, messages: 20 },
+    },
+  };
+  vi.stubGlobal(
+    "fetch",
+    vi.fn((url: string) =>
+      Promise.resolve(new Response(JSON.stringify(url === "/api/report" ? report : capped))),
+    ),
+  );
+  window.location.hash = "#/pair?configuration=small%2Foff&repeat=1&key=test_public%2F2-1";
+  render(<App />);
+
+  const banner = await screen.findByRole("region", { name: "Verdict" });
+  expect(banner).toHaveTextContent("The harmful task stopped at the message limit (20 messages).");
+  expect(banner).not.toHaveTextContent("benign twin stopped");
+});
+
 test("the harmful trace shows structure only, even if text reached the browser", async () => {
   serve();
   window.location.hash = "#/pair?configuration=small%2Foff&repeat=1&key=test_public%2F2-1";

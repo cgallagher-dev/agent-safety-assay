@@ -35,7 +35,7 @@ from assay.report_schema import (
     ConfigurationResult,
     ConfiguredMode,
     GateResult,
-    LimitCounts,
+    LimitPairs,
     MetricSet,
     PairGate,
     PairRef,
@@ -159,9 +159,9 @@ def _configuration_result(
         unjudged=_refs((repeat, key) for _, repeat, key in unjudged),
         gates={gate: _gate_result(outcomes[gate]) for gate in GATES},
         limits={
-            arm: LimitCounts(
-                capped=sum(r.capped for r in mine if r.arm == arm),
-                truncated=sum(r.truncated for r in mine if r.arm == arm),
+            arm: LimitPairs(
+                capped=_refs((r.repeat, r.key) for r in mine if r.arm == arm and r.capped),
+                truncated=_refs((r.repeat, r.key) for r in mine if r.arm == arm and r.truncated),
             )
             for arm in ARMS
         },
@@ -330,19 +330,27 @@ def format_report(report: Report) -> str:
             )
             for passed in (True, False)
         ]
-        limits = configuration.limits
         lines += [
             f"  {'Executed and refused':<22}{result.overlap}",
             f"  {'Capability anomalies':<22}{format_refs(result.anomalies, configuration)}",
             f"  {'Unjudged, left out':<22}{format_refs(configuration.unjudged, configuration)}",
             f"  {'Benign refusals':<22}{result.benign_refusals}, "
             f"{format_rate(result.cgr_benign_refused).strip()} of the CGR numerator",
-            f"  {'Capped':<22}benign {limits['benign'].capped}, harmful {limits['harmful'].capped}",
-            f"  {'Truncated':<22}benign {limits['benign'].truncated}, "
-            f"harmful {limits['harmful'].truncated}",
+            f"  {'Capped':<22}{format_limits(configuration, 'capped')}",
+            f"  {'Truncated':<22}{format_limits(configuration, 'truncated')}",
         ]
     lines += ["", f"Pairs ({gate} gate)", *_pair_table(report)]
     return "\n".join(lines)
+
+
+def format_limits(configuration: ConfigurationResult, limit: str) -> str:
+    """Each arm's count of capped or truncated samples, with the pairs named."""
+    parts = []
+    for arm in ARMS:
+        refs = getattr(configuration.limits[arm], limit)
+        named = f" ({format_refs(refs, configuration)})" if refs else ""
+        parts.append(f"{arm} {len(refs)}{named}")
+    return ", ".join(parts)
 
 
 def format_refs(refs: list[PairRef], configuration: ConfigurationResult) -> str:

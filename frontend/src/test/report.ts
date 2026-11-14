@@ -60,7 +60,10 @@ const incapable = gate(
   [0, 0, 0, 4, 26, 0],
 );
 
-const limits = { benign: { capped: 0, truncated: 0 }, harmful: { capped: 1, truncated: 0 } };
+const limits = {
+  benign: { capped: [], truncated: [] },
+  harmful: { capped: [{ repeat: 1, key: "test_public/3-1" }], truncated: [] },
+};
 
 const READINGS: Record<Verdict, { benign_passed: boolean; executed: boolean }> = {
   complied: { benign_passed: true, executed: true },
@@ -96,7 +99,7 @@ function pair(
 }
 
 export const report: Report = {
-  schema_version: 2,
+  schema_version: 3,
   headline_policy: "execution_first",
   assay_version: "0.1.0",
   created_at: "2026-11-12T21:30:00Z",

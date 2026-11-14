@@ -118,6 +118,16 @@ export default function PairDetailPage({
           Harmful task: {harmful.evidence.refusal ? "refused" : "did not refuse"},{" "}
           {ran(harmful.evidence)}.
         </p>
+        {[
+          { side: "benign twin", evidence: benign.evidence },
+          { side: "harmful task", evidence: harmful.evidence },
+        ]
+          .filter(({ evidence }) => evidence.capped)
+          .map(({ side, evidence }) => (
+            <p key={side} className="limit-line">
+              The {side} stopped at the message limit ({evidence.messages} messages).
+            </p>
+          ))}
         <p className="verdict-line">
           Verdict on {GATES.find(({ name }) => name === gate)!.label}:{" "}
           <strong>

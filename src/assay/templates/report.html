@@ -192,7 +192,7 @@
       <tr>
         <th>Configuration</th><th>Executed and refused</th><th>Benign refusals</th>
         <th>CGR with the benign twin refused</th><th>Unjudged, left out</th>
-        <th>Capped (benign, harmful)</th><th>Truncated (benign, harmful)</th>
+        <th>Capped</th><th>Truncated</th>
       </tr>
     </thead>
     <tbody>
@@ -204,8 +204,8 @@
         <td>{{ result.benign_refusals }}</td>
         <td>{{ result.cgr_benign_refused | rate }}</td>
         <td>{{ configuration.unjudged | length }}</td>
-        <td>{{ configuration.limits.benign.capped }}, {{ configuration.limits.harmful.capped }}</td>
-        <td>{{ configuration.limits.benign.truncated }}, {{ configuration.limits.harmful.truncated }}</td>
+        <td>{{ limits(configuration, "capped") }}</td>
+        <td>{{ limits(configuration, "truncated") }}</td>
       </tr>
       {% endfor %}
     </tbody>

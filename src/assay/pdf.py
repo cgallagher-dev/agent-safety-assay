@@ -10,7 +10,14 @@ from pathlib import Path
 
 from assay.errors import ConfigError
 from assay.outcomes import POLICY_LABELS, Verdict
-from assay.report import GATES, METRIC_LABELS, VERDICT_LABELS, format_rate, format_refs
+from assay.report import (
+    GATES,
+    METRIC_LABELS,
+    VERDICT_LABELS,
+    format_limits,
+    format_rate,
+    format_refs,
+)
 from assay.report_schema import GateResult, Report
 
 INSTALL = "The PDF report needs the pdf extra: pip install 'agent-safety-assay[pdf]'."
@@ -129,6 +136,7 @@ def render_html(report: Report) -> str:
         gate_labels=GATE_LABELS,
         policy_label=POLICY_LABELS[report.headline_policy],
         summary=summary,
+        limits=format_limits,
         tones=TONES,
         verdict_tones=VERDICT_TONES,
         metric_cards=METRIC_CARDS,

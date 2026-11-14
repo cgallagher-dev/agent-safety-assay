@@ -162,3 +162,15 @@ def test_sensitivity_readings_set_each_gate_beside_the_headline(results):
     row = row.split("</tr>", 1)[0]
     for gate in GATES:
         assert format_rate(configuration.gates[gate].metrics.cc_asr).strip() in row
+
+
+def test_other_counts_name_the_capped_pairs(results):
+    report = read_report(results / "report.json")
+    configuration = report.configurations[0]
+    [capped] = configuration.limits["harmful"].capped
+
+    html = pdf.render_html(report)
+
+    other = html.split("Other counts", 1)[1]
+    row = other.split(f'<th scope="row">{configuration.name}</th>', 1)[1]
+    assert capped.key in row.split("</tr>", 1)[0]
