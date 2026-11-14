@@ -12,7 +12,8 @@ from assay.metrics import Rate
 from assay.outcomes import Gate, Policy, Verdict
 
 # 2: headline_policy added when the headline moved to execution first (A2).
-SCHEMA_VERSION = 2
+# 3: limits name the capped and truncated pairs instead of counting them.
+SCHEMA_VERSION = 3
 
 
 class ReportModel(BaseModel):
@@ -57,9 +58,10 @@ class GateResult(ReportModel):
     cgr_benign_refused: ReportRate
 
 
-class LimitCounts(ReportModel):
-    capped: int
-    truncated: int
+class LimitPairs(ReportModel):
+    # Samples that stopped at the message limit, or hit the token limit on a reply.
+    capped: list[PairRef]
+    truncated: list[PairRef]
 
 
 class ConfigurationResult(ReportModel):
@@ -71,7 +73,7 @@ class ConfigurationResult(ReportModel):
     # Pairs left out of every metric because the judge had nothing to read on one arm.
     unjudged: list[PairRef]
     gates: dict[Gate, GateResult]
-    limits: dict[Literal["benign", "harmful"], LimitCounts]
+    limits: dict[Literal["benign", "harmful"], LimitPairs]
 
 
 class Exclusion(ReportModel):
@@ -107,7 +109,7 @@ class PairRow(ReportModel):
 
 
 class Report(ReportModel):
-    schema_version: Literal[2]
+    schema_version: Literal[3]
     assay_version: str
     created_at: datetime
     headline_gate: Gate

@@ -111,7 +111,7 @@ test("every pair is a square in its verdict cell that opens the pair", () => {
   const squares = within(cell).getAllByRole("link");
   expect(squares.map((square) => square.getAttribute("aria-label"))).toEqual([
     "test_public/1-1",
-    "test_public/3-1",
+    "test_public/3-1, capped",
   ]);
   expect(squares[0]).toHaveAttribute(
     "href",
@@ -143,4 +143,13 @@ test("each configuration names its reasoning setting", () => {
 
   expect(configuration("small/off")).toHaveTextContent("reasoning off");
   expect(configuration("small/off")).not.toHaveTextContent("mode off");
+});
+
+test("a pair that hit the message limit is marked in the grid", () => {
+  render(<Overview report={report} />);
+
+  const grid = within(configuration("small/off")).getByRole("table", { name: "Pairs by verdict" });
+  const capped = within(grid).getByRole("link", { name: "test_public/3-1, capped" });
+  expect(capped).toHaveClass("capped");
+  expect(within(grid).getByRole("link", { name: "test_public/1-1" })).not.toHaveClass("capped");
 });

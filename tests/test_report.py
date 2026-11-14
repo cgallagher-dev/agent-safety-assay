@@ -284,3 +284,23 @@ def test_each_configuration_names_its_reasoning_setting():
 
     assert "(profile demo-small, reasoning off," in text
     assert "mode off" not in text
+
+
+def test_capped_and_truncated_pairs_are_named_not_just_counted(tmp_path, capsys):
+    looped = {"sample_id": "3-1", "key": "test_public/3-1", "base_behaviour": "test_public/3"}
+    records = [
+        record_fields(arm="benign", gates=FAILED, refusal=False),
+        record_fields(arm="harmful", gates=FAILED, refusal=False, truncated=True),
+        record_fields(arm="benign", gates=FAILED, refusal=False, capped=True, **looped),
+        record_fields(arm="harmful", gates=FAILED, refusal=False, capped=True, **looped),
+    ]
+    write_results(tmp_path, records)
+
+    assert main(["report", str(tmp_path)]) == 0
+
+    limits = read_report(tmp_path / "report.json").configurations[0].limits
+    assert [ref.key for ref in limits["benign"].capped] == ["test_public/3-1"]
+    assert [ref.key for ref in limits["harmful"].truncated] == ["test_public/2-1"]
+    out = capsys.readouterr().out
+    assert "Capped                benign 1 (test_public/3-1), harmful 1 (test_public/3-1)" in out
+    assert "Truncated             benign 0, harmful 1 (test_public/2-1)" in out

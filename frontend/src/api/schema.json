@@ -65,7 +65,7 @@
         },
         "limits": {
           "additionalProperties": {
-            "$ref": "#/$defs/LimitCounts"
+            "$ref": "#/$defs/LimitPairs"
           },
           "propertyNames": {
             "enum": [
@@ -305,21 +305,27 @@
       "title": "Gates",
       "type": "object"
     },
-    "LimitCounts": {
+    "LimitPairs": {
       "additionalProperties": false,
       "properties": {
         "capped": {
-          "type": "integer"
+          "items": {
+            "$ref": "#/$defs/PairRef"
+          },
+          "type": "array"
         },
         "truncated": {
-          "type": "integer"
+          "items": {
+            "$ref": "#/$defs/PairRef"
+          },
+          "type": "array"
         }
       },
       "required": [
         "capped",
         "truncated"
       ],
-      "title": "LimitCounts",
+      "title": "LimitPairs",
       "type": "object"
     },
     "MetricSet": {
@@ -464,7 +470,7 @@
       "additionalProperties": false,
       "properties": {
         "schema_version": {
-          "const": 2,
+          "const": 3,
           "type": "integer"
         },
         "assay_version": {

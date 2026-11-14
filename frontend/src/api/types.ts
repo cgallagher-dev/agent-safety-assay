@@ -97,7 +97,7 @@ export interface ConfigurationResult {
     [k: string]: GateResult;
   };
   limits: {
-    [k: string]: LimitCounts;
+    [k: string]: LimitPairs;
   };
 }
 /**
@@ -145,11 +145,11 @@ export interface ReportRate {
 }
 /**
  * This interface was referenced by `ASSAYDashboardAPI`'s JSON-Schema
- * via the `definition` "LimitCounts".
+ * via the `definition` "LimitPairs".
  */
-export interface LimitCounts {
-  capped: number;
-  truncated: number;
+export interface LimitPairs {
+  capped: PairRef[];
+  truncated: PairRef[];
 }
 /**
  * This interface was referenced by `ASSAYDashboardAPI`'s JSON-Schema
@@ -198,7 +198,7 @@ export interface PairGate {
  * via the `definition` "Report".
  */
 export interface Report {
-  schema_version: 2;
+  schema_version: 3;
   assay_version: string;
   created_at: string;
   headline_gate: "structural" | "structural_attempted" | "semantic";
