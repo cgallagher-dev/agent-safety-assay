@@ -254,6 +254,11 @@ Each requirement lists the user stories it supports.
   profile's minimum, and records the server's default sampling parameters.
   (US-06)
 
+- **FR31** `assay task <id>` shows one matched pair from the pinned dataset:
+  its category, the expected tool calls in order, the grader's order rule and
+  the benign prompt. The harmful prompt is printed only with
+  `--show-harmful`, after a content warning. (US-30)
+
 ### 6.2 Grading
 
 - **FR7** Every sample gets the three gate readings, computed from declared,
@@ -504,7 +509,7 @@ statistics while they run.
 
 | Objective | Requirements | Stories | Milestone |
 | --- | --- | --- | --- |
-| O2 | FR1, FR7 to FR20, FR29 | US-01, US-07 to US-17, US-27 | M1, M2 |
+| O2 | FR1, FR7 to FR20, FR29, FR31 | US-01, US-07 to US-17, US-27, US-30 | M1, M2 |
 | O3 | FR2 to FR6 | US-02 to US-06 | M2 |
 | O4 | FR19 to FR28, FR30 | US-17 to US-23, US-28 | M1, M3 |
 | O5 | FR15 to FR18, NFR1, NFR5, NFR13 | US-13 to US-16, US-24 to US-26 | M2, M3 |

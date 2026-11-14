@@ -74,6 +74,17 @@ misconfigured server fails in seconds rather than after hours.
 
 Should, M2. FR6.
 
+### US-30 Look up a task by id
+As a researcher or supervisor, I want to see one AgentHarm pair by its id, so
+that I can check what a result in the report was about without opening the
+dataset.
+- It shows the category, the expected tool calls in order, the grader's order
+  rule and the benign prompt.
+- The harmful prompt is withheld unless asked for with a flag, and then comes
+  after a content warning.
+
+Should, M1. FR31.
+
 ## B. Grading and judging
 
 ### US-07 Capability gates for both arms
