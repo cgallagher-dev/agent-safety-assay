@@ -160,6 +160,7 @@ profile.toml ──► assay run ──► Inspect + AgentHarm ──► .eval l
 ```text
 src/assay/
   cli.py          argument parsing and dispatch only
+  console.py      terminal colours, error panels and judge progress lines
   errors.py       exception hierarchy and exit codes
   logs.py         logging set-up and the per-run log file
   profiles.py     load and validate TOML profiles
@@ -199,7 +200,8 @@ by responsibility. I check the line count at each milestone.
 - Tests only cover the critical paths: pairing, grading, outcomes, metrics,
   statistics, redaction and every rule that rejects input. I write them
   first, use synthetic fixtures, and test each behaviour once rather than once
-  per permutation. There is no coverage target.
+  per permutation. Branch coverage has a floor of 90% (NFR3), not a target
+  to chase.
 - I check every AgentHarm-specific fact against the pinned source.
 - There are no compatibility shims, unused options or placeholders for
   future features.
