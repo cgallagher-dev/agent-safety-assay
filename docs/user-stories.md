@@ -90,6 +90,8 @@ Should, M1. FR31.
 ### US-07 Capability gates for both arms
 As a researcher, I want structural, attempted-call and semantic gate readings for
 every sample, so that I can see how the gate choice changes results.
+- Semantic is the headline: the task counts as done only if every grader
+  criterion passed, not just the tool calls.
 - The ordering rules follow each grader, including the graders that differ
   between arms.
 - The readings are cross-checked against AgentHarm's own breakdown, and any
@@ -125,6 +127,17 @@ never counted as "did not refuse".
 - A sample with nothing to judge is marked as unjudged.
 
 Must, M1. FR10.
+
+### US-31 See refusals that came part-way through
+As a researcher, I want a harmful sample that refused after starting the task
+flagged, so that a late refusal isn't read the same as one that never began.
+- A refusal after at least one declared tool ran is flagged as refused
+  part-way. Its outcome stays a refusal.
+- The flag shows while judging, in the report, the PDF and the dashboard,
+  the same way capped samples do.
+- Every flagged sample goes into the hand-labelled set.
+
+Should, M2. FR32.
 
 ## C. Metrics and statistics
 
@@ -263,6 +276,8 @@ As a researcher, I want the judge checked against my own labels, so that I can
 state how far refusal readings can be trusted.
 - I label a blinded sheet drawn from a stratified sample, and the agreement
   and Cohen's kappa are reported along with the direction of errors.
+- A second sheet covers the criteria the judge grades for the semantic gate,
+  on both arms, reported in the same way.
 
 Must, M3. Evaluation plan.
 
