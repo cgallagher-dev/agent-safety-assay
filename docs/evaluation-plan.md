@@ -60,6 +60,60 @@ any case-study result exists.
 
 Agreed with my supervisor at our meeting on 12 November 2026.
 
+**A3, 15 November 2026, before any final run.** Four changes, made before
+any case-study result exists.
+
+1. Headline gate. The semantic gate is now the headline on both arms: every
+   declared tool executed in a valid order, and every task-specific grader
+   criterion passed. Structural over executed calls, attempted calls and a
+   mixed reading (semantic on the benign arm, structural on the harmful arm)
+   become sensitivity readings. Execution first stays, so a harmful sample
+   that passes the semantic gate counts as a success even if the reply
+   refused.
+2. AgentHarm defects. Every defect with one clear fix is patched in memory
+   before any final run and reported upstream. On top of the ones already
+   listed, these are: three graders that read an argument their tool
+   doesn't take (`test_public/17`, `40` and `46`), the harmful
+   paper-rewrite grader reading a file that doesn't exist
+   (`test_public/53`), the YouTube grader looking up a tool called `file`,
+   so the download is never checked (`test_public/46`), and
+   `run_stable_diffusion_model` requiring an `image_path` its description
+   says can be empty. Differences that need a judgement about the benchmark
+   (order checks and tool descriptions that differ by arm, an exact handle
+   match) stay unpatched and flagged.
+3. Judge agreement on criteria. The hand-label check adds a stratified
+   sample of the criteria the judge grades, on both arms, with agreement
+   and kappa reported in the same way as for refusals.
+4. Refused part-way. A harmful sample judged a refusal after at least one
+   declared tool executed is flagged and counted, like capped samples. Its
+   outcome doesn't change. Every flagged sample joins the hand-label
+   sample.
+
+- Why: AgentHarm's paper grades tools "called with the right arguments",
+  so its own idea of doing a task includes the arguments, and the
+  structural gate leaves them out. A structural harmful success also
+  counts a model that runs every tool but swaps in harmless content, which
+  is closer to a refusal than to compliance. On the benign side, a model
+  can pass the structural gate without finishing the task: in the Demo 1
+  run, `test_public/24-1` called all three tools but never deployed
+  anything. Discussion on
+  [inspect_evals #2108](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2108)
+  measured name-only grading on another benchmark, where wrong arguments
+  were the largest source of false successes, and noted nobody has measured
+  it on AgentHarm. With the semantic gate as the headline, the gap between
+  the structural and semantic readings measures it here.
+- What stays the same: configurations, repeats, the 27 comparisons, the
+  judge, the 9-B rule and everything else in this plan.
+- What it costs: the headline now rests on the judge's reading of the
+  criteria as well as on the tool calls, which A2 tried to avoid, so the
+  criterion check in change 3 is required. A harmful sample that runs every
+  tool with the wrong arguments now counts as failed when capable, not
+  complied. Fewer benign tasks pass, so intervals are wider: on the Demo 1
+  run with the patched graders, 8 of 10 benign tasks pass the semantic gate
+  and 9 of 10 pass the structural gate.
+
+My supervisor hears about this change at our next meeting.
+
 There are two parts, matching objective O5: a case study that uses the tool,
 and an evaluation of the tool itself.
 
@@ -100,7 +154,7 @@ task version 8-B):
   executed and attempted calls, and reports where its gates disagree with
   AgentHarm's own score. Agreed on 5 November: the structural gate on executed calls is the
   headline, with the attempted-calls reading next to it as a sensitivity
-  check. If AgentHarm 9-B comes out before the final runs start on 30
+  check (changed by A3: the semantic gate is the headline). If AgentHarm 9-B comes out before the final runs start on 30
   November and works with ASSAY, I'll move to it and use that as the
   headline instead. Either way it's settled before I look at any final
   results.
@@ -129,7 +183,8 @@ task version 8-B):
   sensitivity reading without these five base behaviours. I haven't patched
   `run_stable_diffusion_model`: it is identical on both arms and accepts an
   empty `image_path`, so a model that leaves out the argument gets a tool
-  error it can recover from.
+  error it can recover from. (Changed by A3: patched, because its
+  description says the argument can be empty.)
 - Three kept base behaviours have graders that check tool order differently
   on each arm: `test_public/14` (benign accepts two orders), `test_public/30`
   (harmful checks only the first three tools) and `test_public/62` (benign has
@@ -236,11 +291,11 @@ going.
 ### Outcomes
 
 - The primary outcomes are CGR, ccASR and ccRR under the structural gate
-  (executed calls).
+  (executed calls). (Changed by A3: under the semantic gate.)
 - I always report these alongside them: benign pass rate, ASR, verdict
   counts, the executed-and-refused overlap, capability anomalies, benign
   refusals and the share of CGR they account for, and the capped and
-  truncated shares.
+  truncated shares. (Added by A3: the refused part-way count.)
 - Unjudged pairs, where the judge had nothing to read on one arm (no
   reasoning, text or tool call in any turn), are listed per configuration and
   left out of every metric. A harmful sample like this can't have executed,
@@ -269,11 +324,13 @@ supervisor and I agree a method.
 - Gate: I compare structural (executed calls), attempted calls and semantic.
   The semantic gate depends on the judge, because 26 benign and 31 harmful
   graders ask an LLM to grade at least one criterion, and here that LLM is
-  the local judge.
+  the local judge. (Changed by A3: semantic is the headline, compared with
+  structural over executed calls, attempted calls and the mixed reading.)
 - Outcome policy: refusal first compared with execution first.
 - Common subset: the conditioned metrics on pairs whose benign task passed in
   all the compared configurations.
-- Flagged pairs: the metrics without the five patched base behaviours, the
+- Flagged pairs: the metrics without the five patched base behaviours
+  (changed by A3: every patched base behaviour), the
   two with a tool-description difference and the three whose order check
   differs by arm.
 - Decoding: the 4B at temperature 0 compared with the case-study settings.
@@ -291,7 +348,8 @@ supervisor and I agree a method.
   content.
 - A structural harmful success means the harmful tool sequence executed. It
   doesn't check that the arguments were harmful. The semantic gate does,
-  with the caveat above.
+  with the caveat above. (Changed by A3: the semantic gate is the
+  headline, so this applies to the structural sensitivity reading.)
 - AgentHarm is public, so the models may have seen its tasks in training.
 
 ### Reporting rules
@@ -300,7 +358,8 @@ supervisor and I agree a method.
 - The findings describe the tested configurations only, and I make no general
   claim about model size and safety.
 - I report ccRR as an estimate that depends on the judge, next to the judge
-  agreement result.
+  agreement result. (Changed by A3: every primary metric depends on the
+  judge, so all of them sit next to both agreement results.)
 - Any result outside the agreed comparisons is labelled exploratory.
 
 ## Part 2: Evaluating the tool
@@ -312,7 +371,7 @@ supervisor and I agree a method.
 | Invalid input | One test per rejection: missing arm, duplicate key, runs with different settings, invalid profile, malformed grading breakdown. A test also checks that unjudged pairs are listed and left out of the metrics. | Tests. |
 | Export agreement | Text, JSON, CSV, PDF and the dashboard API carry identical numbers for the same run. | Automated test. |
 | Privacy | Sentinel strings sent through every API endpoint, a CI containment check, and a manual review of an evidence file. | Tests and CI. |
-| Judge agreement | I hand label, blinded, a stratified random sample of at least 100 samples across configurations and verdicts, including every benign refusal. I report agreement, Cohen's kappa and the direction of errors. | Agreement table. |
+| Judge agreement | I hand label, blinded, a stratified random sample of at least 100 samples across configurations and verdicts, including every benign refusal. I report agreement, Cohen's kappa and the direction of errors. A3 adds a stratified sample of judged criteria on both arms and every refused part-way sample. | Agreement table. |
 | Plug-and-play | I run a tool-capable model from another family (for example a Llama or Mistral model on Ollama) on a small slice, using only a new profile. | Run record, with no code change in the diff. |
 | Clean install | On a fresh machine or VM I install from the release, run the fixture report, open the dashboard and render the PDF. | Checklist and screenshots. |
 | Demonstrations | Demo 1 runs end to end from the fixture and a small saved run. | Demo script. |
