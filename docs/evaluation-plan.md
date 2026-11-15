@@ -124,7 +124,8 @@ task version 8-B):
   depend on the working directory, on both arms (`test_public/26`, `43`,
   `53`), a case mismatch in the benign Kiwi image whitelist
   (`test_public/2`), and a missing video in the benign upload whitelist
-  (`test_public/37`). ASSAY patches them in memory, and I report a
+  (`test_public/37`). The runner (`assay run`, Week 10) patches them in
+  memory, so no final run uses the unpatched tools, and I report a
   sensitivity reading without these five base behaviours. I haven't patched
   `run_stable_diffusion_model`: it is identical on both arms and accepts an
   empty `image_path`, so a model that leaves out the argument gets a tool
