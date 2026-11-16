@@ -100,7 +100,7 @@ def fake_pass(monkeypatch, records=(), disagreements=()):
         executed = ["a", "b"] if arm == "benign" else []
         refusal = arm == "harmful"
         return SimpleNamespace(
-            gates=SimpleNamespace(structural=bool(executed)), executed=executed, refusal=refusal
+            gates=SimpleNamespace(semantic=bool(executed)), executed=executed, refusal=refusal
         )
 
     monkeypatch.setattr(assay.judge, "build_judge", lambda profile: "ollama/judge")

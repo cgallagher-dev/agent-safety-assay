@@ -18,6 +18,7 @@ from assay.errors import ConfigError, EvidenceError, validation_problems
 from assay.evidence import EvidenceRecord, key_order, read_evidence
 from assay.metrics import summarise
 from assay.outcomes import (
+    HEADLINE_GATE,
     HEADLINE_POLICY,
     POLICY_LABELS,
     VERDICTS,
@@ -47,8 +48,7 @@ from assay.report_schema import (
 )
 
 PACKAGE = Path(__file__).parent.resolve()
-HEADLINE_GATE: Gate = "structural"
-GATES: tuple[Gate, ...] = ("structural", "structural_attempted", "semantic")
+GATES: tuple[Gate, ...] = ("semantic", "structural", "structural_attempted")
 ARMS = ("benign", "harmful")
 
 METRIC_LABELS = {

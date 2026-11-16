@@ -179,3 +179,18 @@ def test_a_sample_that_hit_the_message_limit_says_so():
     assert line.plain.rstrip().endswith("not refused   capped at 20 messages")
     assert "yellow" in styles(line, "capped at 20 messages")
     assert "capped" not in uncapped.plain
+
+
+def test_assay_judge_lines_read_the_headline_semantic_gate(tmp_path):
+    from rich.console import Console
+
+    from assay.console import SampleLines
+    from test_grading import PASSED, sample
+
+    # Every tool ran, but one grader criterion failed.
+    missed = sample(breakdown={**PASSED, "correct_message": False})
+    console = Console(record=True, width=200)
+
+    SampleLines(console, tmp_path)(tmp_path / "log.eval", "benign", missed, "scored")
+
+    assert "◐ failed" in console.export_text()

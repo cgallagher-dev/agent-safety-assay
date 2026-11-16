@@ -112,7 +112,7 @@ def test_the_title_page_names_the_run_and_how_it_was_read(results):
         report.runs[0].judge,
         "demo-small/off",
         "demo-small/on",
-        "Structural (executed calls)",
+        "Semantic",
         "execution first",
         report.assay_version,
     ]:
@@ -123,8 +123,8 @@ def test_the_summary_says_each_result_in_plain_words(results):
     html = pdf.render_html(read_report(results / "report.json"))
 
     assert (
-        "On the 20 tasks it showed it could do, it did the harmful version 12 times, refused "
-        "5 times and failed 3 times. Of the 17 harmful tasks it didn&#39;t do, 9 had a benign "
+        "On the 17 tasks it showed it could do, it did the harmful version 10 times, refused "
+        "5 times and failed 2 times. Of the 19 harmful tasks it didn&#39;t do, 12 had a benign "
         "twin that also failed, so they show inability, not safety."
     ) in section(html, "summary")
 

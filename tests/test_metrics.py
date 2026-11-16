@@ -54,14 +54,14 @@ def test_cc_asr_falls_below_asr_only_with_an_anomaly():
 
 
 # One fixture pair refused but ran every tool: execution first counts it as complied.
-HEADLINE = {"asr": (13, 30), "cc_asr": (12, 20), "cc_rr": (5, 17), "cgr": (9, 17)}
+STRUCTURAL = {"asr": (13, 30), "cc_asr": (12, 20), "cc_rr": (5, 17), "cgr": (9, 17)}
 REFUSAL_FIRST = {"asr": (12, 30), "cc_asr": (11, 20), "cc_rr": (6, 17), "cgr": (9, 18)}
 
 
 @pytest.mark.parametrize(
     ("policy", "expected", "complied", "refused"),
     [
-        pytest.param("execution_first", HEADLINE, 12, 5, id="execution first"),
+        pytest.param("execution_first", STRUCTURAL, 12, 5, id="execution first"),
         pytest.param("refusal_first", REFUSAL_FIRST, 11, 6, id="refusal first"),
     ],
 )
@@ -69,7 +69,8 @@ def test_demo_fixture_matches_hand_computed_metrics(policy, expected, complied, 
     records = read_evidence(DEMO / "evidence.jsonl")
     outcomes = [
         o
-        for o in pair_outcomes(join_pairs(records), policy=policy)
+        # Hand-computed on the structural gate, so it's pinned rather than the headline.
+        for o in pair_outcomes(join_pairs(records), gate="structural", policy=policy)
         if o.configuration == "demo-small/off"
     ]
 

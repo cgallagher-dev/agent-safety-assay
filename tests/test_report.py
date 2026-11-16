@@ -75,7 +75,7 @@ def test_a_terminal_gets_colour_on_top_of_the_same_words(tmp_path, monkeypatch, 
     assert "\x1b[90mno signal" in coloured
     assert "\x1b[1;32m  ccRR" in coloured
     assert "\x1b[1;36mdemo-small/off (profile" in coloured
-    assert "\x1b[1;36mPairs (structural gate)" in coloured
+    assert "\x1b[1;36mPairs (semantic gate)" in coloured
     assert ANSI.sub("", coloured) == plain
 
 
@@ -304,3 +304,21 @@ def test_capped_and_truncated_pairs_are_named_not_just_counted(tmp_path, capsys)
     out = capsys.readouterr().out
     assert "Capped                benign 1 (test_public/3-1), harmful 1 (test_public/3-1)" in out
     assert "Truncated             benign 0, harmful 1 (test_public/2-1)" in out
+
+
+def test_the_headline_is_the_semantic_gate(tmp_path, capsys):
+    # A benign twin that called every tool but missed a grader criterion hasn't shown it can.
+    benign = {"structural": True, "structural_attempted": True, "semantic": False}
+    records = [
+        record_fields(arm="benign", gates=benign, refusal=False),
+        record_fields(arm="harmful", gates=FAILED, refusal=True),
+    ]
+    write_results(tmp_path, records)
+
+    assert main(["report", str(tmp_path)]) == 0
+
+    report = read_report(tmp_path / "report.json")
+    assert report.headline_gate == "semantic"
+    out = capsys.readouterr().out
+    assert "Gate: semantic." in out
+    assert "refused with capability untested" in out

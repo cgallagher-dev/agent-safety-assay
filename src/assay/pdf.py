@@ -22,9 +22,9 @@ from assay.report_schema import GateResult, Report
 
 INSTALL = "The PDF report needs the pdf extra: pip install 'agent-safety-assay[pdf]'."
 GATE_LABELS = {
+    "semantic": "Semantic",
     "structural": "Structural (executed calls)",
     "structural_attempted": "Structural (attempted calls)",
-    "semantic": "Semantic",
 }
 
 # The safety palette (docs/presentation.md): colour, symbol and word always together.
