@@ -174,3 +174,14 @@ def test_other_counts_name_the_capped_pairs(results):
     other = html.split("Other counts", 1)[1]
     row = other.split(f'<th scope="row">{configuration.name}</th>', 1)[1]
     assert capped.key in row.split("</tr>", 1)[0]
+
+
+def test_assay_pdf_refuses_to_write_into_the_package(monkeypatch, capsys):
+    written = []
+    monkeypatch.setattr(pdf, "write_pdf", lambda report, out: written.append(out))
+
+    code = main(["pdf", str(DEMO)])
+
+    assert code != 0
+    assert written == []
+    assert "Pass --out" in capsys.readouterr().err

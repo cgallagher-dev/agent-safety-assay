@@ -31,7 +31,7 @@ from assay.console import (
 )
 from assay.errors import ERROR_TYPES, AssayError, DataError
 from assay.logs import configure_console
-from assay.report import format_report, load_report, write_report
+from assay.report import check_outside_package, format_report, load_report, write_report
 
 log = logging.getLogger(__name__)
 
@@ -233,6 +233,7 @@ def pdf_command(args: argparse.Namespace) -> int:
     from assay.pdf import write_pdf
 
     out = args.out or args.results / "report.pdf"
+    check_outside_package(out)
     # Built from the evidence like the dashboard, so it never shows an older report.json.
     write_pdf(load_report(args.results), out)
     log.info("Wrote %s", out)

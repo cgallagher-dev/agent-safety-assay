@@ -244,13 +244,18 @@ def read_report(path: Path) -> Report:
         ) from None
 
 
-def write_report(report: Report, out: Path) -> None:
-    """Write report.json, metrics.csv and pairs.csv to out."""
+def check_outside_package(out: Path) -> None:
+    """Refuse an output path inside the installed package, such as the bundled demo."""
     if out.resolve().is_relative_to(PACKAGE):
         raise ConfigError(
             f"{out} is inside the installed assay package, such as the bundled demo. "
             "Pass --out to write the report somewhere else."
         )
+
+
+def write_report(report: Report, out: Path) -> None:
+    """Write report.json, metrics.csv and pairs.csv to out."""
+    check_outside_package(out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "report.json").write_text(report.model_dump_json(indent=2) + "\n", encoding="utf-8")
     with (out / "metrics.csv").open("w", newline="", encoding="utf-8") as file:
