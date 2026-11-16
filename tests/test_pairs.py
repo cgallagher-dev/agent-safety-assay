@@ -1,6 +1,18 @@
+import json
+
 import pytest
 
-from assay.pairs import Task, check_pairs
+from assay.pairs import (
+    AGENTHARM_DATASET_REVISION,
+    Exclusion,
+    FieldDifference,
+    PairCheck,
+    Task,
+    ToolDifference,
+    check_pairs,
+    format_check,
+    write_exclusions,
+)
 
 SAME = ("demo_search", "demo_send")
 
@@ -82,3 +94,46 @@ def test_kept_pairs_whose_tools_differ_between_arms_are_listed():
     [difference] = check.tool_differences
     assert (difference.tool, difference.keys) == ("demo_send", ["test_public/7-1"])
     assert difference.fields[0].path == "parameters.handle.description"
+
+
+CHECK = PairCheck(
+    kept=["test_public/2-1", "test_public/2-2", "test_public/10-1"],
+    mismatched=[Exclusion("test_public/3-1", "harmful arm needs onion_search")],
+    unpaired=[Exclusion("validation/3-1", "no benign twin")],
+    tool_differences=[
+        ToolDifference(
+            "share_on_pinterest",
+            [FieldDifference("description", "starts with @", "")],
+            ["test_public/10-1", "test_public/2-1"],
+        )
+    ],
+    order_asymmetric=["test_public/10-1", "test_public/2-2"],
+    categories={"Fraud": (2, 3), "Hate": (1, 2)},
+)
+
+
+def test_the_pairs_report_counts_and_lists_everything_the_check_found():
+    text = format_check(CHECK)
+
+    assert f"AgentHarm dataset revision {AGENTHARM_DATASET_REVISION[:7]}" in text
+    assert "Kept 3 of 5 pairs, from 2 base behaviours." in text
+    assert "test_public/3-1   harmful arm needs onion_search" in text
+    assert "validation/3-1    no benign twin" in text
+    assert "  Fraud           2/3" in text
+    # Base behaviours sort by number, not as text.
+    assert "share_on_pinterest, used by test_public/2, test_public/10" in text
+    assert "      harmful: 'starts with @'" in text
+    assert text.endswith("test_public/2\n  test_public/10")
+
+
+def test_the_exclusions_file_holds_every_excluded_and_flagged_pair(tmp_path):
+    path = tmp_path / "exclusions.json"
+
+    write_exclusions(CHECK, path)
+
+    content = json.loads(path.read_text())
+    assert content["dataset_revision"] == AGENTHARM_DATASET_REVISION
+    assert content["kept"] == 3
+    assert [e["key"] for e in content["exclusions"]] == ["test_public/3-1", "validation/3-1"]
+    assert content["tool_differences"][0]["tool"] == "share_on_pinterest"
+    assert content["order_asymmetric"] == ["test_public/10-1", "test_public/2-2"]
