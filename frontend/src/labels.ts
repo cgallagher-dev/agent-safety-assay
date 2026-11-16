@@ -3,9 +3,9 @@ import type { MetricSet, PairRef, Report, Verdict } from "./api/types";
 export type Gate = Report["headline_gate"];
 
 export const GATES: { name: Gate; label: string }[] = [
+  { name: "semantic", label: "Semantic" },
   { name: "structural", label: "Structural (executed calls)" },
   { name: "structural_attempted", label: "Structural (attempted calls)" },
-  { name: "semantic", label: "Semantic" },
 ];
 
 // A gate read from a link, which may be stale or hand-edited.

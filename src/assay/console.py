@@ -13,7 +13,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from assay.outcomes import HEADLINE_POLICY, VERDICTS, Verdict, harmful_outcome
+from assay.outcomes import HEADLINE_GATE, HEADLINE_POLICY, VERDICTS, Verdict, harmful_outcome
 from assay.report import METRIC_LABELS, VERDICT_LABELS
 
 HARM, SAFE, GAP, NO_EVIDENCE, NEUTRAL = "red", "green", "yellow", "bright_black", "cyan"
@@ -148,7 +148,7 @@ class SampleLines:
         configuration, repeat = (match.group(1), match.group(3)) if match else ("", "")
         pair = (configuration, repeat, str(sample.id))
         grade = grade_sample(sample, arm)
-        passed = grade.gates.structural
+        passed = getattr(grade.gates, HEADLINE_GATE)
         if arm == "benign":
             self.benign[pair] = passed
         self.console.print(
