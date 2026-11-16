@@ -91,9 +91,11 @@ because the logs hold the full transcripts.
    counts appear on screen.
 2. The PDF: the metrics on every gate with numerators and denominators, the
    plot, and the appendix that lists the pairs behind each count.
-3. The dashboard: the overview, then switch the capability gate to Semantic
-   (benign passes drop, which is why the judge-graded reading isn't the
-   headline), then one pair's detail. The benign transcript shows in full;
+3. The dashboard: the overview on the semantic headline, then switch the
+   capability gate to Structural (executed calls) and open pair
+   `test_public/24-1`. Its benign twin called every tool but never finished
+   the task, so only the structural gate counts it as capable, which is why
+   the semantic gate is the headline. The benign transcript shows in full;
    the harmful side shows only roles and tool names.
 
 ## Privacy
