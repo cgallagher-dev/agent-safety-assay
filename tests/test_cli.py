@@ -7,14 +7,20 @@ import pytest
 import assay.cli
 import assay.grading
 import assay.judge
+import assay.preflight
 import assay.scoring
 from assay import __version__
 from assay.cli import main
-from assay.errors import EvidenceError
+from assay.errors import EvidenceError, RunError
 from assay.evidence import EvidenceRecord, read_evidence
+from assay.preflight import ServerCheck
 from assay.report_schema import RunConfig
 from assay.scoring import PassSummary
 from helpers import RUN_CONFIG, record_fields
+
+SERVER = ServerCheck(
+    version="0.40.15", model="gemma4:12b-it-qat", digest="sha256:6c1e", sampling={}, context=32768
+)
 
 
 def test_version_flag_prints_package_version(capsys):
@@ -38,6 +44,7 @@ def test_judge_scores_the_results_and_reports_what_it_skipped(tmp_path, monkeypa
         return PassSummary(scored=4, already_scored=2)
 
     monkeypatch.setattr(assay.judge, "build_judge", lambda profile: profile.name)
+    monkeypatch.setattr(assay.preflight, "check_server", lambda profile: SERVER)
     monkeypatch.setattr(assay.scoring, "score_logs", fake_score_logs)
     clock = iter([100.0, 958.0])
     monkeypatch.setattr(assay.cli.time, "monotonic", lambda: next(clock))
@@ -104,6 +111,7 @@ def fake_pass(monkeypatch, records=(), disagreements=()):
         )
 
     monkeypatch.setattr(assay.judge, "build_judge", lambda profile: "ollama/judge")
+    monkeypatch.setattr(assay.preflight, "check_server", lambda profile: SERVER)
     monkeypatch.setattr(assay.scoring, "score_logs", fake_score_logs)
     monkeypatch.setattr(assay.grading, "grade_sample", fake_grade)
     monkeypatch.setattr(
@@ -211,3 +219,29 @@ def test_judge_stops_on_a_misplaced_log_before_judging(tmp_path, monkeypatch, ca
     assert code == EvidenceError.exit_code
     assert calls == []
     assert "logs/stray.eval" in capsys.readouterr().err
+
+
+def test_judge_says_which_server_it_checked(tmp_path, monkeypatch, capsys):
+    fake_pass(monkeypatch)
+    (tmp_path / "run_config.json").write_text(json.dumps(RUN_CONFIG))
+
+    assert main(["judge", str(tmp_path), "--judge", "gemma4-12b"]) == 0
+
+    out = capsys.readouterr().out
+    assert "Ollama 0.40.15 serves gemma4:12b-it-qat (sha256:6c1e) with 32768 tokens" in out
+
+
+def test_judge_stops_on_a_bad_server_before_judging(tmp_path, monkeypatch, capsys):
+    calls = fake_pass(monkeypatch)
+
+    def short_context(profile):
+        raise RunError("Ollama serves gemma4:12b-it-qat with 4096 tokens of context")
+
+    monkeypatch.setattr(assay.preflight, "check_server", short_context)
+    (tmp_path / "run_config.json").write_text(json.dumps(RUN_CONFIG))
+
+    code = main(["judge", str(tmp_path), "--judge", "gemma4-12b"])
+
+    assert code == RunError.exit_code
+    assert calls == []
+    assert "4096 tokens of context" in capsys.readouterr().err

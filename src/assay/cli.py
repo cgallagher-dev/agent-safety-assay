@@ -152,12 +152,13 @@ def task_command(args: argparse.Namespace) -> int:
 
 def judge_command(args: argparse.Namespace) -> int:
     # Imported here because Inspect adds seconds to every other command.
-    from assay import grading, judge, scoring
+    from assay import grading, judge, preflight, scoring
     from assay.evidence import write_evidence
     from assay.profiles import load_profile
     from assay.report import read_run_config
 
-    model = judge.build_judge(load_profile(args.judge))
+    profile = load_profile(args.judge)
+    model = judge.build_judge(profile)
     run_config_path = args.results / "run_config.json"
     if not run_config_path.exists():
         run_config = grading.run_config_from_logs(args.results, str(model))
@@ -168,6 +169,12 @@ def judge_command(args: argparse.Namespace) -> int:
         )
     # A misplaced log fails here, before any judging.
     grading.find_logs(args.results, read_run_config(args.results))
+    server = preflight.check_server(profile)
+    if server is not None:
+        print(
+            f"Ollama {server.version} serves {server.model} ({server.digest}) "
+            f"with {server.context} tokens of context."
+        )
     terminal = styled_console(stderr=True)
     started = time.monotonic()
     if terminal is None or args.quiet:
