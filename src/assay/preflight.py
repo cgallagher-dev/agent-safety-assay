@@ -1,5 +1,7 @@
 """Checks an Ollama server before a run, so a misconfigured server fails in seconds."""
 
+import os
+
 import httpx
 from pydantic import BaseModel
 
@@ -16,6 +18,21 @@ class ServerCheck(BaseModel):
     # The model file's defaults, which fill in anything the profile doesn't send.
     sampling: dict[str, str]
     context: int
+
+
+def server_root(profile: Profile) -> str:
+    """The Ollama server Inspect will send the profile's requests to."""
+    url = profile.base_url or os.environ.get("OLLAMA_BASE_URL") or "http://localhost:11434/v1"
+    return url.rstrip("/").removesuffix("/v1")
+
+
+def check_server(profile: Profile) -> ServerCheck | None:
+    """Check the profile's Ollama server; a hosted model has no server to check."""
+    if not profile.model.startswith("ollama/"):
+        return None
+    # Loading a 12B model from disk can take a minute.
+    with httpx.Client(base_url=server_root(profile), timeout=120) as client:
+        return check_ollama(profile, client)
 
 
 def check_ollama(profile: Profile, client: httpx.Client) -> ServerCheck:

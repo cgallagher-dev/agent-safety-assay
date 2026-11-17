@@ -4,7 +4,7 @@ import httpx
 import pytest
 
 from assay.errors import RunError
-from assay.preflight import check_ollama
+from assay.preflight import check_ollama, check_server, server_root
 from assay.profiles import load_profile
 
 PROFILE = load_profile("qwen3.5-4b")
@@ -103,3 +103,26 @@ def test_a_model_named_without_a_tag_matches_ollamas_latest():
 
     assert check.digest == DIGEST
     assert check.context == 32768
+
+
+@pytest.mark.parametrize(
+    ("base_url", "env", "root"),
+    [
+        (None, None, "http://localhost:11434"),
+        (None, "http://10.0.0.5:11434/v1", "http://10.0.0.5:11434"),
+        ("http://box:11434/v1/", "http://10.0.0.5:11434/v1", "http://box:11434"),
+    ],
+)
+def test_the_server_is_looked_for_where_inspect_sends_requests(monkeypatch, base_url, env, root):
+    if env:
+        monkeypatch.setenv("OLLAMA_BASE_URL", env)
+    else:
+        monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
+
+    assert server_root(PROFILE.model_copy(update={"base_url": base_url})) == root
+
+
+def test_a_model_not_on_ollama_has_no_server_to_check():
+    hosted = PROFILE.model_copy(update={"model": "openai/gpt-5"})
+
+    assert check_server(hosted) is None
