@@ -444,8 +444,8 @@ Top level: `schema_version`, `assay_version`, `created_at`, `headline_gate`,
 limit, splits, exclusions),
 `configurations` (per configuration: profile, mode, repeats, pair count,
 metrics per gate with numerator, denominator, value or undefined reason and
-interval, verdict counts, overlap, anomalies, capped and truncated pairs per
-arm, and unjudged pairs; all of these pairs carry their repeat and key),
+interval, a plain-words summary sentence, verdict counts, overlap, anomalies,
+capped and truncated pairs per arm, and unjudged pairs; all of these pairs carry their repeat and key),
 `comparisons`
 and `pairs` (one row per configuration, repeat and pair with per-gate verdict).
 The exact schema is defined in `report_schema.py`, and it is exported as

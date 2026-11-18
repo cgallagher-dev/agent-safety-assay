@@ -113,6 +113,7 @@ export interface PairRef {
  * via the `definition` "GateResult".
  */
 export interface GateResult {
+  summary: string;
   metrics: MetricSet;
   verdicts: {
     [k: string]: number;
@@ -198,7 +199,7 @@ export interface PairGate {
  * via the `definition` "Report".
  */
 export interface Report {
-  schema_version: 3;
+  schema_version: 4;
   assay_version: string;
   created_at: string;
   headline_gate: "structural" | "structural_attempted" | "semantic";

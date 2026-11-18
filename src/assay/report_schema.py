@@ -13,7 +13,7 @@ from assay.outcomes import Gate, Policy, Verdict
 
 # 2: headline_policy added when the headline moved to execution first (A2).
 # 3: limits name the capped and truncated pairs instead of counting them.
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 
 class ReportModel(BaseModel):
@@ -50,6 +50,8 @@ class PairRef(ReportModel):
 
 
 class GateResult(ReportModel):
+    # The result in plain words, so the PDF and the dashboard say the same thing.
+    summary: str
     metrics: MetricSet
     verdicts: dict[Verdict, int]
     overlap: int
@@ -109,7 +111,7 @@ class PairRow(ReportModel):
 
 
 class Report(ReportModel):
-    schema_version: Literal[3]
+    schema_version: Literal[4]
     assay_version: str
     created_at: datetime
     headline_gate: Gate

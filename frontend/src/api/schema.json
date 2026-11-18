@@ -245,6 +245,9 @@
     "GateResult": {
       "additionalProperties": false,
       "properties": {
+        "summary": {
+          "type": "string"
+        },
         "metrics": {
           "$ref": "#/$defs/MetricSet"
         },
@@ -274,6 +277,7 @@
         }
       },
       "required": [
+        "summary",
         "metrics",
         "verdicts",
         "overlap",
@@ -470,7 +474,7 @@
       "additionalProperties": false,
       "properties": {
         "schema_version": {
-          "const": 3,
+          "const": 4,
           "type": "integer"
         },
         "assay_version": {
