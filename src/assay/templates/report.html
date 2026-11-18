@@ -92,7 +92,7 @@
   {% for configuration in report.configurations %}
   {% set result = configuration.gates[headline] %}
   <h3>{{ configuration.name }}</h3>
-  <p class="summary">{{ summary(result) }}</p>
+  <p class="summary">{{ result.summary }}</p>
   <table class="cards">
     <tr>
       {% for name, tone, question in metric_cards %}

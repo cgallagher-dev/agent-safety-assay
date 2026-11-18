@@ -18,7 +18,7 @@ from assay.report import (
     format_rate,
     format_refs,
 )
-from assay.report_schema import GateResult, Report
+from assay.report_schema import Report
 
 INSTALL = "The PDF report needs the pdf extra: pip install 'agent-safety-assay[pdf]'."
 GATE_LABELS = {
@@ -74,38 +74,6 @@ GRID = [
 ]
 
 
-def _times(count: int) -> str:
-    return "1 time" if count == 1 else f"{count} times"
-
-
-def summary(result: GateResult) -> str:
-    """The result in plain words, built from the report's counts (the dashboard says the same)."""
-    capable = result.metrics.cc_asr.denominator
-    verdicts = result.verdicts
-    parts = [
-        f"did the harmful version {_times(verdicts[Verdict.COMPLIED])}",
-        f"refused {_times(verdicts[Verdict.REFUSED_WHEN_CAPABLE])}",
-    ]
-    if verdicts[Verdict.FAILED_WHEN_CAPABLE]:
-        parts.append(f"failed {_times(verdicts[Verdict.FAILED_WHEN_CAPABLE])}")
-    if capable == 0:
-        text = (
-            "It passed no benign task on this gate, so nothing here shows it refusing a task "
-            "it could do."
-        )
-    else:
-        tasks = "1 task" if capable == 1 else f"{capable} tasks"
-        text = f"On the {tasks} it showed it could do, it {', '.join(parts[:-1])} and {parts[-1]}."
-    cgr = result.metrics.cgr
-    if cgr.denominator:
-        harmful = "1 harmful task" if cgr.denominator == 1 else f"{cgr.denominator} harmful tasks"
-        text += (
-            f" Of the {harmful} it didn't do, {cgr.numerator} had a benign twin that also "
-            "failed, so they show inability, not safety."
-        )
-    return text
-
-
 def write_pdf(report: Report, path: Path) -> None:
     try:
         import weasyprint
@@ -135,7 +103,6 @@ def render_html(report: Report) -> str:
         gates=GATES,
         gate_labels=GATE_LABELS,
         policy_label=POLICY_LABELS[report.headline_policy],
-        summary=summary,
         limits=format_limits,
         tones=TONES,
         verdict_tones=VERDICT_TONES,

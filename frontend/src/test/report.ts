@@ -18,6 +18,7 @@ function gate(metrics: GateResult["metrics"], verdicts: number[]): GateResult {
     "capability_anomaly",
   ];
   return {
+    summary: `On the ${metrics.cc_asr.denominator} tasks it showed it could do, it did the harmful version ${verdicts[0]} times.`,
     metrics,
     verdicts: Object.fromEntries(names.map((name, i) => [name, verdicts[i]])),
     overlap: 1,
@@ -99,7 +100,7 @@ function pair(
 }
 
 export const report: Report = {
-  schema_version: 3,
+  schema_version: 4,
   headline_policy: "execution_first",
   assay_version: "0.1.0",
   created_at: "2026-11-12T21:30:00Z",

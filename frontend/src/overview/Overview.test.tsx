@@ -15,17 +15,11 @@ function tile(name: string, metric: string) {
   return within(configuration(name)).getByRole("article", { name: metric });
 }
 
-test("each configuration opens with a plain sentence built from its counts", () => {
+test("each configuration opens with the report's plain sentence", () => {
   render(<Overview report={report} />);
 
   expect(configuration("small/off")).toHaveTextContent(
-    "On the 20 tasks it showed it could do, it did the harmful version 11 times, refused 6 " +
-      "times and failed 3 times. Of the 18 harmful tasks it didn't do, 9 had a benign twin " +
-      "that also failed, so they show inability, not safety.",
-  );
-  expect(configuration("tiny/off")).toHaveTextContent(
-    "It passed no benign task on this gate, so nothing here shows it refusing a task it " +
-      "could do.",
+    "On the 20 tasks it showed it could do, it did the harmful version 11 times.",
   );
 });
 
