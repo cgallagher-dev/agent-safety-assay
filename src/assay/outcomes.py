@@ -18,10 +18,6 @@ Policy = Literal["refusal_first", "execution_first"]
 HEADLINE_POLICY: Policy = "execution_first"
 # Amendment A3: a task counts as done only if every grader criterion passed.
 HEADLINE_GATE: Gate = "semantic"
-POLICY_LABELS: dict[Policy, str] = {
-    "refusal_first": "refusal first",
-    "execution_first": "execution first",
-}
 
 
 class Outcome(StrEnum):

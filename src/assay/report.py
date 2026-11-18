@@ -16,11 +16,11 @@ from pydantic import ValidationError
 from assay import __version__
 from assay.errors import ConfigError, EvidenceError, validation_problems
 from assay.evidence import EvidenceRecord, key_order, read_evidence
+from assay.labels import METRIC_LABELS, POLICY_LABELS, VERDICT_LABELS
 from assay.metrics import summarise
 from assay.outcomes import (
     HEADLINE_GATE,
     HEADLINE_POLICY,
-    POLICY_LABELS,
     VERDICTS,
     Gate,
     PairKey,
@@ -50,22 +50,6 @@ from assay.report_schema import (
 PACKAGE = Path(__file__).parent.resolve()
 GATES: tuple[Gate, ...] = ("semantic", "structural", "structural_attempted")
 ARMS = ("benign", "harmful")
-
-METRIC_LABELS = {
-    "benign_pass_rate": "Benign pass rate",
-    "asr": "ASR",
-    "cc_asr": "ccASR",
-    "cc_rr": "ccRR",
-    "cgr": "CGR",
-}
-VERDICT_LABELS = {
-    Verdict.COMPLIED: "complied",
-    Verdict.REFUSED_WHEN_CAPABLE: "refused when capable",
-    Verdict.FAILED_WHEN_CAPABLE: "failed when capable",
-    Verdict.REFUSED_UNTESTED: "refused with capability untested",
-    Verdict.NO_SIGNAL: "no signal",
-    Verdict.CAPABILITY_ANOMALY: "capability anomaly",
-}
 
 
 def build_report(

@@ -13,26 +13,15 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from assay.outcomes import HEADLINE_GATE, HEADLINE_POLICY, VERDICTS, Verdict, harmful_outcome
-from assay.report import METRIC_LABELS, VERDICT_LABELS
+from assay.labels import METRIC_LABELS, METRIC_TONES, TONES, VERDICT_LABELS, VERDICT_TONES
+from assay.outcomes import HEADLINE_GATE, HEADLINE_POLICY, VERDICTS, harmful_outcome
 
 HARM, SAFE, GAP, NO_EVIDENCE, NEUTRAL = "red", "green", "yellow", "bright_black", "cyan"
-VERDICT_STYLES = {
-    Verdict.COMPLIED: HARM,
-    Verdict.REFUSED_WHEN_CAPABLE: SAFE,
-    Verdict.FAILED_WHEN_CAPABLE: GAP,
-    Verdict.CAPABILITY_ANOMALY: GAP,
-    Verdict.REFUSED_UNTESTED: NO_EVIDENCE,
-    Verdict.NO_SIGNAL: NO_EVIDENCE,
-}
-VERDICT_SYMBOLS = {HARM: "✗", SAFE: "✓", GAP: "◐", NO_EVIDENCE: "–"}
-METRIC_STYLES = {
-    "benign_pass_rate": NEUTRAL,
-    "asr": HARM,
-    "cc_asr": HARM,
-    "cc_rr": SAFE,
-    "cgr": GAP,
-}
+# The terminal's nearest colour to each tone of the palette.
+TERMINAL = {"harm": HARM, "safe": SAFE, "gap": GAP, "none": NO_EVIDENCE, "neutral": NEUTRAL}
+VERDICT_STYLES = {verdict: TERMINAL[tone] for verdict, tone in VERDICT_TONES.items()}
+VERDICT_SYMBOLS = {TERMINAL[tone]: symbol for tone, (_, symbol) in TONES.items()}
+METRIC_STYLES = {metric: TERMINAL[tone] for metric, tone in METRIC_TONES.items()}
 OUTCOME_WORDS = {"refusal": "refused", "success": "done", "failure": "not done"}
 # Wide enough for the longest verdict, "– refused with capability untested".
 VERDICT_WIDTH = 2 + max(len(label) for label in VERDICT_LABELS.values())

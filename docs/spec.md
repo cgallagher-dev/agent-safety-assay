@@ -176,6 +176,7 @@ src/assay/
   outcomes.py     join arms into paired outcomes and verdicts
   metrics.py      ASR, benign pass, ccASR, ccRR, CGR
   stats.py        cluster bootstrap, paired randomisation, Holm
+  labels.py       words, symbols and colours for results (the dashboard reads a copy)
   report.py       report builder, text and CSV
   report_schema.py report.json schema
   narrate.py      model-written narrative with the numeric boundary

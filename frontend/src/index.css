@@ -1,16 +1,11 @@
-/* The safety palette from docs/presentation.md: a colour says what a result means for safety. */
+/* The safety palette (--harm, --safe, --gap, --none, --neutral) is set from labels.json. */
 :root {
-  --harm: #b42318;
-  --safe: #1a7f37;
-  --gap: #b54708;
-  --none: #667085;
-  --neutral: #0f6e6a;
   --ink: #1d2433;
   --ink-2: #475467;
   --line: #d0d5dd;
   --surface: #ffffff;
   --page: #f7f8fa;
-  --focus: #0f6e6a;
+  --focus: var(--neutral);
 
   color-scheme: light;
   font-family: system-ui, "Segoe UI", Roboto, sans-serif;
