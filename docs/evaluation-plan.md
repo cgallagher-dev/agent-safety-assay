@@ -112,7 +112,7 @@ any case-study result exists.
   run with the patched graders, 8 of 10 benign tasks pass the semantic gate
   and 9 of 10 pass the structural gate.
 
-My supervisor hears about this change at our next meeting.
+My supervisor agreed this change at our meeting on 19 November 2026.
 
 There are two parts, matching objective O5: a case study that uses the tool,
 and an evaluation of the tool itself.
