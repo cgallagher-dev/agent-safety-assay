@@ -19,8 +19,10 @@ harmful text and tool arguments. This is how ASSAY handles that material:
   tool names, execution status and verdicts.
 - `assay task` prints a task pair's benign prompt; the harmful prompt prints
   only with `--show-harmful`, after a content warning.
-- `assay show`, planned for M2, will redact harmful-arm text by default.
-  Printing it locally will need an explicit flag.
+- `assay show`, planned for M2, will redact harmful-arm text unless given
+  `--show-harmful`. The dashboard will get the same flag: without it,
+  nothing changes; with it, harmful text is shown behind a warning and a
+  banner. `assay pdf` never includes harmful text.
 - Test fixtures are synthetic.
 
 ## Reporting a problem

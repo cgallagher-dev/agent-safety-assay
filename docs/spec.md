@@ -351,8 +351,8 @@ passed, E = harmful executed, R = refused:
   appendix lists the pair keys in each verdict cell, so every count in the PDF
   traces to its pairs. (US-18)
 - **FR22** `assay show` prints one sample or one pair. Harmful-arm text is
-  redacted unless the user passes an explicit flag. `assay ls` summarises a
-  results directory. (US-20, US-21)
+  redacted unless the user passes `--show-harmful`, which prints a content
+  warning first. `assay ls` summarises a results directory. (US-20, US-21)
 - **FR30** `assay narrate <results>` asks the narrative model for short prose
   (a summary, one paragraph per configuration, and the limitations that apply)
   from `report.json`. Numbers, configuration names, model names and pair keys
@@ -372,9 +372,14 @@ passed, E = harmful executed, R = refused:
   configuration; show declared, observed and executed tool sequences side by
   side for both arms, the judge verdict, and the benign transcript. Harmful
   traces show structure only (FR26). (US-20)
-- **FR26** The backend strips harmful-arm prompt, response, reasoning and
-  tool-argument text from every API response. A test feeds sentinel strings
-  through every endpoint and fails if any reaches the response. (US-21)
+- **FR26** By default the backend strips harmful-arm prompt, response,
+  reasoning and tool-argument text from every API response. A test feeds
+  sentinel strings through every endpoint and fails if any reaches the
+  response. `assay dashboard --show-harmful` is the only way to serve that
+  text: it prints a content warning in the terminal, shows a banner on every
+  page and keeps each harmful transcript collapsed until it is opened. A test
+  checks nothing harmful is served without the flag. `assay pdf` never
+  includes harmful text. (US-21)
 - **FR27** Compare and sensitivity pages over `assay compare` output. (US-22)
 - **FR28** Could: a live progress view fed by Inspect hooks during a run,
   showing provisional structural results computed by the backend; refusals
@@ -391,7 +396,7 @@ passed, E = harmful executed, R = refused:
 | ID | Area | Requirement |
 | --- | --- | --- |
 | NFR1 | Reproducibility | Every run records package, Inspect, inspect_evals and AgentHarm versions, dataset revision, model digest, profile, sampling settings, judge and seeds. |
-| NFR2 | Privacy | No benchmark data, `.eval` logs, results or model output in git (CI enforces this). Evidence files and API responses carry no harmful text (FR26). |
+| NFR2 | Privacy | No benchmark data, `.eval` logs, results or model output in git (CI enforces this). Evidence files and the PDF carry no harmful text; API responses carry none unless the dashboard was started with `--show-harmful` (FR26). |
 | NFR3 | Testability | Critical paths are written test-first against synthetic fixtures (section 5); branch coverage stays at or above 90%, and CI fails below it. Unit tests need no network, model or AgentHarm download. |
 | NFR4 | Portability | macOS and Linux, Python 3.12 to 3.14. CI runs on 3.12 and 3.14. |
 | NFR5 | Install | `pip install agent-safety-assay` (or `uv sync`) gives a working CLI and dashboard without Node. PDF needs the `pdf` extra. A clean-install check is part of the evaluation. |
