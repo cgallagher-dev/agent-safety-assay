@@ -88,8 +88,11 @@ Bugs I found in AgentHarm while working with it have been reported upstream:
 [#2101](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2101) (with
 a fix in [#2102](https://github.com/UKGovernmentBEIS/inspect_evals/pull/2102)),
 [#2107](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2107),
-[#2108](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2108) and
-[#2703](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2703).
+[#2108](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2108),
+[#2703](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2703),
+[#2893](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2893),
+[#2894](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2894) and
+[#2895](https://github.com/UKGovernmentBEIS/inspect_evals/issues/2895).
 
 ## Planned usage
 
