@@ -234,12 +234,17 @@ to each pair's traces, so that every number can be checked.
 
 Must, M1 (detail) and M3 (filters). FR22, FR25.
 
-### US-21 Harmful text never reaches the browser
-As the project owner, I want harmful-arm text kept on the backend, so that a
-demo or shared screen cannot expose it.
-- Harmful traces show only tool names, execution status and verdicts.
+### US-21 Harmful text never reaches the browser by accident
+As the project owner, I want harmful-arm text kept on the backend unless I
+ask for it, so that a demo or shared screen cannot expose it.
+- By default, harmful traces show only tool names, execution status and
+  verdicts.
 - A sentinel test covers every API endpoint.
-- `assay show` redacts harmful text unless it is explicitly asked not to.
+- `assay dashboard --show-harmful` serves harmful text after a terminal
+  content warning, with a banner on every page and each harmful transcript
+  collapsed until opened. A test checks nothing is served without the flag.
+- `assay show` redacts harmful text unless given `--show-harmful`.
+- `assay pdf` never includes harmful text.
 
 Must, M1. FR22, FR26.
 
