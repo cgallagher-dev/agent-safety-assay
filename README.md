@@ -106,6 +106,8 @@ assay run --profile qwen3.5-4b --out results/4b
 assay run --model ollama/llama3.2 --out results/llama
 assay judge results/4b --judge gemma4-12b     # graders and refusal judge over saved logs
 assay report results/4b                       # metrics, text / JSON / CSV
+assay ls results/4b                           # summarise a results folder
+assay show results/4b 61-1                    # one pair, harmful text redacted
 assay compare results/4b results/27b          # clustered paired comparison
 assay narrate results/4b                      # optional model-written summary
 assay pdf results/4b                          # needs pip install 'agent-safety-assay[pdf]'
