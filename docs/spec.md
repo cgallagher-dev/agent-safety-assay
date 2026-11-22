@@ -565,8 +565,8 @@ Agreed on 12 November 2026, as amendment A2 to the evaluation plan:
 7. The 4B and 9B run first; the 27B runs as time allows, and the 12
    comparisons within the 4B and 9B stand on their own if it doesn't finish.
 
-Decided on 15 November 2026, as amendment A3 (my supervisor hears about it
-at our next meeting):
+Decided on 15 November 2026, as amendment A3 (agreed with my supervisor on
+19 November):
 
 8. The semantic gate is the headline on both arms; structural, attempted and
    the mixed reading are sensitivity readings.
