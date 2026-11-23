@@ -303,12 +303,52 @@ def test_a_minimal_run_config_comes_from_the_log_headers(tmp_path):
     assert config.model_dump(exclude={"run_id"}) == {
         "versions": {"inspect_ai": "0.3.140"},
         "judge": "ollama/judge",
-        "sampling": {"temperature": 1.0, "top_p": 0.95},
         "message_limit": 20,
         "splits": ["test_public", "validation"],
         "exclusions": [],
-        "configurations": {"qwen3.5-4b/on": {"profile": "qwen3.5-4b", "mode": "on"}},
+        "configurations": {
+            "qwen3.5-4b/on": {
+                "profile": "qwen3.5-4b",
+                "mode": "on",
+                "sampling": {"temperature": 1.0, "top_p": 0.95},
+            }
+        },
     }
+
+
+def test_sampling_is_read_per_configuration_from_the_logs(tmp_path):
+    cooler = GenerateConfig(temperature=0.6, top_p=0.95)
+    write_headers(
+        tmp_path,
+        {
+            "logs/qwen3.5-4b-off/benign/repeat-1/b.eval": header(task="agentharm_benign"),
+            "logs/qwen3.5-4b-on/benign/repeat-1/b.eval": header(
+                task="agentharm_benign", model_generate_config=cooler
+            ),
+        },
+    )
+
+    config = run_config_from_logs(tmp_path, "ollama/judge")
+
+    assert config.configurations["qwen3.5-4b/off"].sampling["temperature"] == 1.0
+    assert config.configurations["qwen3.5-4b/on"].sampling["temperature"] == 0.6
+
+
+def test_logs_of_one_configuration_that_disagree_on_sampling_need_a_run_config_by_hand(
+    tmp_path,
+):
+    write_headers(
+        tmp_path,
+        {
+            "logs/qwen3.5-4b-on/benign/repeat-1/b.eval": header(task="agentharm_benign"),
+            "logs/qwen3.5-4b-on/harmful/repeat-1/h.eval": header(
+                task="agentharm", model_generate_config=GenerateConfig(temperature=0.6)
+            ),
+        },
+    )
+
+    with pytest.raises(EvidenceError, match="qwen3.5-4b/on disagree on sampling"):
+        run_config_from_logs(tmp_path, "ollama/judge")
 
 
 def test_logs_that_disagree_on_the_message_limit_need_a_run_config_by_hand(tmp_path):

@@ -90,6 +90,9 @@ export interface ConfigurationResult {
   name: string;
   profile: string;
   mode: string;
+  sampling: {
+    [k: string]: number;
+  };
   repeats: number;
   pairs: number;
   unjudged: PairRef[];
@@ -199,7 +202,7 @@ export interface PairGate {
  * via the `definition` "Report".
  */
 export interface Report {
-  schema_version: 4;
+  schema_version: 5;
   assay_version: string;
   created_at: string;
   headline_gate: "structural" | "structural_attempted" | "semantic";
@@ -218,9 +221,6 @@ export interface RunInfo {
     [k: string]: string;
   };
   judge: string;
-  sampling: {
-    [k: string]: number;
-  };
   message_limit: number;
   splits: string[];
   exclusions: Exclusion[];

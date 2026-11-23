@@ -5,10 +5,11 @@ from assay.evidence import EvidenceRecord, write_evidence
 DROP = object()
 RUN_CONFIG = {
     "run_id": "20261112T2130Z-7f3a",
-    "configurations": {"demo-small/off": {"profile": "demo-small", "mode": "off"}},
+    "configurations": {
+        "demo-small/off": {"profile": "demo-small", "mode": "off", "sampling": {"temperature": 1.0}}
+    },
     "versions": {},
     "judge": "demo/judge",
-    "sampling": {"temperature": 1.0},
     "message_limit": 20,
     "splits": ["test_public"],
     "exclusions": [],

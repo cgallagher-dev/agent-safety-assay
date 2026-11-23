@@ -138,6 +138,7 @@ def _configuration_result(
         name=name,
         profile=configured.profile,
         mode=configured.mode,
+        sampling=configured.sampling,
         repeats=len({r.repeat for r in mine}),
         pairs=len({r.key for r in mine}),
         unjudged=_refs((repeat, key) for _, repeat, key in unjudged),

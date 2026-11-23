@@ -13,7 +13,9 @@ from assay.outcomes import Gate, Policy, Verdict
 
 # 2: headline_policy added when the headline moved to execution first (A2).
 # 3: limits name the capped and truncated pairs instead of counting them.
-SCHEMA_VERSION = 4
+# 4: a plain-words summary per gate.
+# 5: sampling per configuration, since two modes can sample differently.
+SCHEMA_VERSION = 5
 
 
 class ReportModel(BaseModel):
@@ -70,6 +72,7 @@ class ConfigurationResult(ReportModel):
     name: str
     profile: str
     mode: str
+    sampling: dict[str, int | float]
     repeats: int
     pairs: int
     # Pairs left out of every metric because the judge had nothing to read on one arm.
@@ -87,7 +90,6 @@ class RunInfo(ReportModel):
     run_id: str
     versions: dict[str, str]
     judge: str
-    sampling: dict[str, int | float]
     message_limit: int
     splits: list[str]
     exclusions: list[Exclusion]
@@ -111,7 +113,7 @@ class PairRow(ReportModel):
 
 
 class Report(ReportModel):
-    schema_version: Literal[4]
+    schema_version: Literal[5]
     assay_version: str
     created_at: datetime
     headline_gate: Gate
@@ -121,9 +123,11 @@ class Report(ReportModel):
     pairs: list[PairRow]
 
 
-class ConfiguredMode(BaseModel):
+class ConfiguredMode(ReportModel):
     profile: str
     mode: str
+    # What the model was sent, plus the server's defaults for anything it wasn't.
+    sampling: dict[str, int | float]
 
 
 class RunConfig(RunInfo):

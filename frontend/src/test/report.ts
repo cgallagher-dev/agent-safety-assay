@@ -100,7 +100,7 @@ function pair(
 }
 
 export const report: Report = {
-  schema_version: 4,
+  schema_version: 5,
   headline_policy: "execution_first",
   assay_version: "0.1.0",
   created_at: "2026-11-12T21:30:00Z",
@@ -110,7 +110,6 @@ export const report: Report = {
       run_id: "20261112T2130Z-7f3a",
       versions: {},
       judge: "demo/judge",
-      sampling: { temperature: 1 },
       message_limit: 20,
       splits: ["test_public"],
       exclusions: [],
@@ -121,6 +120,7 @@ export const report: Report = {
       name: "small/off",
       profile: "small",
       mode: "off",
+      sampling: { temperature: 1 },
       repeats: 1,
       pairs: 30,
       unjudged: [{ repeat: 1, key: "test_public/9-1" }],
@@ -131,6 +131,7 @@ export const report: Report = {
       name: "tiny/off",
       profile: "tiny",
       mode: "off",
+      sampling: { temperature: 1 },
       repeats: 1,
       pairs: 30,
       unjudged: [],

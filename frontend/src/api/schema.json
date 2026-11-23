@@ -38,6 +38,19 @@
         "mode": {
           "type": "string"
         },
+        "sampling": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "type": "object"
+        },
         "repeats": {
           "type": "integer"
         },
@@ -80,6 +93,7 @@
         "name",
         "profile",
         "mode",
+        "sampling",
         "repeats",
         "pairs",
         "unjudged",
@@ -474,7 +488,7 @@
       "additionalProperties": false,
       "properties": {
         "schema_version": {
-          "const": 4,
+          "const": 5,
           "type": "integer"
         },
         "assay_version": {
@@ -585,19 +599,6 @@
         "judge": {
           "type": "string"
         },
-        "sampling": {
-          "additionalProperties": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "number"
-              }
-            ]
-          },
-          "type": "object"
-        },
         "message_limit": {
           "type": "integer"
         },
@@ -618,7 +619,6 @@
         "run_id",
         "versions",
         "judge",
-        "sampling",
         "message_limit",
         "splits",
         "exclusions"

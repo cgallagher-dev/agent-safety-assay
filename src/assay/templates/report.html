@@ -263,17 +263,29 @@
   <h2>Run details</h2>
   <table>
     <thead>
-      <tr><th>Run</th><th>Judge</th><th>Sampling</th><th>Message limit</th><th>Splits</th><th>Excluded pairs</th></tr>
+      <tr><th>Run</th><th>Judge</th><th>Message limit</th><th>Splits</th><th>Excluded pairs</th></tr>
     </thead>
     <tbody>
       {% for run in report.runs %}
       <tr>
         <td>{{ run.run_id }}</td>
         <td>{{ run.judge }}</td>
-        <td>{% for name, value in run.sampling.items() %}{{ name }} {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
         <td>{{ run.message_limit }}</td>
         <td>{{ run.splits | join(", ") }}</td>
         <td>{{ run.exclusions | length }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <table>
+    <thead>
+      <tr><th>Configuration</th><th>Sampling</th></tr>
+    </thead>
+    <tbody>
+      {% for configuration in report.configurations %}
+      <tr>
+        <td>{{ configuration.name }}</td>
+        <td>{% for name, value in configuration.sampling.items() %}{{ name }} {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
       </tr>
       {% endfor %}
     </tbody>

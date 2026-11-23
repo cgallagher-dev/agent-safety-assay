@@ -56,14 +56,16 @@ def test_sampling_in_force_adds_the_server_defaults_the_profile_does_not_send():
     }
 
 
-def test_the_run_sampling_is_what_every_mode_shares():
+def test_each_configuration_keeps_its_own_sampling():
     profile = load_profile("qwen3.5-4b")
     profile.modes["on"].sampling.top_p = 0.8
 
     written = run_config(profile=profile)
 
-    assert written.sampling == {"temperature": 1.0, "top_k": 20, "presence_penalty": 1.5}
+    assert written.configurations["qwen3.5-4b/off"].sampling["top_p"] == 0.95
     assert written.configurations["qwen3.5-4b/on"].sampling["top_p"] == 0.8
+    # One run-wide value would be wrong as soon as two modes differ.
+    assert "sampling" not in written.model_dump()
 
 
 def test_an_unknown_mode_names_the_profiles_modes():

@@ -446,9 +446,9 @@ explanation.
 
 Top level: `schema_version`, `assay_version`, `created_at`, `headline_gate`,
 `headline_policy`,
-`runs` (run id, versions, judge, sampling settings, message
-limit, splits, exclusions),
-`configurations` (per configuration: profile, mode, repeats, pair count,
+`runs` (run id, versions, judge, message limit, splits, exclusions),
+`configurations` (per configuration: profile, mode, sampling in force,
+repeats, pair count,
 metrics per gate with numerator, denominator, value or undefined reason and
 interval, a plain-words summary sentence, verdict counts, overlap, anomalies,
 capped and truncated pairs per arm, and unjudged pairs; all of these pairs carry their repeat and key),

@@ -7,6 +7,7 @@ The grading breakdown and refusal verdict come from the scoring pass.
 
 import json
 import re
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -138,9 +139,9 @@ def run_config_from_logs(results: Path, judge: str) -> RunConfig:
 
     It lists no exclusions, and the run id is the earliest log's start time.
     """
-    configurations: dict[str, ConfiguredMode] = {}
+    sampling: dict[tuple[str, str], set[str]] = defaultdict(set)
     splits: set[str] = set()
-    found: dict[str, set[str]] = {"versions": set(), "sampling": set(), "message_limit": set()}
+    found: dict[str, set[str]] = {"versions": set(), "message_limit": set()}
     starts: list[datetime] = []
     for path in sorted(results.rglob("*.eval")):
         relative = path.relative_to(results).as_posix()
@@ -151,7 +152,6 @@ def run_config_from_logs(results: Path, judge: str) -> RunConfig:
                 "Move it there or out of the results directory."
             )
         profile, _, mode = match[1].rpartition("-")
-        configurations[f"{profile}/{mode}"] = ConfiguredMode(profile=profile, mode=mode)
         spec = read_eval_log(str(path), header_only=True).eval
         split = LOG_SPLITS.get((spec.task_args or {}).get("split"))
         if split is None:
@@ -160,7 +160,7 @@ def run_config_from_logs(results: Path, judge: str) -> RunConfig:
         starts.append(datetime.fromisoformat(spec.created))
         generate = spec.model_generate_config.model_dump(exclude_none=True)
         found["versions"].add(json.dumps(spec.packages, sort_keys=True))
-        found["sampling"].add(
+        sampling[profile, mode].add(
             json.dumps(
                 {
                     name: value
@@ -179,6 +179,12 @@ def run_config_from_logs(results: Path, judge: str) -> RunConfig:
                 f"The logs under {results} disagree on {field}, so a run_config.json can't "
                 "be made from them. Write one by hand."
             )
+    for (profile, mode), values in sampling.items():
+        if len(values) > 1:
+            raise EvidenceError(
+                f"The logs of {profile}/{mode} disagree on sampling, so a run_config.json "
+                "can't be made from them. Write one by hand."
+            )
     fields = {field: json.loads(values.pop()) for field, values in found.items()}
     if fields["message_limit"] is None:
         raise EvidenceError(
@@ -189,7 +195,12 @@ def run_config_from_logs(results: Path, judge: str) -> RunConfig:
         judge=judge,
         splits=sorted(splits),
         exclusions=[],
-        configurations=configurations,
+        configurations={
+            f"{profile}/{mode}": ConfiguredMode(
+                profile=profile, mode=mode, sampling=json.loads(values.pop())
+            )
+            for (profile, mode), values in sorted(sampling.items())
+        },
         **fields,
     )
 

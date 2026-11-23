@@ -22,20 +22,12 @@ class RepeatSeed(BaseModel):
     seed: int | None
 
 
-class ModeInForce(ConfiguredMode):
-    model_config = ConfigDict(extra="forbid")
-
-    # The profile's sampling plus the server's defaults for anything it doesn't send.
-    sampling: dict[str, int | float]
-
-
 class RunRecord(RunConfig):
     """Everything run_config.json records. API keys stay in the environment."""
 
     model_config = ConfigDict(extra="forbid")
 
     profile: Profile
-    configurations: dict[str, ModeInForce]
     repeats: list[RepeatSeed]
     server: ServerCheck | None
 
@@ -85,19 +77,17 @@ def new_run_config(
             f"Its modes are {', '.join(profile.modes)}."
         )
     configurations = {
-        f"{profile.name}/{mode}": ModeInForce(
+        f"{profile.name}/{mode}": ConfiguredMode(
             profile=profile.name,
             mode=mode,
             sampling=sampling_in_force(profile.modes[mode].sampling, server),
         )
         for mode in modes
     }
-    shared = set.intersection(*(set(c.sampling.items()) for c in configurations.values()))
     return RunRecord(
         run_id=run_id,
         versions={name: version(name) for name in PACKAGES},
         judge=judge,
-        sampling=dict(shared),
         message_limit=message_limit,
         splits=splits,
         exclusions=exclusions,

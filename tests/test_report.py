@@ -187,7 +187,7 @@ def test_a_parity_failure_says_to_run_without_the_pair(tmp_path):
 
 
 def test_evidence_for_a_configuration_the_run_does_not_list_is_rejected(tmp_path):
-    other = {"demo-small/on": {"profile": "demo-small", "mode": "on"}}
+    other = {"demo-small/on": {"profile": "demo-small", "mode": "on", "sampling": {}}}
     write_failed_pair(tmp_path, {**RUN_CONFIG, "configurations": other})
 
     with pytest.raises(EvidenceError, match="run_config.json lists"):
@@ -228,7 +228,7 @@ def test_evidence_from_another_run_is_rejected(tmp_path):
 
 
 def test_configurations_that_cover_different_pairs_are_rejected(tmp_path):
-    both = {f"small/{mode}": {"profile": "small", "mode": mode} for mode in ("on", "off")}
+    both = {f"small/{m}": {"profile": "small", "mode": m, "sampling": {}} for m in ("on", "off")}
     third = {"sample_id": "3-1", "key": "test_public/3-1", "base_behaviour": "test_public/3"}
     records = [
         record_fields(configuration=name, arm=arm, **sample)
@@ -284,6 +284,13 @@ def test_each_configuration_names_its_reasoning_setting():
 
     assert "(profile demo-small, reasoning off," in text
     assert "mode off" not in text
+
+
+def test_each_configuration_reports_its_own_sampling():
+    report = load_report(DEMO)
+
+    assert [c.sampling["top_k"] for c in report.configurations] == [20, 20]
+    assert "sampling" not in report.runs[0].model_dump()
 
 
 def test_capped_and_truncated_pairs_are_named_not_just_counted(tmp_path, capsys):
