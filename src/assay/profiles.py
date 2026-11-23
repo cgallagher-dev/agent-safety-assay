@@ -89,6 +89,12 @@ def load_profile(name_or_path: str) -> Profile:
         raise ConfigError(f"{path}: {validation_problems(error)}.") from None
 
 
+def default_profile(model: str) -> Profile:
+    """A one-mode profile for any model Inspect can reach, sent with its own defaults."""
+    # The name becomes a log folder, logs/<profile>-<mode>/, so it can't hold a slash.
+    return Profile(name=model.replace("/", "-"), model=model, modes={"default": Mode()})
+
+
 def check_request(mode_name: str, mode: Mode, request: dict) -> None:
     """Stop if a mode setting did not reach the request the provider built."""
     expected = flatten(mode.request) | flatten(mode.sampling.model_dump(exclude_none=True))

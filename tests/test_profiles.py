@@ -6,7 +6,14 @@ from inspect_ai.model import GenerateConfig, get_model
 
 import assay
 from assay.errors import ConfigError, RunError
-from assay.profiles import BUILT_IN, Mode, check_reasoning, check_request, load_profile
+from assay.profiles import (
+    BUILT_IN,
+    Mode,
+    check_reasoning,
+    check_request,
+    default_profile,
+    load_profile,
+)
 
 SOURCE = Path(assay.__file__).parent
 MODEL_TAG = re.compile(r"(?i)\b(qwen|gemma|llama|mistral|phi-?\d|deepseek|claude|gpt-\d)")
@@ -70,6 +77,15 @@ def test_the_api_key_comes_from_the_environment_only(tmp_path, monkeypatch):
     monkeypatch.setenv("SMALL_KEY", "sk-test-value")
     assert profile.api_key() == "sk-test-value"
     assert "sk-test-value" not in profile.model_dump_json()
+
+
+def test_a_default_profile_runs_any_model_by_name():
+    profile = default_profile("openai/gpt-small")
+
+    assert profile.model == "openai/gpt-small"
+    assert list(profile.modes) == ["default"]
+    # Configuration names become log folders <profile>-<mode>, so no slash in the name.
+    assert "/" not in profile.name
 
 
 def test_profile_sampling_overrides_the_task_defaults_in_the_built_request():
