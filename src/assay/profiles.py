@@ -91,8 +91,8 @@ def load_profile(name_or_path: str) -> Profile:
 
 def check_request(mode_name: str, mode: Mode, request: dict) -> None:
     """Stop if a mode setting did not reach the request the provider built."""
-    expected = _flatten(mode.request) | _flatten(mode.sampling.model_dump(exclude_none=True))
-    sent = _flatten(request)
+    expected = flatten(mode.request) | flatten(mode.sampling.model_dump(exclude_none=True))
+    sent = flatten(request)
     missing = [
         f"{key} (wanted {value!r}, sent {sent.get(key, 'nothing')!r})"
         for key, value in expected.items()
@@ -119,12 +119,12 @@ def check_reasoning(mode_name: str, mode: Mode, with_reasoning: int, checked: in
         )
 
 
-def _flatten(values: dict, prefix: str = "") -> dict[str, object]:
+def flatten(values: dict, prefix: str = "") -> dict[str, object]:
     flat: dict[str, object] = {}
     for key, value in values.items():
         name = f"{prefix}{key}"
         if isinstance(value, dict):
-            flat |= _flatten(value, f"{name}.")
+            flat |= flatten(value, f"{name}.")
         else:
             flat[name] = value
     return flat
