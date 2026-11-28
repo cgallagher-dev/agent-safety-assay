@@ -1,11 +1,30 @@
+from pathlib import Path
+
 import pytest
+from inspect_ai.log import (
+    EvalConfig,
+    EvalDataset,
+    EvalError,
+    EvalLog,
+    EvalSample,
+    EvalSpec,
+    write_eval_log,
+)
 
 from assay.errors import ConfigError, RunError
 from assay.preflight import ServerCheck
 from assay.profiles import Mode, Profile, load_profile
 from assay.report import read_run_config
 from assay.report_schema import Exclusion
-from assay.run import RepeatSeed, new_run_config, read_run_record, write_run_config
+from assay.run import (
+    RepeatSeed,
+    new_run_config,
+    read_run_record,
+    repeat_seeds,
+    run_plan,
+    step_state,
+    write_run_config,
+)
 
 SERVER = ServerCheck(
     version="0.40.15",
@@ -122,3 +141,89 @@ def test_a_run_config_not_written_by_assay_run_cannot_be_resumed(tmp_path):
     (tmp_path / "run_config.json").write_text('{"run_id": "20261001T0900Z-0de0"}')
     with pytest.raises(RunError, match="can't be resumed"):
         read_run_record(tmp_path)
+
+
+def write_attempt(results, step_dir, split, status, created, errored=False):
+    """One eval_set attempt at an AgentHarm split, as a log in step_dir."""
+    folder = results / step_dir
+    folder.mkdir(parents=True, exist_ok=True)
+    spec = EvalSpec(
+        created=created,
+        task="agentharm_benign",
+        task_args={"split": split},
+        dataset=EvalDataset(),
+        model="ollama/small",
+        config=EvalConfig(),
+    )
+    samples = [
+        EvalSample(
+            id="8-1",
+            epoch=1,
+            input="task",
+            target="",
+            error=EvalError(message="boom", traceback="", traceback_ansi="") if errored else None,
+        )
+    ]
+    name = f"{created[:19].replace(':', '-')}_{split}.eval"
+    write_eval_log(EvalLog(eval=spec, status=status, samples=samples), str(folder / name))
+
+
+def test_the_plan_runs_benign_before_harmful_for_each_mode_and_repeat():
+    plan = run_plan(run_config())
+
+    assert [(s.configuration, s.repeat, s.arm) for s in plan] == [
+        ("qwen3.5-4b/off", 1, "benign"),
+        ("qwen3.5-4b/off", 1, "harmful"),
+        ("qwen3.5-4b/off", 2, "benign"),
+        ("qwen3.5-4b/off", 2, "harmful"),
+        ("qwen3.5-4b/on", 1, "benign"),
+        ("qwen3.5-4b/on", 1, "harmful"),
+        ("qwen3.5-4b/on", 2, "benign"),
+        ("qwen3.5-4b/on", 2, "harmful"),
+    ]
+    # The same layout assay judge reads, one folder per mode, arm and repeat.
+    assert plan[3].log_dir == Path("logs/qwen3.5-4b-off/harmful/repeat-2")
+    assert plan[3].seed == 2
+
+
+def test_each_repeat_gets_its_own_seed():
+    # AgentHarm fixes seed 0 in its task, so without these every repeat would sample alike.
+    seeds = [r.seed for r in repeat_seeds(3)]
+
+    assert len(set(seeds)) == 3
+    assert [r.repeat for r in repeat_seeds(3)] == [1, 2, 3]
+
+
+@pytest.mark.parametrize(
+    ("attempts", "state"),
+    [
+        pytest.param([], "missing", id="nothing run"),
+        pytest.param([("test_public", "success"), ("val", "success")], "complete", id="done"),
+        pytest.param([("test_public", "success")], "partial", id="one split left"),
+        pytest.param([("test_public", "started"), ("val", "success")], "partial", id="interrupted"),
+        pytest.param(
+            [("test_public", "success", True), ("val", "success")],
+            "partial",
+            id="errored samples",
+        ),
+    ],
+)
+def test_a_step_reads_its_state_from_the_logs(tmp_path, attempts, state):
+    step = run_plan(run_config())[0]
+    for split, status, *errored in attempts:
+        write_attempt(tmp_path, step.log_dir, split, status, "2026-11-28T10:00:00+00:00", *errored)
+
+    assert step_state(tmp_path, step) == state
+
+
+def test_the_latest_attempt_at_a_split_decides_its_state(tmp_path):
+    step = run_plan(run_config())[0]
+    write_attempt(tmp_path, step.log_dir, "val", "success", "2026-11-28T10:00:00+00:00")
+    write_attempt(tmp_path, step.log_dir, "test_public", "cancelled", "2026-11-28T09:00:00+00:00")
+    # Created times carry an offset, so 10:30+01:00 is after 09:00Z.
+    write_attempt(tmp_path, step.log_dir, "test_public", "success", "2026-11-28T10:30:00+01:00")
+
+    assert step_state(tmp_path, step) == "complete"
+
+    write_attempt(tmp_path, step.log_dir, "test_public", "started", "2026-11-28T11:00:00+00:00")
+    assert step_state(tmp_path, step) == "partial"
