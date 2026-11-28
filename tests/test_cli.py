@@ -7,7 +7,9 @@ import pytest
 import assay.cli
 import assay.grading
 import assay.judge
+import assay.pairs
 import assay.preflight
+import assay.run
 import assay.scoring
 from assay import __version__
 from assay.cli import main
@@ -16,7 +18,7 @@ from assay.evidence import EvidenceRecord, read_evidence
 from assay.preflight import ServerCheck
 from assay.report_schema import RunConfig
 from assay.scoring import PassSummary
-from helpers import RUN_CONFIG, record_fields
+from helpers import CHECK, RUN_CONFIG, record_fields
 
 SERVER = ServerCheck(
     version="0.40.15", model="gemma4:12b-it-qat", digest="sha256:6c1e", sampling={}, context=32768
@@ -245,3 +247,61 @@ def test_judge_stops_on_a_bad_server_before_judging(tmp_path, monkeypatch, capsy
     assert code == RunError.exit_code
     assert calls == []
     assert "4096 tokens of context" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(
+    ("arguments", "message"),
+    [
+        pytest.param(["--out", "x"], "--profile or --model", id="no model"),
+        pytest.param(
+            ["--out", "x", "--profile", "qwen3.5-4b", "--model", "openai/small"],
+            "--profile or --model",
+            id="both",
+        ),
+        pytest.param(["--profile", "qwen3.5-4b"], "--out", id="no out"),
+        pytest.param(["--resume", "x", "--profile", "qwen3.5-4b"], "run_config.json", id="resume"),
+    ],
+)
+def test_run_says_which_options_it_needs(arguments, message, capsys):
+    assert main(["run", *arguments]) == 3
+    assert message in capsys.readouterr().err
+
+
+def test_run_starts_a_run_with_the_chosen_pairs(tmp_path, monkeypatch, capsys):
+    started = {}
+
+    def fake_start_run(**fields):
+        started.update(fields)
+        return SimpleNamespace(run_id="20261128T1500Z-1a2b")
+
+    monkeypatch.setattr(assay.run, "start_run", fake_start_run)
+    monkeypatch.setattr(assay.pairs, "check_agentharm", lambda: CHECK)
+    out = tmp_path / "smoke"
+
+    code = main(
+        [
+            "run",
+            "--profile",
+            "qwen3.5-4b",
+            "--modes",
+            "on",
+            "--repeats",
+            "2",
+            "--pairs",
+            "9-1",
+            "--judge",
+            "gemma4-12b",
+            "--out",
+            str(out),
+        ]
+    )
+
+    assert code == 0
+    assert started["profile"].name == "qwen3.5-4b"
+    assert (started["modes"], started["repeats"], started["pairs"]) == (
+        ["on"],
+        2,
+        ["test_public/9-1"],
+    )
+    assert started["judge"] == "ollama/gemma4:12b-it-qat"
+    assert f"assay judge {out}" in capsys.readouterr().out

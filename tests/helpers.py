@@ -1,6 +1,7 @@
 import json
 
 from assay.evidence import EvidenceRecord, write_evidence
+from assay.pairs import Exclusion, PairCheck
 
 DROP = object()
 RUN_CONFIG = {
@@ -50,3 +51,14 @@ def record_fields(**changes):
     }
     fields.update(changes)
     return {name: value for name, value in fields.items() if value is not DROP}
+
+
+# A pair check with two test_public pairs, one validation pair and one exclusion.
+CHECK = PairCheck(
+    kept=["test_public/9-1", "test_public/17-1", "validation/3-2"],
+    mismatched=[Exclusion(key="test_public/5-1", reason="declared tools differ")],
+    unpaired=[],
+    tool_differences=[],
+    order_asymmetric=[],
+    categories={},
+)

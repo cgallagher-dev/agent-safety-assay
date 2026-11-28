@@ -1,6 +1,8 @@
 from pathlib import Path
 
 import pytest
+from inspect_ai import Task, task
+from inspect_ai.dataset import MemoryDataset, Sample
 from inspect_ai.log import (
     EvalConfig,
     EvalDataset,
@@ -15,16 +17,20 @@ from assay.errors import ConfigError, RunError
 from assay.preflight import ServerCheck
 from assay.profiles import Mode, Profile, load_profile
 from assay.report import read_run_config
-from assay.report_schema import Exclusion
+from assay.report_schema import Exclusion as ReportExclusion
 from assay.run import (
     RepeatSeed,
+    choose_pairs,
     new_run_config,
     read_run_record,
     repeat_seeds,
+    resume_run,
     run_plan,
+    start_run,
     step_state,
     write_run_config,
 )
+from helpers import CHECK
 
 SERVER = ServerCheck(
     version="0.40.15",
@@ -44,8 +50,8 @@ def run_config(profile=None, server=SERVER, **changes):
         "server": server,
         "judge": "ollama/gemma4:12b-it-qat",
         "message_limit": 20,
-        "splits": ["test_public", "validation"],
-        "exclusions": [Exclusion(key="test_public/5-1", reason="sequences differ")],
+        "pairs": ["test_public/9-1", "validation/3-2"],
+        "exclusions": [ReportExclusion(key="test_public/5-1", reason="sequences differ")],
     }
     return new_run_config(**(fields | changes))
 
@@ -227,3 +233,121 @@ def test_the_latest_attempt_at_a_split_decides_its_state(tmp_path):
 
     write_attempt(tmp_path, step.log_dir, "test_public", "started", "2026-11-28T11:00:00+00:00")
     assert step_state(tmp_path, step) == "partial"
+
+
+def test_the_splits_come_from_the_pairs():
+    written = run_config(pairs=["test_public/9-1", "test_public/17-1"])
+
+    assert written.splits == ["test_public"]
+    assert written.pairs == ["test_public/9-1", "test_public/17-1"]
+
+
+@task
+def fake_agentharm(split: str, behavior_ids: list[str]) -> Task:
+    """A stand-in for AgentHarm's tasks: same arguments, no download."""
+    return Task(dataset=MemoryDataset([Sample(id=i, input="task") for i in behavior_ids]))
+
+
+def fake_tasks(arm, split, ids, judge):
+    return fake_agentharm(split=split, behavior_ids=ids)
+
+
+MOCK = Profile(name="mock", model="mockllm/model", modes={"off": Mode()})
+PAIRS = ["test_public/9-1", "test_public/17-1", "validation/3-2"]
+
+
+def start(results, profile=MOCK, modes=("off",), **changes):
+    fields = {
+        "results": results,
+        "profile": profile,
+        "modes": list(modes),
+        "repeats": 2,
+        "pairs": PAIRS,
+        "exclusions": [],
+        "judge": "mockllm/judge",
+        "message_limit": 20,
+        "tasks": fake_tasks,
+    }
+    return start_run(**(fields | changes))
+
+
+def logs(results):
+    return {path: path.stat().st_mtime_ns for path in results.rglob("*.eval")}
+
+
+def test_a_run_completes_every_step_in_the_judge_layout(tmp_path):
+    record = start(tmp_path)
+
+    assert read_run_record(tmp_path) == record
+    assert all(step_state(tmp_path, step) == "complete" for step in run_plan(record))
+    # One log per split in each mode, arm and repeat folder.
+    assert len(logs(tmp_path)) == 2 * 2 * 2
+    assert (tmp_path / "assay.log").is_file()
+
+
+def test_resume_reruns_only_what_did_not_finish(tmp_path):
+    record = start(tmp_path)
+    before = logs(tmp_path)
+    interrupted = run_plan(record)[3]
+    for path in (tmp_path / interrupted.log_dir).glob("*.eval"):
+        path.unlink()
+
+    resume_run(tmp_path, tasks=fake_tasks)
+
+    after = logs(tmp_path)
+    assert {p: t for p, t in after.items() if p.parent != tmp_path / interrupted.log_dir} == {
+        p: t for p, t in before.items() if p.parent != tmp_path / interrupted.log_dir
+    }
+    assert step_state(tmp_path, interrupted) == "complete"
+
+
+def test_resume_keeps_the_run_id(tmp_path):
+    record = start(tmp_path)
+
+    assert resume_run(tmp_path, tasks=fake_tasks).run_id == record.run_id
+
+
+def test_resume_stops_if_the_recorded_settings_changed(tmp_path):
+    start(tmp_path)
+    path = tmp_path / "run_config.json"
+    path.write_text(path.read_text().replace('"inspect_ai": "', '"inspect_ai": "0.0.1-'))
+
+    with pytest.raises(RunError, match="versions.inspect_ai"):
+        resume_run(tmp_path, tasks=fake_tasks)
+
+
+def test_a_new_run_refuses_a_folder_that_holds_a_run(tmp_path):
+    start(tmp_path)
+
+    with pytest.raises(RunError, match="--resume"):
+        start(tmp_path)
+
+
+def test_an_on_mode_that_never_reasons_stops_before_the_run(tmp_path):
+    profile = Profile(name="mock", model="mockllm/model", modes={"on": Mode(reasoning=True)})
+
+    with pytest.raises(RunError, match="should reason"):
+        start(tmp_path, profile=profile, modes=["on"])
+
+    assert logs(tmp_path) == {}
+
+
+def test_every_kept_pair_runs_unless_some_are_chosen():
+    pairs, exclusions = choose_pairs(CHECK, None)
+
+    assert pairs == CHECK.kept
+    assert exclusions == [ReportExclusion(key="test_public/5-1", reason="declared tools differ")]
+    # A bare id is a test_public pair, as in assay task.
+    assert choose_pairs(CHECK, ["17-1", "validation/3-2"])[0] == [
+        "test_public/17-1",
+        "validation/3-2",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("key", "message"),
+    [("5-1", "excluded \\(declared tools differ\\)"), ("99-9", "No AgentHarm pair")],
+)
+def test_a_pair_that_cannot_run_is_named(key, message):
+    with pytest.raises(ConfigError, match=message):
+        choose_pairs(CHECK, [key])

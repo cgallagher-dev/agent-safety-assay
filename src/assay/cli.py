@@ -29,7 +29,7 @@ from assay.console import (
     styled_pairs,
     styled_report,
 )
-from assay.errors import ERROR_TYPES, AssayError, DataError
+from assay.errors import ERROR_TYPES, AssayError, ConfigError, DataError
 from assay.logs import configure_console
 from assay.report import check_outside_package, format_report, load_report, write_report
 
@@ -80,6 +80,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="also print the harmful prompt, under a content warning",
     )
     task.set_defaults(handler=task_command)
+
+    run = commands.add_parser(
+        "run", help="run the benign then the harmful arm of each pair, or resume a run"
+    )
+    run.add_argument("--profile", help="model profile, built-in name or TOML path")
+    run.add_argument("--model", help="any Inspect model by name, with its own defaults")
+    run.add_argument("--modes", help="comma-separated modes (default every mode in the profile)")
+    run.add_argument("--repeats", type=int, default=1, help="repeats of each mode (default 1)")
+    run.add_argument("--pairs", help="comma-separated pair ids, e.g. 9-1,validation/3-2")
+    run.add_argument("--judge", help="judge profile assay judge will use, recorded with the run")
+    run.add_argument(
+        "--message-limit", type=int, default=20, help="messages per sample (default 20)"
+    )
+    run.add_argument("--out", type=Path, help="results directory for a new run")
+    run.add_argument("--resume", type=Path, metavar="RESULTS", help="continue the run in RESULTS")
+    run.set_defaults(handler=run_assay_command)
 
     judge = commands.add_parser(
         "judge", help="run AgentHarm's graders and the refusal judge over saved logs"
@@ -147,6 +163,45 @@ def task_command(args: argparse.Namespace) -> int:
     print_task(
         styled_console(), key, task.category, declared, orders, twin, task, args.show_harmful
     )
+    return 0
+
+
+def run_assay_command(args: argparse.Namespace) -> int:
+    # Imported here because Inspect adds seconds to every other command.
+    from assay import pairs, run
+    from assay.profiles import default_profile, load_profile
+
+    if args.resume:
+        given = [f"--{name}" for name in ("profile", "model", "modes", "pairs", "judge", "out")]
+        if any(getattr(args, flag[2:]) for flag in given):
+            raise ConfigError(
+                "--resume takes only the results directory: the run's settings come from its "
+                "run_config.json."
+            )
+        results = args.resume
+        record = run.resume_run(results)
+    else:
+        if bool(args.profile) == bool(args.model):
+            raise ConfigError("Pass --profile or --model, not both or neither.")
+        if args.out is None or args.judge is None:
+            raise ConfigError("A new run needs --out for its results and --judge to record.")
+        check_outside_package(args.out)
+        profile = load_profile(args.profile) if args.profile else default_profile(args.model)
+        chosen, exclusions = run.choose_pairs(
+            pairs.check_agentharm(), args.pairs.split(",") if args.pairs else None
+        )
+        results = args.out
+        record = run.start_run(
+            results=results,
+            profile=profile,
+            modes=args.modes.split(",") if args.modes else list(profile.modes),
+            repeats=args.repeats,
+            pairs=chosen,
+            exclusions=exclusions,
+            judge=load_profile(args.judge).model,
+            message_limit=args.message_limit,
+        )
+    print(f"Run {record.run_id} is complete. Next: assay judge {results} --judge <profile>")
     return 0
 
 
