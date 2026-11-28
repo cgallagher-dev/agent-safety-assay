@@ -30,8 +30,9 @@ ASSAY is built on [Inspect](https://inspect.aisi.org.uk) and works with any mode
 Inspect can reach. Models are described by profiles, not code.
 
 **Status:** in development (November 2026). This is my final-year project at
-TUS Athlone. `assay pairs`, `assay task`, `assay judge`, `assay report`, `assay pdf`
-and `assay dashboard` work on `main`. The rest of the commands below are planned.
+TUS Athlone. `assay pairs`, `assay task`, `assay run`, `assay judge`,
+`assay report`, `assay pdf` and `assay dashboard` work on `main`. The rest of
+the commands below are planned.
 See [docs/spec.md](docs/spec.md) and the [Jira board](https://cgallagherdev.atlassian.net/jira/software/projects/SCRUM/boards/1).
 
 ## Prior art
@@ -102,8 +103,9 @@ commands, installed with `pip install agent-safety-assay`:
 ```text
 assay pairs                                   # validate matched pairs, list exclusions
 assay task 61-1                               # one pair's tools and benign prompt
-assay run --profile qwen3.5-4b --out results/4b
-assay run --model ollama/llama3.2 --out results/llama
+assay run --profile qwen3.5-4b --judge gemma4-12b --out results/4b
+assay run --model ollama/llama3.2 --judge gemma4-12b --out results/llama
+assay run --resume results/4b                 # continue an interrupted run
 assay judge results/4b --judge gemma4-12b     # graders and refusal judge over saved logs
 assay report results/4b                       # metrics, text / JSON / CSV
 assay ls results/4b                           # summarise a results folder
@@ -117,12 +119,11 @@ assay dashboard results/4b                    # local, read-only dashboard
 ## Architecture
 
 Each command reads what the one before it wrote, in a results directory.
-Solid boxes work on `main` today. Dashed ones are planned: until `assay run`
-lands (Week 10), the logs come from running AgentHarm with Inspect directly.
+Solid boxes work on `main` today. Dashed ones are planned.
 
 ```mermaid
 flowchart TD
-    profile["Model profile (TOML)"] --> run["assay run (planned)"]
+    profile["Model profile (TOML)"] --> run["assay run: both arms, every mode and repeat"]
     run --> logs[(".eval logs: full transcripts, kept private")]
     logs --> judge["assay judge: AgentHarm graders and refusal judge"]
     judge --> evidence[("evidence.jsonl: ids, tool names, true or false")]
@@ -134,7 +135,7 @@ flowchart TD
     ollama(["Ollama: agent and judge models"]) -.- run
     ollama -.- judge
     classDef planned stroke-dasharray: 5 5
-    class run,compare planned
+    class compare planned
 ```
 
 The main choices, and why:
@@ -143,6 +144,10 @@ The main choices, and why:
   judge never have to be loaded at the same time, and a change to the judge
   doesn't mean running the agent again. The pass saves every 10 samples, so
   a rerun picks up where it stopped.
+- **A run can be resumed.** `assay run --resume` skips every finished
+  step and continues the rest under the same run id, after checking the
+  server, model digest and package versions still match what
+  `run_config.json` recorded. `assay judge` refuses a run that didn't finish.
 - **A judge failure stops the pass.** It's never recorded as "no refusal",
   which would quietly lower the refusal rate.
 - **Harmful text stays in the `.eval` logs.** `evidence.jsonl` holds only

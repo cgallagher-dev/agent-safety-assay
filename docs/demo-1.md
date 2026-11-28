@@ -4,8 +4,8 @@ How I run the Demo 1 demonstration, with the exact commands. There are two
 paths. The fixture needs no model and runs anywhere in a minute. The real
 path uses a small saved run of Qwen3.5 4B, judged by a local model.
 
-Everything here works on `main` before `assay run` exists (Week 10), so the
-real run is generated with Inspect directly.
+Demo 1 was run before `assay run` existed (Week 10), so the real run was
+generated with Inspect directly.
 
 ## Before you start
 
@@ -57,7 +57,13 @@ done
 ```
 
 None of these pairs need the run-time tool fixes that only the ASSAY runner
-applies. The grading patches apply inside `assay judge`, so they cover this
+applies. This is how the Demo 1 run was made. `assay run` now does the same
+in one command, with those fixes:
+
+```text
+assay run --profile qwen3.5-4b --modes on --pairs $PAIRS --judge gemma4-12b \
+  --out results/demo-1
+``` The grading patches apply inside `assay judge`, so they cover this
 run too.
 
 ### 2. Judge (about 15 minutes on an RTX 3060 Ti)
