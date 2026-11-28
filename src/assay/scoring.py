@@ -68,9 +68,19 @@ def score_logs(
     paths = sorted(results.rglob("*.eval"))
     if not paths:
         raise EvidenceError(f"No .eval logs under {results}. Is it a results directory?")
-    arms = {
-        path: arm_of(read_eval_log(str(path), header_only=True).eval.task, path) for path in paths
-    }
+    headers = {path: read_eval_log(str(path), header_only=True) for path in paths}
+    unfinished = [
+        f"{path.relative_to(results).as_posix()} ({header.status})"
+        for path, header in headers.items()
+        if header.status != "success"
+    ]
+    if unfinished:
+        # Judging part of a run would report it as if it were the whole run.
+        raise EvidenceError(
+            f"These logs are from a run that didn't finish: {', '.join(unfinished[:5])}. "
+            "Finish it with assay run --resume, then run assay judge."
+        )
+    arms = {path: arm_of(header.eval.task, path) for path, header in headers.items()}
     summaries = {path: read_eval_log_sample_summaries(str(path)) for path in paths}
     errored = [
         f"{path.relative_to(results).as_posix()}: {s.id}"

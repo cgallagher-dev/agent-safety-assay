@@ -49,7 +49,7 @@ def fake_graders(monkeypatch):
     monkeypatch.setattr(assay.scoring, "GRADING_MODULES", {"harmful": fake, "benign": fake})
 
 
-def write_log(path, task="agentharm_benign", samples=3, error_on=None):
+def write_log(path, task="agentharm_benign", samples=3, error_on=None, status="success"):
     spec = EvalSpec(
         created="2026-11-12T21:30:00+00:00",
         task=task,
@@ -59,6 +59,7 @@ def write_log(path, task="agentharm_benign", samples=3, error_on=None):
     )
     log = EvalLog(
         eval=spec,
+        status=status,
         samples=[
             EvalSample(
                 id=f"{n}-1",
@@ -168,6 +169,18 @@ def test_an_errored_sample_stops_the_pass_before_any_judging(tmp_path):
     judge = CountingJudge()
 
     with pytest.raises(EvidenceError, match=r"errored during the run.*harmful.eval: 2-1"):
+        score_logs(tmp_path, judge)
+
+    assert judge.calls == 0
+
+
+@pytest.mark.parametrize("status", ["started", "cancelled", "error"])
+def test_an_unfinished_log_stops_the_pass_before_any_judging(tmp_path, status):
+    write_log(tmp_path / "logs" / "benign.eval")
+    write_log(tmp_path / "logs" / "harmful.eval", task="inspect_evals/agentharm", status=status)
+    judge = CountingJudge()
+
+    with pytest.raises(EvidenceError, match=r"didn't finish.*harmful.eval.*--resume"):
         score_logs(tmp_path, judge)
 
     assert judge.calls == 0
