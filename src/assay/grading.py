@@ -116,6 +116,7 @@ def find_logs(results: Path, run_config: RunConfig) -> dict[Path, tuple[str, str
     """Each .eval log under results with its configuration, arm and repeat, from its path."""
     configurations = {name.replace("/", "-"): name for name in run_config.configurations}
     logs: dict[Path, tuple[str, str, int]] = {}
+    seen: set[tuple[tuple[str, str, int], str | None]] = set()
     for path in sorted(results.rglob("*.eval")):
         relative = path.relative_to(results).as_posix()
         match = LOG_PATH.fullmatch(relative)
@@ -125,11 +126,13 @@ def find_logs(results: Path, run_config: RunConfig) -> dict[Path, tuple[str, str
                 "run_config.json. Move it there or out of the results directory."
             )
         place = (configurations[match[1]], match[2], int(match[3]))
-        if place in logs.values():
+        split = (read_eval_log(str(path), header_only=True).eval.task_args or {}).get("split")
+        if (place, split) in seen:
             raise EvidenceError(
-                f"{relative} is a second log for the same arm and repeat. "
+                f"{relative} is a second log for the same arm, repeat and split. "
                 "Keep one of them in the results directory."
             )
+        seen.add((place, split))
         logs[path] = place
     return logs
 

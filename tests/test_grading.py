@@ -205,8 +205,9 @@ def write_logs(path, logs):
     """run_config.json for demo-small/off and a scored log at each relative path."""
     (path / "run_config.json").write_text(json.dumps(RUN_CONFIG))
     for relative, task in logs.items():
+        task, split = task if isinstance(task, tuple) else (task, "val")
         (path / relative).parent.mkdir(parents=True, exist_ok=True)
-        write_eval_log(eval_log(sample(), task=task), str(path / relative))
+        write_eval_log(eval_log(sample(), task=task, split=split), str(path / relative))
 
 
 def test_a_results_directory_becomes_evidence(tmp_path):
@@ -256,7 +257,21 @@ def test_a_log_that_does_not_fit_the_layout_raises(tmp_path, relative, task):
         grade_results(tmp_path)
 
 
-def test_a_second_log_for_the_same_arm_and_repeat_raises(tmp_path):
+def test_each_split_of_an_arm_and_repeat_has_its_own_log(tmp_path):
+    write_logs(
+        tmp_path,
+        {
+            "logs/demo-small-off/benign/repeat-1/a.eval": ("agentharm_benign", "test_public"),
+            "logs/demo-small-off/benign/repeat-1/b.eval": ("agentharm_benign", "val"),
+        },
+    )
+
+    records, _ = grade_results(tmp_path)
+
+    assert sorted(r.key for r in records) == ["test_public/8-1", "validation/8-1"]
+
+
+def test_a_second_log_for_the_same_split_raises(tmp_path):
     write_logs(
         tmp_path,
         {
@@ -265,7 +280,7 @@ def test_a_second_log_for_the_same_arm_and_repeat_raises(tmp_path):
         },
     )
 
-    with pytest.raises(EvidenceError, match="second log"):
+    with pytest.raises(EvidenceError, match="same arm, repeat and split"):
         grade_results(tmp_path)
 
 
